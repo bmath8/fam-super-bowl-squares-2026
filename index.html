@@ -90,6 +90,7 @@
     button {
       font-family: inherit;
       -webkit-appearance: none;
+      appearance: none;
       cursor: pointer;
       user-select: none;
     }
@@ -98,6 +99,7 @@
     select {
       font-family: inherit;
       -webkit-appearance: none;
+      appearance: none;
       font-size: 16px;
       color: #fff;
       background: rgba(0, 0, 0, 0.3);
@@ -154,6 +156,18 @@
       50% {
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
         border-color: rgba(255, 215, 0, 1);
+      }
+    }
+
+    @keyframes confettiDrop {
+      0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
       }
     }
 
@@ -666,6 +680,8 @@
         <button onClick={handleLeave} style={{ position: "fixed", bottom: 16, right: 16, padding: "8px 16px", borderRadius: 20, background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", backdropFilter: "blur(10px)" }}>Leave</button>
       </div>;
     }
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
   </script>
 </body>
 
