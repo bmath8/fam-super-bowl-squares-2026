@@ -235,6 +235,8 @@
     };
 
     // Utils
+    const lsGet = k => { try { return JSON.parse(localStorage.getItem("sb_" + k)); } catch { return null; } };
+    const lsSet = (k, v) => localStorage.setItem("sb_" + k, JSON.stringify(v));
     const shuffle09 = () => { const a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
     const hc = s => { let h = 0; for (let i = 0; i < s.length; i++)h = s.charCodeAt(i) + ((h << 5) - h); return `hsl(${h % 360},70%,55%)` };
     const ini = s => s.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
