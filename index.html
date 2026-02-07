@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Super Bowl LX Squares</title>
+  <meta name="description"
+    content="Super Bowl LX Squares — Seahawks vs Patriots. Real-time multiplayer game for your Super Bowl party!">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <link rel="apple-touch-icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SB Squares">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest"
+    href="data:application/json,%7B%22name%22%3A%22Super%20Bowl%20Squares%22%2C%22short_name%22%3A%22SB%20Squares%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0e17%22%2C%22theme_color%22%3A%22%230a0e17%22%7D">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(20, 20, 30, 0.6);
+      --glass-card: rgba(30, 35, 45, 0.5);
+      --glass-highlight: rgba(255, 255, 255, 0.05);
+      --neon-blue: #00f3ff;
+      --neon-pink: #bc13fe;
+      --neon-gold: #ffd700;
+      --safe-area-bottom: env(safe-area-inset-bottom);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    html {
+      height: -webkit-fill-available;
+      height: 100dvh;
+      background: #000;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+      overscroll-behavior: none;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      position: relative;
+      background: radial-gradient(circle at 50% 0%, #1a1f35 0%, #050505 100%);
+      color: #fff;
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: var(--glass-border);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-card {
+      background: var(--glass-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: var(--glass-border);
+      border-radius: 16px;
+    }
+
+    .neon-text {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    input:focus,
+    button:focus {
+      outline: none;
+    }
+
+    button {
+      font-family: inherit;
+      -webkit-appearance: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    input,
+    select {
+      font-family: inherit;
+      -webkit-appearance: none;
+      font-size: 16px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.3);
+      border: var(--glass-border);
+      border-radius: 12px;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -20px) scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+      }
+    }
+
+    @keyframes winGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        border-color: rgba(255, 215, 0, 0.5);
+      }
+
+      50% {
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        border-color: rgba(255, 215, 0, 1);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .safe-bottom {
+      padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    }
+
+    .scroll-hide::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+    /* ═══════════════════════════════════════════════════════════════
+       SUPER BOWL SQUARES — Live Distributed Edition
+       Configurable & Auto-Updating
+       ═══════════════════════════════════════════════════════════════ */
+
+    const DEFAULT_CONFIG = {
+      team1: { name: "Seahawks", abbrev: "SEA", color: "#002244", accent: "#69BE28" },
+      team2: { name: "Patriots", abbrev: "NE", color: "#002244", accent: "#C60C30" },
+      eventInfo: { title: "Super Bowl LX", sub: "Seahawks vs Patriots • Feb 8, 2026", time: new Date("2026-02-08T18:30:00-05:00").getTime() },
+      quarters: ["Q1", "Q2", "Q3", "Final"],
+      autoScore: true,
+      theme: "glass"
+    };
+
+    const PAYOUTS = {
+      even: { label: "Even Split (25%)", vals: [25, 25, 25, 25] },
+      progressive: { label: "Progressive", vals: [10, 20, 20, 50] },
+      heavy: { label: "Final Heavy", vals: [10, 15, 15, 60] }
+    };
+
+    const DIGIT_FREQ = { 0: 18.7, 1: 8.5, 2: 4.3, 3: 13.1, 4: 11.1, 5: 3.1, 6: 6.9, 7: 16.2, 8: 5.3, 9: 4.9 };
+    const SQ_EMOJIS = ["🔥", "💀", "🍀", "💎", "🎯", "😂"];
+    const AVATARS = ["😀", "😎", "🤠", "🦅", "🐻", "🦁", "🐶", "🐱", "🦊", "🐸", "🎅", "👻", "🤖", "🦸", "🧙", "💪", "🏈", "⭐", "🔥", "💎", "🍕", "🌮", "🍺", "🎸"];
+
+    const mkGrid = () => Array.from({ length: 10 }, () => Array(10).fill(null));
+
+    const DEFAULT_DATA = {
+      // Game State
+      config: DEFAULT_CONFIG,
+      grid: mkGrid(),
+      colNums: null, rowNums: null, isLocked: false,
+      scores: { team1: [null, null, null, null], team2: [null, null, null, null] },
+
+      // Settings
+      pool: { price: 10, splitName: "progressive", split: [10, 20, 20, 50], propPrice: 5 },
+      settings: { maxPerPlayer: 0, showHeatMap: false, reverseBonus: false, allowReshuffle: false },
+
+      // User Data
+      players: {}, // { name: { emoji: "X", paid: false } }
+      chat: [], feed: [], audit: [], trades: [],
+
+      // Props
+      props: [], // [{id, q, opts, cat, answer}] - dynamic now
+      userPicks: {}, // { user: { propId: opt } }
+
+      // Admin
+      hostPin: "",
+      zelle: { phone: "", email: "" },
+      roomCode: "",
+      createdAt: Date.now()
+    };
+
+    // Utils
+    const shuffle09 = () => { const a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const hc = s => { let h = 0; for (let i = 0; i < s.length; i++)h = s.charCodeAt(i) + ((h << 5) - h); return `hsl(${h % 360},70%,55%)` };
+    const ini = s => s.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    const ts = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const fmt$ = n => { const v = Number(n) || 0; return v >= 1000 ? "$" + (v / 1000).toFixed(1) + "k" : "$" + v };
+
+    // Sound (Safe play)
+    const playSound = (freq, dur) => { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = freq; g.gain.value = 0.08; o.start(); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur); o.stop(ctx.currentTime + dur); } catch { } };
+    const playClaimSound = () => { playSound(800, 0.1); setTimeout(() => playSound(1200, 0.1), 80) };
+    const playWinSound = () => { "TODO" }; // Placeholder for fancier sound logic if needed
+
+    const THEME = {
+      bg: "transparent",
+      card: "rgba(30, 35, 45, 0.6)",
+      border: "rgba(255,255,255,0.1)",
+      text: "#ffffff",
+      soft: "rgba(255,255,255,0.6)",
+      faint: "rgba(255,255,255,0.3)",
+      input: "rgba(0,0,0,0.3)",
+      header: "rgba(20,20,30,0.8)"
+    };
+
+    // ═══════ SETUP SCREEN (GLASS EDITION) ═══════
+    function SetupScreen({ onJoin }) {
+      const params = useMemo(() => new URLSearchParams(window.location.search), []);
+      const [mode, setMode] = useState(() => params.get("room") ? "join" : null);
+      const [fbUrl, setFbUrl] = useState(() => params.get("fb") || lsGet("fbUrl") || "");
+      const [roomCode, setRoomCode] = useState(() => (params.get("room") || lsGet("lastRoom") || "").toUpperCase());
+      const [name, setName] = useState(() => lsGet("myName") || "");
+      const [error, setError] = useState("");
+      const [testing, setTesting] = useState(false);
+
+      const connect = async () => {
+        if (!name.trim()) return setError("Enter your name!");
+        if (!fbUrl.trim()) return setError("Enter Firebase URL!");
+        const code = mode === "create" ? Math.random().toString(36).slice(2, 8).toUpperCase() : roomCode.trim().toUpperCase();
+        if (!code) return setError("Enter a room code!");
+
+        setError(""); setTesting(true);
+        try {
+          const url = fbUrl.trim().replace(/\/+$/, "");
+          if (!url.includes("firebase")) throw new Error("Invalid URL");
+
+          const app = firebase.initializeApp({ databaseURL: url }, "test_" + Date.now());
+          const db = firebase.database(app);
+          const ref = db.ref("rooms/" + code);
+
+          if (mode === "create") {
+            await ref.set({ ...DEFAULT_DATA, createdAt: Date.now() });
+          } else {
+            const snap = await ref.once("value");
+            if (!snap.exists()) throw new Error("Room not found");
+          }
+          await app.delete();
+          lsSet("fbUrl", url); lsSet("lastRoom", code); lsSet("myName", name.trim());
+          onJoin({ dbUrl: url, roomCode: code, playerName: name.trim(), isHost: mode === "create" });
+        } catch (e) {
+          console.error(e);
+          setError(e.message === "Invalid URL" ? "URL must contain 'firebase'" : "Connection failed. Check URL or Code.");
+          setTesting(false);
+        }
+      };
+
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          {/* Background Effects */}
+          <div style={{ position: "fixed", inset: 0, zIndex: -1 }}>
+            <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "60%", height: "60%", background: DEFAULT_CONFIG.team1.color, filter: "blur(120px)", opacity: 0.4, borderRadius: "50%" }} />
+            <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: "60%", height: "60%", background: DEFAULT_CONFIG.team2.color, filter: "blur(120px)", opacity: 0.4, borderRadius: "50%" }} />
+          </div>
+
+          <div className="glass-panel" style={{ maxWidth: 420, width: "100%", borderRadius: 24, padding: 32, animation: "fadeIn .8s ease" }}>
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ fontSize: 64, marginBottom: 16, filter: "drop-shadow(0 0 20px rgba(255,255,255,0.2))" }}>🏈</div>
+              <h1 className="neon-text" style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: -1 }}>Super Bowl Squares</h1>
+              <p style={{ margin: "8px 0 0", fontSize: 14, color: "rgba(255,255,255,0.6)" }}>{DEFAULT_CONFIG.eventInfo.sub}</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8, paddingLeft: 4 }}>YOUR NAME</label>
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Tom Brady" maxLength={20}
+                  style={{ width: "100%", padding: "16px", background: "rgba(0,0,0,0.3)", color: "#fff", border: THEME.border, fontSize: 18, fontWeight: 700 }} />
+              </div>
+
+              {!mode && (
+                <div style={{ animation: "slideUp .3s ease" }}>
+                  <div style={{ marginBottom: 20, padding: 16, background: "rgba(0,0,0,0.2)", borderRadius: 16, border: THEME.border }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>FIREBASE URL</label>
+                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://your-project.firebaseio.com"
+                      style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", fontSize: 13, fontFamily: "monospace" }} />
+                    <div style={{ fontSize: 11, color: THEME.faint, marginTop: 8, lineHeight: 1.4 }}>
+                      Setup a free <strong>Realtime Database</strong> at <a href="https://console.firebase.google.com" target="_blank" style={{ color: DEFAULT_CONFIG.team1.accent }}>firebase.com</a>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <button onClick={() => setMode("create")} style={{ padding: "16px", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${DEFAULT_CONFIG.team1.accent}, ${DEFAULT_CONFIG.team2.accent})`, color: "#fff", fontWeight: 800, fontSize: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>Host Game</button>
+                    <button onClick={() => setMode("join")} style={{ padding: "16px", borderRadius: 14, border: THEME.border, background: "rgba(255,255,255,0.05)", color: "#fff", fontWeight: 800, fontSize: 16 }}>Join Game</button>
+                  </div>
+                </div>
+              )}
+
+              {mode === "join" && (
+                <div style={{ animation: "slideUp .3s ease" }}>
+                  {!params.get("fb") && <div style={{ marginBottom: 16 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>DATABASE URL</label>
+                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://..." style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.3)", border: THEME.border }} />
+                  </div>}
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>ROOM CODE</label>
+                    <input value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} placeholder="AAAAAA" maxLength={6}
+                      style={{ width: "100%", padding: "16px", background: "rgba(0,0,0,0.3)", color: "#fff", border: THEME.border, fontSize: 28, fontWeight: 800, textAlign: "center", letterSpacing: 8, textTransform: "uppercase" }} />
+                  </div>
+                  <button onClick={connect} disabled={testing} style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", background: "#fff", color: "#000", fontWeight: 800, fontSize: 16, opacity: testing ? 0.7 : 1 }}>{testing ? "Connecting..." : "Enter Game"}</button>
+                  <button onClick={() => setMode(null)} style={{ width: "100%", padding: "12px", background: "transparent", border: "none", color: THEME.soft, fontSize: 13, marginTop: 8 }}>Cancel</button>
+                </div>
+              )}
+
+              {mode === "create" && (
+                <div style={{ animation: "slideUp .3s ease" }}>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>DATABASE URL</label>
+                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://..." style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.3)", border: THEME.border }} />
+                  </div>
+                  <button onClick={connect} disabled={testing} style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", background: "#fff", color: "#000", fontWeight: 800, fontSize: 16, opacity: testing ? 0.7 : 1 }}>{testing ? "Creating..." : "Launch Room"}</button>
+                  <button onClick={() => setMode(null)} style={{ width: "100%", padding: "12px", background: "transparent", border: "none", color: THEME.soft, fontSize: 13, marginTop: 8 }}>Cancel</button>
+                </div>
+              )}
+
+              {error && <div style={{ padding: "12px", borderRadius: 10, background: "rgba(255, 68, 68, 0.15)", border: "1px solid rgba(255, 68, 68, 0.3)", color: "#ff6b6b", fontSize: 13, fontWeight: 600, textAlign: "center", animation: "pulse .5s" }}>⚠️ {error}</div>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // ═══════ Confetti ═══════
+    function Confetti({ active }) {
+      if (!active) return null;
+      return <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999, overflow: "hidden" }}>
+        {Array.from({ length: 50 }).map((_, i) => <div key={i} style={{ position: "absolute", width: 8 + Math.random() * 8, height: 8 + Math.random() * 8, background: [DEFAULT_CONFIG.team1.accent, DEFAULT_CONFIG.team2.accent, "#FFD700", "#3DB2FF", "#fff"][i % 5], borderRadius: Math.random() > .5 ? "50%" : "2px", left: Math.random() * 100 + "%", top: -20, animation: `confettiDrop ${2 + Math.random() * 3}s linear ${Math.random() * 2}s forwards` }} />)}
+      </div>;
+    }
+
+    function CountdownTimer({ T }) {
+      const { config } = DEFAULT_DATA; // Use default for initial render if needed
+      const [now, setNow] = useState(Date.now());
+      useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(iv) }, []);
+      const diff = config.eventInfo.time - now; if (diff <= 0) return null;
+      const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+      return <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "0 0 12px" }}>
+        {[{ v: d, l: "D" }, { v: h, l: "H" }, { v: m, l: "M" }, { v: s, l: "S" }].map(u =>
+          <div key={u.l} style={{ textAlign: "center", padding: "6px 10px", background: T.card, borderRadius: 10, border: "1px solid " + T.border, minWidth: 46 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{String(u.v).padStart(2, "0")}</div>
+            <div style={{ fontSize: 8, fontWeight: 700, color: T.faint, letterSpacing: 2 }}>{u.l}</div>
+          </div>)}
+      </div>;
+    }
+
+    // ═══════ MAIN APP ═══════
+    function GameApp({ dbUrl, roomCode, playerName: initialName, isHost: wasHost }) {
+      const dbRef = useRef(null);
+      const [data, setData] = useState(DEFAULT_DATA);
+      const [connected, setConnected] = useState(false);
+      const [activeName, setActiveName] = useState(initialName);
+      const [tab, setTab] = useState("board");
+      const [toast, setToast] = useState(null);
+      const toastTimer = useRef(null);
+      const [selectedCell, setSelectedCell] = useState(null);
+      const [confetti, setConfetti] = useState(false);
+
+      // Modals & UI State
+      const [showSettings, setShowSettings] = useState(false);
+      const [showRules, setShowRules] = useState(false);
+      const [showAudit, setShowAudit] = useState(false);
+      const [showOdds, setShowOdds] = useState(false);
+      const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+      const [squareModal, setSquareModal] = useState(null);
+      const [showSqReactions, setShowSqReactions] = useState(null);
+      const [showPinModal, setShowPinModal] = useState(false);
+      const [editingConfig, setEditingConfig] = useState(null);
+
+      // Input State
+      const [chatMsg, setChatMsg] = useState("");
+      const [pinInput, setPinInput] = useState("");
+      const [pendingHostAction, setPendingHostAction] = useState(null);
+      const [hostVerified, setHostVerified] = useState(wasHost);
+      const [propMode, setPropMode] = useState("pick");
+      const [tradeTarget, setTradeTarget] = useState(null);
+      const [longPressTimer, setLongPressTimer] = useState(null);
+      const skipNextUpdate = useRef(false);
+
+      // Computed & Config (Safe defaults for undefined)
+      const config = { ...DEFAULT_CONFIG, ...(data.config || {}) };
+      const { team1, team2 } = config;
+      const grid = data.grid || mkGrid();
+      const { colNums, rowNums, isLocked, scores, pool, settings, feed, players, props: dynProps, userPicks, chat, audit, trades } = { ...DEFAULT_DATA, ...data };
+
+      // Scoring Safety
+      const s1 = scores.team1 || [null, null, null, null];
+      const s2 = scores.team2 || [null, null, null, null];
+
+      const showToast = msg => { if (toastTimer.current) clearTimeout(toastTimer.current); setToast(msg); toastTimer.current = setTimeout(() => { setToast(null); toastTimer.current = null }, 2800); };
+
+      // Firebase connection
+      useEffect(() => {
+        try {
+          const app = firebase.initializeApp({ databaseURL: dbUrl }, "game_" + roomCode);
+          const db = firebase.database(app);
+          const ref = db.ref("rooms/" + roomCode);
+          dbRef.current = ref;
+          ref.on("value", snap => {
+            if (skipNextUpdate.current) { skipNextUpdate.current = false; return; }
+            const val = snap.val();
+            if (val) setData({ ...DEFAULT_DATA, ...val });
+            setConnected(true);
+          });
+          ref.child(".info/connected");
+          return () => { ref.off(); app.delete().catch(() => { }); };
+        } catch (e) { console.error("Firebase error:", e); }
+      }, [dbUrl, roomCode]);
+
+      // Write to Firebase
+      const fbWrite = useCallback((newData) => {
+        if (!dbRef.current) return;
+        const clean = { ...newData };
+        Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+        dbRef.current.update(clean).catch(e => { console.error("Write error:", e); showToast("⚠️ Sync error"); });
+      }, []);
+
+      const update = useCallback((fn) => {
+        setData(prev => {
+          const next = fn(prev);
+          fbWrite(next);
+          return next;
+        });
+      }, [fbWrite]);
+
+      // Distributed Auto-Scoring
+      useEffect(() => {
+        if (!config.autoScore || !connected) return;
+        const fetchScores = async () => {
+          try {
+            const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
+            const json = await res.json();
+            // Find game by Team Abbrev OR hardcoded Super Bowl check
+            let game = json.events?.find(e => e.shortName.toUpperCase().includes("SB") && e.date.includes("2026"));
+            if (!game) game = json.events?.find(e => e.competitions[0].competitors.some(c => c.team.abbreviation === team1.abbrev));
+
+            if (game) {
+              const comp = game.competitions[0];
+              const t1Data = comp.competitors.find(c => c.team.abbreviation === team1.abbrev);
+              const t2Data = comp.competitors.find(c => c.team.abbreviation === team2.abbrev);
+
+              if (t1Data && t2Data) {
+                const getQ = (t, i) => { const v = t.linescores?.[i]?.value; return v !== undefined ? Number(v) : null; };
+                // Q1..Q3, Total. If OT exists, handle manually for now or use total
+                const newS1 = [getQ(t1Data, 0), getQ(t1Data, 1), getQ(t1Data, 2), Number(t1Data.score)];
+                const newS2 = [getQ(t2Data, 0), getQ(t2Data, 1), getQ(t2Data, 2), Number(t2Data.score)];
+
+                const curS1 = scores.team1 || [];
+                const curS2 = scores.team2 || [];
+
+                // Only update if changed
+                if (JSON.stringify(newS1) !== JSON.stringify(curS1) || JSON.stringify(newS2) !== JSON.stringify(curS2)) {
+                  update(d => ({ ...d, scores: { team1: newS1, team2: newS2 } }));
+                  showToast("⚡ Scores updated via ESPN!");
+                }
+              }
+            }
+          } catch (e) { /* silent fail */ }
+        };
+        const iv = setInterval(fetchScores, 60000); // Check every 60s
+        // Don't auto-fetch immediately to avoid flicker on load
+        return () => clearInterval(iv);
+      }, [config.autoScore, connected, team1.abbrev, team2.abbrev, scores]);
+
+      // Game Logic Helpers
+      const isAdmin = hostVerified;
+      const hostAction = fn => { if (!config.hostPin || isAdmin) fn(); else { setShowPinModal(true); setPendingHostAction(() => fn); } };
+      const verifyPin = () => { if (pinInput === config.hostPin) { setHostVerified(true); setShowPinModal(false); setPinInput(""); if (pendingHostAction) pendingHostAction(); showToast("🔓 Host access!"); } else { showToast("❌ Wrong PIN"); setPinInput(""); } };
+
+      const getWinner = (qi) => {
+        if (!colNums || !rowNums) return null;
+        const v1 = s1[qi], v2 = s2[qi];
+        if (v1 === null || v2 === null) return null;
+        const d1 = v1 % 10, d2 = v2 % 10;
+        const c = colNums.indexOf(d1), r = rowNums.indexOf(d2);
+        return { r, c, name: grid[r]?.[c] || "Unclaimed", d1, d2 };
+      };
+
+      const handleClaim = (r, c) => {
+        if (!activeName) { showToast("Enter your name!"); return; }
+        if (grid[r][c]) return;
+        if (settings.maxPerPlayer > 0) { const cnt = grid.flat().filter(n => n === activeName).length; if (cnt >= settings.maxPerPlayer) { showToast("Max " + settings.maxPerPlayer + "!"); return; } }
+        playClaimSound();
+        update(d => {
+          const g = d.grid.map(row => [...row]); g[r][c] = activeName;
+          return { ...d, grid: g, audit: [...(d.audit || []), { action: `Claimed [${r},${c}]`, who: activeName, time: ts() }] };
+        });
+      };
+
+      const getEmoji = name => { try { return (data.playerMeta || {})[name]?.emoji || null; } catch { return null; } };
+
+      const playersList = [...new Set(grid.flat().filter(Boolean))];
+      const claimed = grid.flat().filter(Boolean).length;
+      const fullPot = 100 * pool.price;
+      const totalPot = claimed * pool.price;
+
+      const lockBoard = () => update(d => ({ ...d, colNums: shuffle09(), rowNums: shuffle09(), isLocked: true }));
+
+      if (!connected) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}><div className="neon-text" style={{ fontSize: 24 }}>CONNECTING...</div></div>;
+
+      return (
+        <div style={{ paddingBottom: 80 }}>
+          {confetti && <Confetti active={true} />}
+          {toast && <div className="glass-card" style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 999, padding: "12px 24px", animation: "toastIn .3s ease" }}>{toast}</div>}
+
+          {/* PIN Modal */}
+          {showPinModal && <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}><div className="glass-card" style={{ padding: 24, textAlign: "center" }}><div style={{ fontSize: 32, marginBottom: 12 }}>🔒</div><div style={{ marginBottom: 12 }}>Enter Host PIN</div><input type="password" value={pinInput} onChange={e => setPinInput(e.target.value)} style={{ width: "100%", padding: 12, textAlign: "center", letterSpacing: 8, fontSize: 24, marginBottom: 12 }} /><button onClick={verifyPin} style={{ padding: "12px 24px", borderRadius: 12, border: "none", background: team1.accent, color: "#fff", fontWeight: 800 }}>Unlock</button><button onClick={() => setShowPinModal(false)} style={{ marginTop: 12, background: "transparent", color: "#fff", border: "none", display: "block", width: "100%" }}>Cancel</button></div></div>}
+
+          {/* Header */}
+          <div className="glass-panel" style={{ position: "sticky", top: 0, zIndex: 100, padding: "12px 16px", backdropFilter: "blur(20px)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 600, margin: "0 auto" }}>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, fontWeight: 700, color: team1.accent }}>{team1.abbrev}</div><div style={{ fontSize: 20, fontWeight: 800 }}>{s1.filter(a => a !== null).pop() ?? 0}</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, opacity: 0.6 }}>{config.eventInfo.sub}</div><div className="neon-text" style={{ fontSize: 16, fontWeight: 800 }}>VS</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, fontWeight: 700, color: team2.accent }}>{team2.abbrev}</div><div style={{ fontSize: 20, fontWeight: 800 }}>{s2.filter(a => a !== null).pop() ?? 0}</div></div>
+            </div>
+          </div>
+
+          <div style={{ maxWidth: 600, margin: "0 auto", padding: 12 }}>
+            <CountdownTimer T={THEME} />
+
+            {/* Config Editor (Admin) */}
+            {editingConfig && <div className="glass-card" style={{ padding: 16, marginBottom: 16 }}>
+              <h3>🛠 Game Config</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <input value={config.team1.name} onChange={e => update(d => ({ ...d, config: { ...d.config, team1: { ...d.config.team1, name: e.target.value } } }))} placeholder="Team 1 Name" />
+                <input value={config.team1.abbrev} onChange={e => update(d => ({ ...d, config: { ...d.config, team1: { ...d.config.team1, abbrev: e.target.value } } }))} placeholder="Team 1 Abrv" />
+                <input value={config.team2.name} onChange={e => update(d => ({ ...d, config: { ...d.config, team2: { ...d.config.team2, name: e.target.value } } }))} placeholder="Team 2 Name" />
+                <input value={config.team2.abbrev} onChange={e => update(d => ({ ...d, config: { ...d.config, team2: { ...d.config.team2, abbrev: e.target.value } } }))} placeholder="Team 2 Abrv" />
+              </div>
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                <input type="checkbox" checked={config.autoScore} onChange={e => update(d => ({ ...d, config: { ...d.config, autoScore: e.target.checked } }))} />
+                <label>Auto-Score (ESPN)</label>
+              </div>
+              <button onClick={() => setEditingConfig(false)} style={{ marginTop: 12, width: "100%", padding: 10, background: team1.accent, border: "none", borderRadius: 8, color: "#fff" }}>Done</button>
+            </div>}
+
+            {/* Tabs */}
+            <div className="glass-card" style={{ display: "flex", padding: 4, marginBottom: 16 }}>
+              {[{ id: "board", l: "Grid" }, { id: "scores", l: "Scores" }, { id: "admin", l: "Settings" }].map(t =>
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: 10, borderRadius: 12, background: tab === t.id ? "rgba(255,255,255,0.1)" : "transparent", border: "none", color: "#fff", fontWeight: 700 }}>{t.l}</button>
+              )}
+            </div>
+
+            {/* BOARD */}
+            {tab === "board" && <div>
+              {/* Input Name */}
+              {!isLocked && <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <input value={activeName} onChange={e => setActiveName(e.target.value)} placeholder="Enter Name..." style={{ flex: 1, padding: 12 }} />
+                {activeName && <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ padding: 12, width: 48, borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 20 }}>{getEmoji(activeName) || "😀"}</button>}
+              </div>}
+
+              {/* Grid */}
+              <div style={{ overflowX: "auto" }}>
+                <div style={{ minWidth: 360 }}>
+                  {/* Axis X */}
+                  <div style={{ display: "grid", gridTemplateColumns: "36px repeat(10,1fr)", gap: 2, marginBottom: 2 }}>
+                    <div />
+                    {Array.from({ length: 10 }).map((_, i) =>
+                      <div key={i} style={{ textAlign: "center", padding: 4, fontSize: 12, fontWeight: 800, color: team1.accent }}>{colNums ? colNums[i] : "?"}</div>
+                    )}
+                  </div>
+                  {/* Rows */}
+                  {Array.from({ length: 10 }).map((_, r) =>
+                    <div key={r} style={{ display: "grid", gridTemplateColumns: "36px repeat(10,1fr)", gap: 2, marginBottom: 2 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: team2.accent }}>{rowNums ? rowNums[r] : "?"}</div>
+                      {Array.from({ length: 10 }).map((_, c) => {
+                        const owner = grid[r][c];
+                        const isMe = owner === activeName;
+                        const bg = owner ? hc(owner) : "rgba(255,255,255,0.05)";
+                        return <div key={c} onClick={() => !isLocked && handleClaim(r, c)} style={{ aspectRatio: "1", background: owner ? bg + "40" : bg, border: owner ? `1px solid ${bg}` : "1px solid rgba(255,255,255,0.1)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff", cursor: "pointer" }}>
+                          {owner ? ini(owner) : ""}
+                        </div>
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {!isLocked && claimed > 0 && <button onClick={() => hostAction(lockBoard)} style={{ width: "100%", marginTop: 16, padding: 16, background: team1.accent, color: "#fff", border: "none", borderRadius: 12, fontWeight: 800 }}>Lock & Assign Numbers</button>}
+            </div>}
+
+            {/* SCORES */}
+            {tab === "scores" && <div>
+              <div className="glass-card" style={{ padding: 16, marginBottom: 16 }}>
+                <h3>Live Feed</h3>
+                {audit && audit.map((a, i) => <div key={i} style={{ fontSize: 12, padding: 4, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>{a.time} - {a.who}: {a.action}</div>)}
+              </div>
+              <div className="glass-card" style={{ padding: 16 }}>
+                <h3>Payouts</h3>
+                {config.quarters.map((q, i) => <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: 8 }}>
+                  <span>{q}</span><span>{pool.split[i]}% ({fmt$(fullPot * pool.split[i] / 100)})</span>
+                </div>)}
+              </div>
+            </div>}
+
+            {/* ADMIN */}
+            {tab === "admin" && <div>
+              <button onClick={() => hostAction(() => setEditingConfig(true))} style={{ width: "100%", padding: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, color: "#fff", marginBottom: 12 }}>Edit Teams & Config</button>
+            </div>}
+
+          </div>
+        </div>
+      );
+    }
+    // ═══════ ROOT ═══════
+    function App() {
+      const [session, setSession] = useState(lsGet("session") || null);
+      const handleJoin = (s) => { lsSet("session", s); setSession(s); };
+      const handleLeave = () => { lsSet("session", null); setSession(null); };
+
+      if (!session) return <SetupScreen onJoin={handleJoin} />;
+      return <div>
+        <GameApp {...session} />
+        <button onClick={handleLeave} style={{ position: "fixed", bottom: 16, right: 16, padding: "8px 16px", borderRadius: 20, background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", backdropFilter: "blur(10px)" }}>Leave</button>
+      </div>;
+    }
+  </script>
+</body>
+
+</html>
