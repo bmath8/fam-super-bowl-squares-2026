@@ -277,7 +277,7 @@
     function SetupScreen({ onJoin }) {
       const params = useMemo(() => new URLSearchParams(window.location.search), []);
       const [mode, setMode] = useState(() => params.get("room") ? "join" : null);
-      const [fbUrl, setFbUrl] = useState(() => params.get("fb") || lsGet("fbUrl") || "");
+      const [fbUrl] = useState("https://super-bowl-squares-2026-default-rtdb.firebaseio.com/");
       const [roomCode, setRoomCode] = useState(() => (params.get("room") || lsGet("lastRoom") || "").toUpperCase());
       const [name, setName] = useState(() => lsGet("myName") || "");
       const [error, setError] = useState("");
@@ -285,15 +285,12 @@
 
       const connect = async () => {
         if (!name.trim()) return setError("Enter your name!");
-        if (!fbUrl.trim()) return setError("Enter Firebase URL!");
         const code = mode === "create" ? Math.random().toString(36).slice(2, 8).toUpperCase() : roomCode.trim().toUpperCase();
         if (!code) return setError("Enter a room code!");
 
         setError(""); setTesting(true);
         try {
-          const url = fbUrl.trim().replace(/\/+$/, "");
-          if (!url.includes("firebase")) throw new Error("Invalid URL");
-
+          const url = fbUrl;
           const app = firebase.initializeApp({ databaseURL: url }, "test_" + Date.now());
           const db = firebase.database(app);
           const ref = db.ref("rooms/" + code);
@@ -305,11 +302,11 @@
             if (!snap.exists()) throw new Error("Room not found");
           }
           await app.delete();
-          lsSet("fbUrl", url); lsSet("lastRoom", code); lsSet("myName", name.trim());
+          lsSet("lastRoom", code); lsSet("myName", name.trim());
           onJoin({ dbUrl: url, roomCode: code, playerName: name.trim(), isHost: mode === "create" });
         } catch (e) {
           console.error(e);
-          setError(e.message === "Invalid URL" ? "URL must contain 'firebase'" : "Connection failed. Check URL or Code.");
+          setError("Connection failed. Check Code.");
           setTesting(false);
         }
       };
@@ -340,12 +337,6 @@
                 <div style={{ animation: "slideUp .3s ease" }}>
                   <div style={{ marginBottom: 20, padding: 16, background: "rgba(0,0,0,0.2)", borderRadius: 16, border: THEME.border }}>
                     <div style={{ textAlign: "center", fontSize: 9, letterSpacing: 4, color: THEME.soft, fontWeight: 600, marginBottom: 8 }}>SUPER BOWL LX • FEB 8, 2026 • v2.0</div>
-                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>FIREBASE URL</label>
-                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://your-project.firebaseio.com"
-                      style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", fontSize: 13, fontFamily: "monospace" }} />
-                    <div style={{ fontSize: 11, color: THEME.faint, marginTop: 8, lineHeight: 1.4 }}>
-                      Setup a free <strong>Realtime Database</strong> at <a href="https://console.firebase.google.com" target="_blank" style={{ color: DEFAULT_CONFIG.team1.accent }}>firebase.com</a>
-                    </div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <button onClick={() => setMode("create")} style={{ padding: "16px", borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${DEFAULT_CONFIG.team1.accent}, ${DEFAULT_CONFIG.team2.accent})`, color: "#fff", fontWeight: 800, fontSize: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>Host Game</button>
@@ -356,10 +347,6 @@
 
               {mode === "join" && (
                 <div style={{ animation: "slideUp .3s ease" }}>
-                  {!params.get("fb") && <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>DATABASE URL</label>
-                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://..." style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.3)", border: THEME.border }} />
-                  </div>}
                   <div style={{ marginBottom: 20 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>ROOM CODE</label>
                     <input value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} placeholder="AAAAAA" maxLength={6}
@@ -372,10 +359,7 @@
 
               {mode === "create" && (
                 <div style={{ animation: "slideUp .3s ease" }}>
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: THEME.soft, display: "block", marginBottom: 8 }}>DATABASE URL</label>
-                    <input value={fbUrl} onChange={e => setFbUrl(e.target.value)} placeholder="https://..." style={{ width: "100%", padding: "12px", background: "rgba(0,0,0,0.3)", border: THEME.border }} />
-                  </div>
+                  <p style={{ textAlign: "center", fontSize: 13, color: THEME.soft, marginBottom: 16 }}>Creating a new game room...</p>
                   <button onClick={connect} disabled={testing} style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", background: "#fff", color: "#000", fontWeight: 800, fontSize: 16, opacity: testing ? 0.7 : 1 }}>{testing ? "Creating..." : "Launch Room"}</button>
                   <button onClick={() => setMode(null)} style={{ width: "100%", padding: "12px", background: "transparent", border: "none", color: THEME.soft, fontSize: 13, marginTop: 8 }}>Cancel</button>
                 </div>
