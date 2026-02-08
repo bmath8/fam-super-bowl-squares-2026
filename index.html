@@ -906,14 +906,18 @@
         updates["grid/" + r + "/" + c] = myName;
         updates["feed"] = addFeed(data, myName, "claimed square [" + r + "," + c + "]");
 
+        alert("About to update Firebase with: " + JSON.stringify(updates).substring(0, 100));
+
         dbr.update(updates)
           .then(() => {
+            alert("SUCCESS! Firebase updated for cell [" + r + "," + c + "]");
             console.log("Firebase update SUCCESS for cell", r, c);
             playSound("claim");
             toast("✅ " + myName + " claimed [" + r + "," + c + "]!");
             if (navigator.vibrate) navigator.vibrate(50);
           })
           .catch(err => {
+            alert("FAILED! Error: " + err.message);
             console.error("Firebase update FAILED:", err);
             toast("❌ Failed: " + err.message);
           });
