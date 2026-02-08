@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -20,9 +21,12 @@
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: #0a0e17;
       color: #fff;
+      font-weight: 600;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     input:focus {
@@ -872,9 +876,9 @@
             <CountdownTimer T={T} />
 
             {/* Toolbar */}
-            <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "0 0 12px" }}>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "0 0 14px" }}>
               {[{ l: "Share", i: "📤", fn: handleShare }, ...(isAdmin || !hostPin ? [{ l: "Settings", i: "⚙️", fn: () => setShowSettings(!showSettings), a: showSettings }] : [{ l: "Settings", i: "🔒", fn: () => { setShowPinModal(true); setPendingHostAction(() => () => setShowSettings(true)); } }]), { l: "Rules", i: "📖", fn: () => setShowRules(!showRules), a: showRules }].map(b => (
-                <button key={b.l} onClick={b.fn} style={{ padding: "8px 16px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 12, fontWeight: 700, background: b.a ? NAV : T.card, color: b.a ? "#fff" : T.textSoft }}>{b.i} {b.l}</button>
+                <button key={b.l} onClick={b.fn} style={{ padding: "10px 20px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 14, fontWeight: 800, background: b.a ? NAV : T.card, color: b.a ? "#fff" : T.textSoft, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>{b.i} {b.l}</button>
               ))}
             </div>
 
@@ -1003,17 +1007,17 @@
             )}
 
             {/* Progress */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4, color: T.textSoft, fontWeight: 600 }}><span>{claimed}/100</span><span>{players.length} player{players.length !== 1 ? "s" : ""}</span></div>
-              <div style={{ height: 8, borderRadius: 99, background: T.cardBorder, overflow: "hidden" }}>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 6, color: T.textSoft, fontWeight: 700 }}><span>{claimed}/100 squares</span><span>{players.length} player{players.length !== 1 ? "s" : ""}</span></div>
+              <div style={{ height: 10, borderRadius: 99, background: T.cardBorder, overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 99, transition: "width .8s", width: claimed + "%", background: claimed >= 100 ? "linear-gradient(90deg," + SEA + ",#FFB400," + NER + ")" : "linear-gradient(90deg," + SEA + "," + NAV + ")" }} />
               </div>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 0, marginBottom: 14, background: T.card, borderRadius: 14, overflow: "hidden", border: "2px solid " + T.cardBorder }}>
+            <div style={{ display: "flex", gap: 0, marginBottom: 16, background: T.card, borderRadius: 16, overflow: "hidden", border: "2px solid " + T.cardBorder, boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
               {[{ id: "board", label: "Board", icon: "🏈", color: SEA }, { id: "scores", label: "Scores", icon: "📊", color: NER }, { id: "props", label: "Props", icon: "🎲", color: "#FFB400" }, { id: "chat", label: "Chat", icon: "💬", color: "#3DB2FF" }, { id: "pay", label: "Pay", icon: "💰", color: SEA }].map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "10px 0", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", background: tab === t.id ? t.color : T.card, color: tab === t.id ? "#fff" : T.textSoft, transition: "all .2s" }}>{t.icon}<br /><span style={{ fontSize: 10 }}>{t.label}</span></button>
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "12px 0", border: "none", fontSize: 18, fontWeight: 800, cursor: "pointer", background: tab === t.id ? t.color : T.card, color: tab === t.id ? "#fff" : T.textSoft, transition: "all .2s", textShadow: tab === t.id ? "0 1px 3px rgba(0,0,0,0.3)" : "none" }}>{t.icon}<br /><span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5 }}>{t.label}</span></button>
               ))}
             </div>
 
