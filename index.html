@@ -878,15 +878,20 @@
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
+        // VISUAL FEEDBACK: Show alert to confirm click is working
+        alert("Tapped square [" + r + "," + c + "]! Name: " + myName + " | Connected: " + !!dbr);
+
         console.log("claimSquare:", { r, c, myName, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
 
         // Validate inputs
         if (!myName || myName.trim() === "") {
+          alert("ERROR: No name set! Please refresh the page.");
           toast("❌ No name set! Refresh page.");
           console.error("myName is empty:", myName);
           return;
         }
         if (!dbr) {
+          alert("ERROR: Not connected to Firebase yet. Wait and try again.");
           toast("⏳ Connecting to Firebase...");
           console.error("dbr is null");
           return;
