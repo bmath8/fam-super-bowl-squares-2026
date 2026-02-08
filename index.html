@@ -1126,67 +1126,127 @@
                 )}
 
                 {/* THE GRID */}
-                <div style={{ overflowX: "auto", paddingBottom: 8 }}>
-                  <div style={{ minWidth: 520 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
-                      <div /><div style={{ gridColumn: "2 / -1", textAlign: "center", fontSize: 16, fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: 6, color: SEA, padding: "8px 0", textShadow: "0 0 15px " + SEA + "40" }}>🦅 SEAHAWKS 🦅</div>
+                <div style={{ overflowX: "auto", paddingBottom: 12 }}>
+                  <div style={{ minWidth: 540, display: "flex", gap: 8, alignItems: "stretch" }}>
+
+                    {/* LEFT SIDE: PATRIOTS */}
+                    <div style={{
+                      writingMode: "vertical-rl",
+                      transform: "rotate(180deg)",
+                      textAlign: "center",
+                      fontSize: 20,
+                      fontFamily: "'Oswald', sans-serif",
+                      fontWeight: 700,
+                      letterSpacing: 8,
+                      color: NER,
+                      padding: "48px 8px 0", /* Offset for top titles */
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textShadow: "0 0 15px " + NER + "40"
+                    }}>
+                      🪖 PATRIOTS 🪖
                     </div>
-                    {/* Left side PATRIOTS label in first row header */}
-                    <div style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
-                      <div style={{ background: NER + "15", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: 1, color: NER, padding: "4px 2px", textAlign: "center", lineHeight: 1.2, textShadow: "0 0 10px " + NER + "40" }}>🎖️<br />NE</div>
-                      <div style={{ gridColumn: "2 / -1", display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 3 }}>
+
+                    <div style={{ flex: 1 }}>
+                      {/* TOP: SEAHAWKS */}
+                      <div style={{ display: "grid", gridTemplateColumns: "52px repeat(10, 1fr)", gap: 4, marginBottom: 4 }}>
+                        <div />
+                        <div style={{
+                          gridColumn: "2 / -1",
+                          textAlign: "center",
+                          fontSize: 20,
+                          fontFamily: "'Oswald', sans-serif",
+                          fontWeight: 700,
+                          letterSpacing: 8,
+                          color: SEA,
+                          padding: "8px 0",
+                          textShadow: "0 0 15px " + SEA + "40"
+                        }}>
+                          🦅 SEAHAWKS 🦅
+                        </div>
+                      </div>
+
+                      {/* COL NUMBERS */}
+                      <div style={{ display: "grid", gridTemplateColumns: "52px repeat(10, 1fr)", gap: 4, marginBottom: 4 }}>
+                        <div style={{ background: T.cardBorder + "20", borderRadius: 8 }} />
                         {Array.from({ length: 10 }).map((_, c) => (
-                          <div key={c} style={{ background: isLocked ? SEA + "25" : T.cardBorder, borderRadius: 8, padding: "8px 0", textAlign: "center", fontSize: isLocked ? 20 : 16, fontFamily: "'Oswald', sans-serif", fontWeight: 600, color: isLocked ? SEA : T.textFaint }}>{isLocked && colNums ? colNums[c] : "?"}</div>
+                          <div key={c} style={{
+                            background: isLocked ? SEA + "25" : T.cardBorder,
+                            borderRadius: 8,
+                            padding: "10px 0",
+                            textAlign: "center",
+                            fontSize: isLocked ? 22 : 16,
+                            fontFamily: "'Oswald', sans-serif",
+                            fontWeight: 600,
+                            color: isLocked ? SEA : T.textFaint
+                          }}>
+                            {isLocked && colNums ? colNums[c] : "?"}
+                          </div>
                         ))}
                       </div>
+
+                      {/* GRID ROWS */}
+                      {Array.from({ length: 10 }).map((_, r) => (
+                        <div key={r} style={{ display: "grid", gridTemplateColumns: "52px repeat(10, 1fr)", gap: 4, marginBottom: 4 }}>
+                          {/* ROW NUMBERS */}
+                          <div style={{
+                            background: isLocked ? NER + "25" : T.cardBorder,
+                            borderRadius: 8,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: isLocked ? 22 : 16,
+                            fontFamily: "'Oswald', sans-serif",
+                            fontWeight: 600,
+                            color: isLocked ? NER : T.textFaint
+                          }}>
+                            {isLocked && rowNums ? rowNums[r] : "?"}
+                          </div>
+                          {Array.from({ length: 10 }).map((_, c) => {
+                            const owner = grid[r] && grid[r][c];
+                            const isWin = colNums && rowNums && QS.some((_, qi) => { const w = getWinner(qi); return w && w.r === r && w.c === c; });
+                            const heat = getHeat(r, c);
+                            const isSel = selectedCell && selectedCell[0] === r && selectedCell[1] === c;
+                            const isMe = owner && owner === activeName;
+                            const bg = owner ? hc(owner) : T.card;
+                            const emojiAv = owner ? getEmoji(owner) : null;
+                            const ev = showOdds && isLocked ? getEV(r, c) : null;
+                            const sqKey = r + "-" + c;
+                            const sqRx = (squareReactions || {})[sqKey] || {};
+                            const hasRx = Object.values(sqRx).some(arr => arr.length > 0);
+                            return (
+                              <div key={c} onPointerDown={() => handleCellPointerDown(r, c)} onPointerUp={handleCellPointerUp} onPointerLeave={handleCellPointerUp}
+                                onClick={() => {
+                                  if (tradeTarget && owner && owner !== activeName && !isLocked) { proposeTrade(tradeTarget[0], tradeTarget[1], r, c); setTradeTarget(null); return; }
+                                  if (isLocked && owner) { setSquareModal([r, c]); return; }
+                                  if (owner && !isLocked) { setSelectedCell(isSel ? null : [r, c]); setTradeTarget(null); }
+                                  else if (!owner && activeName && !isLocked) handleClaim(r, c);
+                                  else if (!owner && !activeName && !isLocked) showToast("Enter your name!");
+                                }} style={{
+                                  aspectRatio: "1", borderRadius: 8, position: "relative", overflow: "hidden", cursor: "pointer",
+                                  background: owner ? bg + "18" : heat > 1.5 ? "rgba(255,180,0," + Math.min(heat * 0.06, 0.15) + ")" : T.card,
+                                  border: isWin ? "3px solid #FFB400" : isSel ? "2px solid " + bg : tradeTarget && owner && owner !== activeName ? "2px solid #3DB2FF" : isMe ? "2px solid " + bg + "60" : "2px solid " + T.cardBorder,
+                                  animation: isWin ? "winnerGlow 2s infinite" : "none",
+                                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                                }}>
+                                {owner ? (<>
+                                  {emojiAv ? <div style={{ fontSize: "clamp(18px,4vw,28px)" }}>{emojiAv}</div> : <div style={{ width: "clamp(24px,5vw,32px)", height: "clamp(24px,5vw,32px)", borderRadius: "50%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "clamp(10px,2vw,13px)", fontWeight: 900, color: "#fff" }}>{ini(owner)}</div>}
+                                  <div style={{ fontSize: "clamp(7px,1.5vw,10px)", marginTop: 2, fontWeight: 700, opacity: 0.7, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", padding: "0 2px" }}>{owner}</div>
+                                  {hasRx && <div style={{ position: "absolute", top: 2, right: 2, fontSize: 10, background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 4px", lineHeight: 1.3 }}>{Object.entries(sqRx).filter(([_, w]) => w.length > 0).map(([em]) => em).slice(0, 2).join("")}</div>}
+                                  {isSel && !isLocked && (
+                                    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, borderRadius: 6 }}>
+                                      <button onClick={e => { e.stopPropagation(); handleUnclaim(r, c); }} style={{ background: NER, border: "none", color: "#fff", fontSize: 9, fontWeight: 700, cursor: "pointer", borderRadius: 4, padding: "3px 8px" }}>✕ Remove</button>
+                                      {isMe && <button onClick={e => { e.stopPropagation(); setTradeTarget([r, c]); setSelectedCell(null); showToast("Tap a square to trade with"); }} style={{ background: "#3DB2FF", border: "none", color: "#fff", fontSize: 9, fontWeight: 700, cursor: "pointer", borderRadius: 4, padding: "3px 8px" }}>↔ Trade</button>}
+                                    </div>
+                                  )}
+                                </>) : (<div>{ev ? <div style={{ fontSize: "clamp(7px,1.5vw,10px)", fontWeight: 700, color: Number(ev.ev) > 0 ? SEA : T.textFaint }}>{ev.prob}%</div> : <div style={{ fontSize: 14, opacity: 0.12 }}>+</div>}</div>)}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
                     </div>
-                    {Array.from({ length: 10 }).map((_, r) => (
-                      <div key={r} style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
-                        <div style={{ background: isLocked ? NER + "25" : T.cardBorder, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isLocked ? 20 : 16, fontFamily: "'Oswald', sans-serif", fontWeight: 600, color: isLocked ? NER : T.textFaint }}>{isLocked && rowNums ? rowNums[r] : "?"}</div>
-                        {Array.from({ length: 10 }).map((_, c) => {
-                          const owner = grid[r] && grid[r][c];
-                          const isWin = colNums && rowNums && QS.some((_, qi) => { const w = getWinner(qi); return w && w.r === r && w.c === c; });
-                          const heat = getHeat(r, c);
-                          const isSel = selectedCell && selectedCell[0] === r && selectedCell[1] === c;
-                          const isMe = owner && owner === activeName;
-                          const bg = owner ? hc(owner) : T.card;
-                          const emojiAv = owner ? getEmoji(owner) : null;
-                          const ev = showOdds && isLocked ? getEV(r, c) : null;
-                          const sqKey = r + "-" + c;
-                          const sqRx = (squareReactions || {})[sqKey] || {};
-                          const hasRx = Object.values(sqRx).some(arr => arr.length > 0);
-                          return (
-                            <div key={c} onPointerDown={() => handleCellPointerDown(r, c)} onPointerUp={handleCellPointerUp} onPointerLeave={handleCellPointerUp}
-                              onClick={() => {
-                                if (tradeTarget && owner && owner !== activeName && !isLocked) { proposeTrade(tradeTarget[0], tradeTarget[1], r, c); setTradeTarget(null); return; }
-                                if (isLocked && owner) { setSquareModal([r, c]); return; }
-                                if (owner && !isLocked) { setSelectedCell(isSel ? null : [r, c]); setTradeTarget(null); }
-                                else if (!owner && activeName && !isLocked) handleClaim(r, c);
-                                else if (!owner && !activeName && !isLocked) showToast("Enter your name!");
-                              }} style={{
-                                aspectRatio: "1", borderRadius: 8, position: "relative", overflow: "hidden", cursor: "pointer",
-                                background: owner ? bg + "18" : heat > 1.5 ? "rgba(255,180,0," + Math.min(heat * 0.06, 0.15) + ")" : T.card,
-                                border: isWin ? "3px solid #FFB400" : isSel ? "2px solid " + bg : tradeTarget && owner && owner !== activeName ? "2px solid #3DB2FF" : isMe ? "2px solid " + bg + "60" : "2px solid " + T.cardBorder,
-                                animation: isWin ? "winnerGlow 2s infinite" : "none",
-                                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                              }}>
-                              {owner ? (<>
-                                {emojiAv ? <div style={{ fontSize: "clamp(18px,4vw,28px)" }}>{emojiAv}</div> : <div style={{ width: "clamp(24px,5vw,32px)", height: "clamp(24px,5vw,32px)", borderRadius: "50%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "clamp(10px,2vw,13px)", fontWeight: 900, color: "#fff" }}>{ini(owner)}</div>}
-                                <div style={{ fontSize: "clamp(7px,1.5vw,10px)", marginTop: 2, fontWeight: 700, opacity: 0.7, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", padding: "0 2px" }}>{owner}</div>
-                                {hasRx && <div style={{ position: "absolute", top: 2, right: 2, fontSize: 10, background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 4px", lineHeight: 1.3 }}>{Object.entries(sqRx).filter(([_, w]) => w.length > 0).map(([em]) => em).slice(0, 2).join("")}</div>}
-                                {isSel && !isLocked && (
-                                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, borderRadius: 6 }}>
-                                    <button onClick={e => { e.stopPropagation(); handleUnclaim(r, c); }} style={{ background: NER, border: "none", color: "#fff", fontSize: 9, fontWeight: 700, cursor: "pointer", borderRadius: 4, padding: "3px 8px" }}>✕ Remove</button>
-                                    {isMe && <button onClick={e => { e.stopPropagation(); setTradeTarget([r, c]); setSelectedCell(null); showToast("Tap a square to trade with"); }} style={{ background: "#3DB2FF", border: "none", color: "#fff", fontSize: 9, fontWeight: 700, cursor: "pointer", borderRadius: 4, padding: "3px 8px" }}>↔ Trade</button>}
-                                  </div>
-                                )}
-                              </>) : (<div>{ev ? <div style={{ fontSize: "clamp(7px,1.5vw,10px)", fontWeight: 700, color: Number(ev.ev) > 0 ? SEA : T.textFaint }}>{ev.prob}%</div> : <div style={{ fontSize: 14, opacity: 0.12 }}>+</div>}</div>)}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))}
-                    <div style={{ textAlign: "center", fontSize: 10, fontWeight: 800, letterSpacing: 3, color: NER, padding: "2px 0", marginLeft: 42 }}>↑ PATRIOTS ↑</div>
                   </div>
                 </div>
 
