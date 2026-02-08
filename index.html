@@ -907,6 +907,7 @@
         return safeGrid(data.grid).filter(n => n === myName).length;
       }, [data.grid, myName]);
 
+      const isConfirmed = data.playerMeta?.[myName]?.confirmed;
       const claimed = useMemo(() => {
         if (!Array.isArray(data.grid)) return 0;
         return safeGrid(data.grid).filter(Boolean).length;
@@ -934,7 +935,7 @@
           toast("⏳ Connecting to Firebase...");
           return;
         }
-        if (data.playerMeta?.[myName]?.confirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
+        if (isConfirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
         if (currentCell) { toast("Already claimed by " + currentCell); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
@@ -958,7 +959,7 @@
 
       const unclaimSquare = (r, c) => {
         if (!dbr) return;
-        if (data.playerMeta?.[myName]?.confirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
+        if (isConfirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
         const current = (data.grid && data.grid[r]) ? data.grid[r][c] : null;
         if (current !== myName) { toast("❌ Not your square!"); return; }
@@ -990,7 +991,7 @@
           console.error("dbr is null");
           return;
         }
-        if (data.playerMeta?.[myName]?.confirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
+        if (isConfirmed) { toast("🔒 Picks are locked! Unlock to change."); return; }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
 
         const avail = [];
@@ -1194,7 +1195,7 @@
               </div>
             `}
 
-            ${!data.playerMeta?.[myName]?.confirmed && (myCt > 0 || (Object.keys(data.props?.[myName] || {}).length > 0)) && html`
+            ${!isConfirmed && (myCt > 0 || (Object.keys(data.props?.[myName] || {}).length > 0)) && html`
               <div style=${{ padding: "12px 16px" }}>
                 <button onClick=${() => window.dispatchEvent(new CustomEvent("showConfirm"))} style=${{
             width: "100%", padding: "14px", borderRadius: 12, border: "none",
@@ -1207,7 +1208,7 @@
               </div>
             `}
 
-            ${data.playerMeta?.[myName]?.confirmed && html`
+            ${isConfirmed && html`
                <div style=${{ padding: "12px", background: "var(--gold-glow)", border: "1px solid var(--gold)33", borderRadius: 10, margin: "16px", textAlign: "center" }}>
                  <div style=${{ fontSize: 13, color: "var(--gold)", fontWeight: 700 }}>✅ YOU ARE LOCKED IN (${data.playerMeta[myName].playMode === 'money' ? 'MONEY' : 'FUN'})</div>
                  <button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 11, textDecoration: "underline", marginTop: 4 }}>Unlock to make changes</button>
