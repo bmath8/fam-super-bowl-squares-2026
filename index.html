@@ -864,9 +864,9 @@
             <CountdownTimer T={T} />
 
             {/* Toolbar */}
-            <div style={{ display: "flex", gap: 4, justifyContent: "center", margin: "0 0 12px", flexWrap: "wrap" }}>
-              {[{ l: "Share", i: "📤", fn: handleShare }, ...(isAdmin || !hostPin ? [{ l: "Settings", i: "⚙️", fn: () => setShowSettings(!showSettings), a: showSettings }] : [{ l: "Settings", i: "🔒", fn: () => { setShowPinModal(true); setPendingHostAction(() => () => setShowSettings(true)); } }]), { l: "Rules", i: "📖", fn: () => setShowRules(!showRules), a: showRules }, { l: "Export", i: "📋", fn: exportBoard }, { l: "Visual", i: "🌐", fn: exportVisualBoard }, { l: "Audit", i: "📜", fn: () => setShowAudit(!showAudit), a: showAudit }].map(b => (
-                <button key={b.l} onClick={b.fn} style={{ padding: "7px 14px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 11, fontWeight: 700, background: b.a ? NAV : T.card, color: b.a ? "#fff" : T.textSoft }}>{b.i} {b.l}</button>
+            <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "0 0 12px" }}>
+              {[{ l: "Share", i: "📤", fn: handleShare }, ...(isAdmin || !hostPin ? [{ l: "Settings", i: "⚙️", fn: () => setShowSettings(!showSettings), a: showSettings }] : [{ l: "Settings", i: "🔒", fn: () => { setShowPinModal(true); setPendingHostAction(() => () => setShowSettings(true)); } }]), { l: "Rules", i: "📖", fn: () => setShowRules(!showRules), a: showRules }].map(b => (
+                <button key={b.l} onClick={b.fn} style={{ padding: "8px 16px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 12, fontWeight: 700, background: b.a ? NAV : T.card, color: b.a ? "#fff" : T.textSoft }}>{b.i} {b.l}</button>
               ))}
             </div>
 
@@ -1004,8 +1004,8 @@
 
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 14, background: T.card, borderRadius: 14, overflow: "hidden", border: "2px solid " + T.cardBorder }}>
-              {[{ id: "board", label: "Board", icon: "📋", color: SEA }, { id: "scores", label: "Scores", icon: "🏈", color: NER }, { id: "players", label: "Players", icon: "👥", color: NAV }, { id: "props", label: "Props", icon: "🎲", color: "#FFB400" }, { id: "chat", label: "Chat", icon: "💬", color: "#3DB2FF" }, { id: "pay", label: "Pay", icon: "💰", color: SEA }].map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "8px 0", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer", background: tab === t.id ? t.color : T.card, color: tab === t.id ? "#fff" : T.textSoft, transition: "all .2s" }}>{t.icon}<br /><span style={{ fontSize: 9 }}>{t.label}</span></button>
+              {[{ id: "board", label: "Board", icon: "🏈", color: SEA }, { id: "scores", label: "Scores", icon: "📊", color: NER }, { id: "chat", label: "Chat", icon: "💬", color: "#3DB2FF" }, { id: "pay", label: "Pay", icon: "💰", color: "#FFB400" }].map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "10px 0", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", background: tab === t.id ? t.color : T.card, color: tab === t.id ? "#fff" : T.textSoft, transition: "all .2s" }}>{t.icon}<br /><span style={{ fontSize: 10 }}>{t.label}</span></button>
               ))}
             </div>
 
@@ -1013,30 +1013,18 @@
             {tab === "board" && (
               <div>
                 {!isLocked && (
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-                      <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Enter your name..." maxLength={20}
-                        style={{ flex: 1, padding: "10px 16px", borderRadius: 12, border: activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
-                      <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "10px 20px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: activeName ? SEA : NAV, color: "#fff" }}>{activeName ? "✓ " + activeName : "Join"}</button>
-                    </div>
-                    {activeName && (
-                      <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
-                        <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ padding: "6px 12px", borderRadius: 99, border: "2px solid " + T.cardBorder, background: T.card, cursor: "pointer", fontSize: 13, fontWeight: 700, color: T.textSoft }}><span style={{ fontSize: 16 }}>{getEmoji(activeName) || "😀"}</span> Avatar</button>
-                        {showEmojiPicker && (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 3, padding: 8, background: T.card, border: "2px solid " + T.cardBorder, borderRadius: 12, boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
-                            {AVATARS.map(e => <button key={e} onClick={() => { setPlayerEmoji(activeName, e); setShowEmojiPicker(false); }} style={{ width: 34, height: 34, borderRadius: 8, border: getEmoji(activeName) === e ? "2px solid " + SEA : "2px solid transparent", background: T.bg, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>{e}</button>)}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Your name..." maxLength={20}
+                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
+                    <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "12px 20px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: activeName ? SEA : NAV, color: "#fff" }}>{activeName ? "✓" : "Join"}</button>
                   </div>
                 )}
 
                 {isLocked && !activeName && (
-                  <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-                    <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Enter name to view your squares..." maxLength={20}
-                      style={{ flex: 1, padding: "10px 16px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
-                    <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "10px 18px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: NAV, color: "#fff" }}>Go</button>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Your name..." maxLength={20}
+                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
+                    <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "12px 20px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: NAV, color: "#fff" }}>Go</button>
                   </div>
                 )}
 
