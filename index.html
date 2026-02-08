@@ -442,22 +442,6 @@
 
 <body>
   <div id="root"></div>
-  <!-- Error Logger for Debugging -->
-  <div id="debug-err"
-    style="position:fixed;top:0;left:0;right:0;background:rgba(200,0,0,0.9);color:white;z-index:99999;padding:20px;display:none;white-space:pre-wrap;font-family:monospace;font-size:12px;">
-  </div>
-  <script>
-    window.onerror = function (msg, url, lineNo, columnNo, error) {
-      var d = document.getElementById("debug-err");
-      d.style.display = "block";
-      d.innerText += "Error: " + msg + "\nLine: " + lineNo + "\n" + (error ? error.stack : "") + "\n\n";
-    };
-    window.addEventListener("unhandledrejection", function (e) {
-      var d = document.getElementById("debug-err");
-      d.style.display = "block";
-      d.innerText += "Promise Rejection: " + e.reason + "\n\n";
-    });
-  </script>
   <script type="text/babel">
     const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
@@ -904,180 +888,181 @@
               </div>
             )}
           </div>
-          );
+        </div>
+      );
     }
 
-          // ── Scores Tab ────────────────────────────────────────────────
-          function ScoresTab({data, dbr, toast}) {
+    // ── Scores Tab ────────────────────────────────────────────────
+    function ScoresTab({ data, dbr, toast }) {
       const [editing, setEditing] = useState(null); // {q: 0-3}
-          const [tempSea, setTempSea] = useState("");
-          const [tempNe, setTempNe] = useState("");
+      const [tempSea, setTempSea] = useState("");
+      const [tempNe, setTempNe] = useState("");
       const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
-          const claimed = data.grid?.flat().filter(Boolean).length || 0;
-          const pps = data.pool?.pricePerSquare || 0;
-          const totalPot = claimed * pps;
-          const split = data.pool?.payoutSplit || [25, 25, 25, 25];
+      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const pps = data.pool?.pricePerSquare || 0;
+      const totalPot = claimed * pps;
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
 
       const saveScore = (qi) => {
         const s = parseInt(tempSea), n = parseInt(tempNe);
-          if (isNaN(s) || isNaN(n)) {toast("Enter valid scores"); return; }
-          const newSea = [...(data.scores?.SEA || [null, null, null, null])];
-          const newNe = [...(data.scores?.NE || [null, null, null, null])];
-          newSea[qi] = s; newNe[qi] = n;
-          dbr.update({scores: {SEA: newSea, NE: newNe }, feed: addFeed(data, "🏈", `${QS[qi]} score: SEA ${s} - NE ${n}`) });
-          setEditing(null);
-          playSound("lock");
-          toast(`${QS[qi]} score saved!`);
+        if (isNaN(s) || isNaN(n)) { toast("Enter valid scores"); return; }
+        const newSea = [...(data.scores?.SEA || [null, null, null, null])];
+        const newNe = [...(data.scores?.NE || [null, null, null, null])];
+        newSea[qi] = s; newNe[qi] = n;
+        dbr.update({ scores: { SEA: newSea, NE: newNe }, feed: addFeed(data, "🏈", `${QS[qi]} score: SEA ${s} - NE ${n}`) });
+        setEditing(null);
+        playSound("lock");
+        toast(`${QS[qi]} score saved!`);
       };
 
       const fetchScores = async () => {
         try {
-            toast("Fetching from ESPN...");
+          toast("Fetching from ESPN...");
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
           const json = await res.json();
           // Simplified logic for demo/Super Bowl
           const game = json.events?.find(e => e.shortName?.includes("SEA") || e.shortName?.includes("NE") || e.name.includes("Super Bowl"));
 
-          if (!game) {toast("No game data found right now."); return; }
+          if (!game) { toast("No game data found right now."); return; }
 
           const competitors = game.competitions[0].competitors;
           const sea = competitors.find(c => c.team.abbreviation === "SEA");
           const ne = competitors.find(c => c.team.abbreviation === "NE");
 
-          if(sea && ne) {
+          if (sea && ne) {
             toast(`Found: ${sea.score} - ${ne.score}. (Auto-update disabled for safety)`);
-             // In real app: dbr.update(...)
+            // In real app: dbr.update(...)
           } else {
             toast("Could not parse teams.");
           }
 
-        } catch (e) {toast("Fetch failed. Manual update required."); }
+        } catch (e) { toast("Fetch failed. Manual update required."); }
       };
 
       // Calculate cumulative scores and winners for each quarter
       const quarters = QS.map((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i];
-          const neQ = (data.scores?.NE || [])[i];
-          const hasSc = seaQ != null && neQ != null;
+        const neQ = (data.scores?.NE || [])[i];
+        const hasSc = seaQ != null && neQ != null;
         const cumS = hasSc ? data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
         const cumN = hasSc ? data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
-          const winner = hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
-          const payout = Math.round(totalPot * split[i] / 100);
-          return {q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc};
+        const winner = hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
+        const payout = Math.round(totalPot * split[i] / 100);
+        return { q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc };
       });
 
-          return (
-          <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
-            {/* Live scoreboard */}
-            <div style={{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>🦅</div>
-                  <div className="bebas" style={{ fontSize: 14, color: SEA, letterSpacing: 2 }}>SEAHAWKS</div>
-                  <div className="bebas" style={{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
-                    {quarters.reduce((a, q) => a + (q.seaQ || 0), 0)}
-                  </div>
+      return (
+        <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
+          {/* Live scoreboard */}
+          <div style={{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>🦅</div>
+                <div className="bebas" style={{ fontSize: 14, color: SEA, letterSpacing: 2 }}>SEAHAWKS</div>
+                <div className="bebas" style={{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
+                  {quarters.reduce((a, q) => a + (q.seaQ || 0), 0)}
                 </div>
-                <div style={{ textAlign: "center" }}>
-                  <div className="bebas" style={{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
-                  <button onClick={fetchScores} style={{ marginTop: 8, fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)" }}>🔄 Sync</button>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>🏴</div>
-                  <div className="bebas" style={{ fontSize: 14, color: NER, letterSpacing: 2 }}>PATRIOTS</div>
-                  <div className="bebas" style={{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
-                    {quarters.reduce((a, q) => a + (q.neQ || 0), 0)}
-                  </div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div className="bebas" style={{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
+                <button onClick={fetchScores} style={{ marginTop: 8, fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)" }}>🔄 Sync</button>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>🏴</div>
+                <div className="bebas" style={{ fontSize: 14, color: NER, letterSpacing: 2 }}>PATRIOTS</div>
+                <div className="bebas" style={{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
+                  {quarters.reduce((a, q) => a + (q.neQ || 0), 0)}
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Quarter cards */}
-            {quarters.map(({ q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc }) => (
-              <div key={q} style={{
-                background: "var(--card)", borderRadius: 12, padding: "14px", border: `1px solid ${winner ? "var(--gold)33" : "var(--border)"}`,
-                marginBottom: 8,
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: hasSc ? 8 : 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span className="bebas" style={{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>{q}</span>
-                    {payout > 0 && <span style={{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>${payout}</span>}
-                  </div>
-                  {hasSc ? (
-                    <div className="bebas" style={{ fontSize: 15, color: "var(--text)" }}>SEA {cumS} — NE {cumN}</div>
-                  ) : editing?.q === i ? (
-                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                      <input value={tempSea} onChange={e => setTempSea(e.target.value)} placeholder="SEA" type="number"
-                        style={{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: SEA, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
-                      <span style={{ color: "var(--faint)" }}>—</span>
-                      <input value={tempNe} onChange={e => setTempNe(e.target.value)} placeholder="NE" type="number"
-                        style={{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: NER, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
-                      <button onClick={() => saveScore(i)} style={{ padding: "6px 12px", borderRadius: 6, border: "none", background: "var(--gold)", color: "#1a1a1a", fontSize: 12, fontWeight: 700 }}>✓</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => { setEditing({ q: i }); setTempSea(""); setTempNe("") }} style={{
-                      padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
-                      background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
-                    }}>Enter Score</button>
-                  )}
+          {/* Quarter cards */}
+          {quarters.map(({ q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc }) => (
+            <div key={q} style={{
+              background: "var(--card)", borderRadius: 12, padding: "14px", border: `1px solid ${winner ? "var(--gold)33" : "var(--border)"}`,
+              marginBottom: 8,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: hasSc ? 8 : 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="bebas" style={{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>{q}</span>
+                  {payout > 0 && <span style={{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>${payout}</span>}
                 </div>
-                {winner && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, padding: "6px 10px", borderRadius: 8, background: "var(--gold-glow)" }}>
-                    <span style={{ fontSize: 14 }}>{getPlayerEmoji(data.playerMeta, winner)}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>{winner} wins {q}!</span>
-                    {payout > 0 && <span style={{ fontSize: 12, color: "var(--gold)", marginLeft: "auto", fontWeight: 700 }}>${payout}</span>}
+                {hasSc ? (
+                  <div className="bebas" style={{ fontSize: 15, color: "var(--text)" }}>SEA {cumS} — NE {cumN}</div>
+                ) : editing?.q === i ? (
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <input value={tempSea} onChange={e => setTempSea(e.target.value)} placeholder="SEA" type="number"
+                      style={{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: SEA, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
+                    <span style={{ color: "var(--faint)" }}>—</span>
+                    <input value={tempNe} onChange={e => setTempNe(e.target.value)} placeholder="NE" type="number"
+                      style={{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: NER, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
+                    <button onClick={() => saveScore(i)} style={{ padding: "6px 12px", borderRadius: 6, border: "none", background: "var(--gold)", color: "#1a1a1a", fontSize: 12, fontWeight: 700 }}>✓</button>
                   </div>
+                ) : (
+                  <button onClick={() => { setEditing({ q: i }); setTempSea(""); setTempNe("") }} style={{
+                    padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
+                    background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
+                  }}>Enter Score</button>
                 )}
               </div>
-            ))}
+              {winner && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, padding: "6px 10px", borderRadius: 8, background: "var(--gold-glow)" }}>
+                  <span style={{ fontSize: 14 }}>{getPlayerEmoji(data.playerMeta, winner)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>{winner} wins {q}!</span>
+                  {payout > 0 && <span style={{ fontSize: 12, color: "var(--gold)", marginLeft: "auto", fontWeight: 700 }}>${payout}</span>}
+                </div>
+              )}
+            </div>
+          ))}
 
-            {/* Payout summary */}
-            {totalPot > 0 && (
-              <div style={{ marginTop: 16, padding: "14px", borderRadius: 12, background: "var(--gold-glow)", border: "1px solid var(--gold)33" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span className="bebas" style={{ fontSize: 16, color: "var(--gold)", letterSpacing: 2 }}>TOTAL POT</span>
-                  <span className="bebas" style={{ fontSize: 28, color: "var(--gold)" }}>${totalPot}</span>
-                </div>
-                <div style={{ fontSize: 11, color: "var(--soft)", marginTop: 4 }}>
-                  Split: {split.map((s, i) => `${QS[i]} ${s}%`).join(" • ")}
-                </div>
+          {/* Payout summary */}
+          {totalPot > 0 && (
+            <div style={{ marginTop: 16, padding: "14px", borderRadius: 12, background: "var(--gold-glow)", border: "1px solid var(--gold)33" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span className="bebas" style={{ fontSize: 16, color: "var(--gold)", letterSpacing: 2 }}>TOTAL POT</span>
+                <span className="bebas" style={{ fontSize: 28, color: "var(--gold)" }}>${totalPot}</span>
               </div>
-            )}
-          </div>
-          );
+              <div style={{ fontSize: 11, color: "var(--soft)", marginTop: 4 }}>
+                Split: {split.map((s, i) => `${QS[i]} ${s}%`).join(" • ")}
+              </div>
+            </div>
+          )}
+        </div>
+      );
     }
 
-          // ── Props Tab ─────────────────────────────────────────────────
-          function PropsTab({data, myName, dbr, toast}) {
+    // ── Props Tab ─────────────────────────────────────────────────
+    function PropsTab({ data, myName, dbr, toast }) {
       const [sub, setSub] = useState("picks"); // picks | host | results
-          const myPicks = data.props?.[myName] || { };
-          const boughtIn = data.propBuyIns?.[myName];
-          const buyIn = data.pool?.propBuyIn || 2;
-          const totalPropPot = Object.keys(data.propBuyIns || { }).length * buyIn;
+      const myPicks = data.props?.[myName] || {};
+      const boughtIn = data.propBuyIns?.[myName];
+      const buyIn = data.pool?.propBuyIn || 2;
+      const totalPropPot = Object.keys(data.propBuyIns || {}).length * buyIn;
       const cats = [...new Set(PROPS_LIST.map(p => p.cat))];
 
       const pickProp = (id, val) => {
-        const updated = {...myPicks, [id]: val };
-          dbr.child("props").child(myName).set(updated);
-          playSound("claim");
+        const updated = { ...myPicks, [id]: val };
+        dbr.child("props").child(myName).set(updated);
+        playSound("claim");
       };
 
       const buyInProps = () => {
-            dbr.child("propBuyIns").child(myName).set(true);
-          toast(`You're in for $${buyIn}!`);
+        dbr.child("propBuyIns").child(myName).set(true);
+        toast(`You're in for $${buyIn}!`);
       };
 
       const setAnswer = (id, val) => {
-            dbr.child("propAnswers").child(id).set(val);
-          toast("Answer saved!");
+        dbr.child("propAnswers").child(id).set(val);
+        toast("Answer saved!");
       };
 
       // Calculate leaderboard
       const leaderboard = useMemo(() => {
-        const answers = data.propAnswers || { };
-          const scores = { };
-          Object.entries(data.props || { }).forEach(([player, picks]) => {
-            let pts = 0;
+        const answers = data.propAnswers || {};
+        const scores = {};
+        Object.entries(data.props || {}).forEach(([player, picks]) => {
+          let pts = 0;
           Object.entries(picks).forEach(([qid, pick]) => {
             if (answers[qid] && answers[qid] === pick) pts++;
           });
@@ -1086,324 +1071,324 @@
         return Object.entries(scores).sort((a, b) => b[1] - a[1]);
       }, [data.props, data.propAnswers]);
 
-          return (
-          <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
-            {/* Sub tabs */}
-            <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "var(--card)", borderRadius: 10, padding: 3 }}>
-              {[["picks", "My Picks"], ["host", "Host"], ["results", "Results"]].map(([k, l]) => (
-                <button key={k} onClick={() => setSub(k)} style={{
-                  flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
-                  background: sub === k ? "var(--gold)" : "transparent", color: sub === k ? "#1a1a1a" : "var(--soft)",
-                }}>{l}</button>
-              ))}
+      return (
+        <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
+          {/* Sub tabs */}
+          <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "var(--card)", borderRadius: 10, padding: 3 }}>
+            {[["picks", "My Picks"], ["host", "Host"], ["results", "Results"]].map(([k, l]) => (
+              <button key={k} onClick={() => setSub(k)} style={{
+                flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
+                background: sub === k ? "var(--gold)" : "transparent", color: sub === k ? "#1a1a1a" : "var(--soft)",
+              }}>{l}</button>
+            ))}
+          </div>
+
+          {/* Prop pot banner */}
+          <div style={{ background: "linear-gradient(135deg, #D4A843 0%, #B8892E 100%)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "rgba(0,0,0,0.5)" }}>PROP POT</div>
+              <div className="bebas" style={{ fontSize: 24, color: "#1a1a1a" }}>${totalPropPot}</div>
             </div>
-
-            {/* Prop pot banner */}
-            <div style={{ background: "linear-gradient(135deg, #D4A843 0%, #B8892E 100%)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "rgba(0,0,0,0.5)" }}>PROP POT</div>
-                <div className="bebas" style={{ fontSize: 24, color: "#1a1a1a" }}>${totalPropPot}</div>
-              </div>
-              {!boughtIn ? (
-                <button onClick={buyInProps} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "rgba(0,0,0,0.2)", color: "#fff", fontSize: 12, fontWeight: 700 }}>
-                  ${buyIn} I'm In
-                </button>
-              ) : (
-                <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(0,0,0,0.5)" }}>✓ You're in</span>
-              )}
-            </div>
-
-            {sub === "picks" && (
-              <>
-                {cats.map(cat => (
-                  <div key={cat}>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", margin: "16px 0 8px", textTransform: "uppercase" }}>{cat}</div>
-                    {PROPS_LIST.filter(p => p.cat === cat).map(p => (
-                      <div key={p.id} style={{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>{p.q}</div>
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                          {p.opts.map(opt => (
-                            <button key={opt} onClick={() => pickProp(p.id, opt)} style={{
-                              padding: "6px 14px", borderRadius: 8, border: `1px solid ${myPicks[p.id] === opt ? "var(--gold)" : "var(--border2)"}`,
-                              background: myPicks[p.id] === opt ? "var(--gold-glow)" : "transparent",
-                              color: myPicks[p.id] === opt ? "var(--gold)" : "var(--soft)", fontSize: 12, fontWeight: 600,
-                            }}>{opt}</button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </>
-            )}
-
-            {sub === "host" && (
-              <>
-                <div style={{ fontSize: 12, color: "var(--soft)", marginBottom: 12 }}>Set correct answers for each prop:</div>
-                {PROPS_LIST.map(p => (
-                  <div key={p.id} style={{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{p.q}</div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {p.opts.map(opt => (
-                        <button key={opt} onClick={() => setAnswer(p.id, opt)} style={{
-                          padding: "6px 14px", borderRadius: 8,
-                          border: `1px solid ${data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--border2)"}`,
-                          background: data.propAnswers?.[p.id] === opt ? "rgba(34,197,94,0.15)" : "transparent",
-                          color: data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--soft)", fontSize: 12, fontWeight: 600
-                        }}>{opt}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-
-            {sub === "results" && (
-              <>
-                <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>LEADERBOARD</div>
-                {leaderboard.length === 0 ? (
-                  <div style={{ color: "var(--soft)", fontSize: 13, textAlign: "center", padding: 24 }}>No picks yet</div>
-                ) : leaderboard.map(([name, pts], i) => (
-                  <div key={name} style={{
-                    display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                    background: i === 0 ? "var(--gold-glow)" : "var(--card)", borderRadius: 10, marginBottom: 4,
-                    border: `1px solid ${i === 0 ? "var(--gold)33" : "var(--border)"}`,
-                  }}>
-                    <span style={{ fontSize: 16, width: 28, textAlign: "center", fontWeight: 800, color: i === 0 ? "var(--gold)" : "var(--soft)" }}>{i + 1}</span>
-                    <span style={{ fontSize: 16 }}>{getPlayerEmoji(data.playerMeta, name)}</span>
-                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{name}</span>
-                    <span className="bebas" style={{ fontSize: 20, color: i === 0 ? "var(--gold)" : "var(--text)" }}>{pts}/{Object.keys(data.propAnswers || {}).length}</span>
-                  </div>
-                ))}
-              </>
+            {!boughtIn ? (
+              <button onClick={buyInProps} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "rgba(0,0,0,0.2)", color: "#fff", fontSize: 12, fontWeight: 700 }}>
+                ${buyIn} I'm In
+              </button>
+            ) : (
+              <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(0,0,0,0.5)" }}>✓ You're in</span>
             )}
           </div>
-          );
+
+          {sub === "picks" && (
+            <>
+              {cats.map(cat => (
+                <div key={cat}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", margin: "16px 0 8px", textTransform: "uppercase" }}>{cat}</div>
+                  {PROPS_LIST.filter(p => p.cat === cat).map(p => (
+                    <div key={p.id} style={{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>{p.q}</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {p.opts.map(opt => (
+                          <button key={opt} onClick={() => pickProp(p.id, opt)} style={{
+                            padding: "6px 14px", borderRadius: 8, border: `1px solid ${myPicks[p.id] === opt ? "var(--gold)" : "var(--border2)"}`,
+                            background: myPicks[p.id] === opt ? "var(--gold-glow)" : "transparent",
+                            color: myPicks[p.id] === opt ? "var(--gold)" : "var(--soft)", fontSize: 12, fontWeight: 600,
+                          }}>{opt}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
+
+          {sub === "host" && (
+            <>
+              <div style={{ fontSize: 12, color: "var(--soft)", marginBottom: 12 }}>Set correct answers for each prop:</div>
+              {PROPS_LIST.map(p => (
+                <div key={p.id} style={{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{p.q}</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {p.opts.map(opt => (
+                      <button key={opt} onClick={() => setAnswer(p.id, opt)} style={{
+                        padding: "6px 14px", borderRadius: 8,
+                        border: `1px solid ${data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--border2)"}`,
+                        background: data.propAnswers?.[p.id] === opt ? "rgba(34,197,94,0.15)" : "transparent",
+                        color: data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--soft)", fontSize: 12, fontWeight: 600
+                      }}>{opt}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {sub === "results" && (
+            <>
+              <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>LEADERBOARD</div>
+              {leaderboard.length === 0 ? (
+                <div style={{ color: "var(--soft)", fontSize: 13, textAlign: "center", padding: 24 }}>No picks yet</div>
+              ) : leaderboard.map(([name, pts], i) => (
+                <div key={name} style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                  background: i === 0 ? "var(--gold-glow)" : "var(--card)", borderRadius: 10, marginBottom: 4,
+                  border: `1px solid ${i === 0 ? "var(--gold)33" : "var(--border)"}`,
+                }}>
+                  <span style={{ fontSize: 16, width: 28, textAlign: "center", fontWeight: 800, color: i === 0 ? "var(--gold)" : "var(--soft)" }}>{i + 1}</span>
+                  <span style={{ fontSize: 16 }}>{getPlayerEmoji(data.playerMeta, name)}</span>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{name}</span>
+                  <span className="bebas" style={{ fontSize: 20, color: i === 0 ? "var(--gold)" : "var(--text)" }}>{pts}/{Object.keys(data.propAnswers || {}).length}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      );
     }
 
-          // ── Chat Tab ──────────────────────────────────────────────────
-          function ChatTab({data, myName, dbr}) {
+    // ── Chat Tab ──────────────────────────────────────────────────
+    function ChatTab({ data, myName, dbr }) {
       const [msg, setMsg] = useState("");
-          const [sub, setSub] = useState("chat"); // chat | activity
-          const bottomRef = useRef(null);
+      const [sub, setSub] = useState("chat"); // chat | activity
+      const bottomRef = useRef(null);
 
       const send = () => {
         if (!msg.trim()) return;
-          const chat = [...(data.chat || []), {who: myName, msg: msg.trim(), ts: Date.now() }].slice(-200);
-          dbr.update({chat});
-          setMsg("");
-          playSound("chat");
+        const chat = [...(data.chat || []), { who: myName, msg: msg.trim(), ts: Date.now() }].slice(-200);
+        dbr.update({ chat });
+        setMsg("");
+        playSound("chat");
       };
 
       const addReaction = (idx, emoji) => {
         const key = `feedReactions/${idx}/${emoji}`;
-          const current = data.feedReactions?.[idx]?.[emoji] || 0;
-          dbr.child("feedReactions").child(String(idx)).child(emoji).set(current + 1);
+        const current = data.feedReactions?.[idx]?.[emoji] || 0;
+        dbr.child("feedReactions").child(String(idx)).child(emoji).set(current + 1);
       };
 
       useEffect(() => {
-            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [data.chat, data.feed]);
 
       const feed = useMemo(() => [...(data.feed || [])].reverse(), [data.feed]);
 
-          return (
-          <div style={{ padding: "16px", animation: "fadeIn .3s ease", display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
-            {/* Sub tabs */}
-            <div style={{ display: "flex", gap: 4, marginBottom: 12, background: "var(--card)", borderRadius: 10, padding: 3 }}>
-              {[["chat", "💬 Chat"], ["activity", "📋 Activity"]].map(([k, l]) => (
-                <button key={k} onClick={() => setSub(k)} style={{
-                  flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
-                  background: sub === k ? "var(--blue)" : "transparent", color: sub === k ? "#fff" : "var(--soft)",
-                }}>{l}</button>
-              ))}
-            </div>
+      return (
+        <div style={{ padding: "16px", animation: "fadeIn .3s ease", display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
+          {/* Sub tabs */}
+          <div style={{ display: "flex", gap: 4, marginBottom: 12, background: "var(--card)", borderRadius: 10, padding: 3 }}>
+            {[["chat", "💬 Chat"], ["activity", "📋 Activity"]].map(([k, l]) => (
+              <button key={k} onClick={() => setSub(k)} style={{
+                flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
+                background: sub === k ? "var(--blue)" : "transparent", color: sub === k ? "#fff" : "var(--soft)",
+              }}>{l}</button>
+            ))}
+          </div>
 
-            {sub === "chat" ? (
-              <>
-                <div style={{ flex: 1, overflowY: "auto", marginBottom: 12 }}>
-                  {(data.chat || []).length === 0 ? (
-                    <div style={{ textAlign: "center", padding: 40, color: "var(--faint)" }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
-                      <div style={{ fontSize: 13 }}>No messages yet. Start the trash talk!</div>
-                    </div>
-                  ) : (data.chat || []).map((m, i) => (
-                    <div key={i} style={{
-                      marginBottom: 8,
-                      display: "flex", flexDirection: m.who === myName ? "row-reverse" : "row", gap: 8, alignItems: "flex-start"
-                    }}>
-                      <div style={{
-                        fontSize: 20, width: 32, height: 32, borderRadius: "50%",
-                        background: getPlayerColor(m.who, [...new Set((data.chat || []).map(c => c.who))]) + "22",
-                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                      }}>
-                        {getPlayerEmoji(data.playerMeta, m.who)}
-                      </div>
-                      <div style={{ maxWidth: "75%" }}>
-                        <div style={{ fontSize: 10, color: "var(--soft)", marginBottom: 2, textAlign: m.who === myName ? "right" : "left" }}>{m.who}</div>
-                        <div style={{
-                          padding: "8px 12px", borderRadius: 12, fontSize: 13,
-                          background: m.who === myName ? "var(--blue)" : "var(--card)",
-                          color: m.who === myName ? "#fff" : "var(--text)",
-                          border: `1px solid ${m.who === myName ? "transparent" : "var(--border)"}`,
-                        }}>{m.msg}</div>
-                        <div style={{ fontSize: 9, color: "var(--faint)", marginTop: 2, textAlign: m.who === myName ? "right" : "left" }}>
-                          {new Date(m.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={bottomRef} />
-                </div>
-
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Trash talk here..."
-                    onKeyDown={e => e.key === "Enter" && send()}
-                    style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
-                  <button onClick={send} style={{
-                    padding: "10px 20px", borderRadius: 12, border: "none",
-                    background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700
-                  }}>Send</button>
-                </div>
-              </>
-            ) : (
-              <div style={{ flex: 1, overflowY: "auto" }}>
-                {feed.length === 0 ? (
+          {sub === "chat" ? (
+            <>
+              <div style={{ flex: 1, overflowY: "auto", marginBottom: 12 }}>
+                {(data.chat || []).length === 0 ? (
                   <div style={{ textAlign: "center", padding: 40, color: "var(--faint)" }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-                    <div style={{ fontSize: 13 }}>No activity yet</div>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
+                    <div style={{ fontSize: 13 }}>No messages yet. Start the trash talk!</div>
                   </div>
-                ) : feed.map((f, i) => (
-                  <div key={i} style={{ padding: "10px 12px", borderRadius: 10, background: "var(--card)", marginBottom: 4, border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ fontSize: 12, color: "var(--text)" }}>
-                      <span style={{ fontWeight: 700 }}>{f.who}</span> {f.msg}
+                ) : (data.chat || []).map((m, i) => (
+                  <div key={i} style={{
+                    marginBottom: 8,
+                    display: "flex", flexDirection: m.who === myName ? "row-reverse" : "row", gap: 8, alignItems: "flex-start"
+                  }}>
+                    <div style={{
+                      fontSize: 20, width: 32, height: 32, borderRadius: "50%",
+                      background: getPlayerColor(m.who, [...new Set((data.chat || []).map(c => c.who))]) + "22",
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                    }}>
+                      {getPlayerEmoji(data.playerMeta, m.who)}
                     </div>
-                    <div style={{ fontSize: 10, color: "var(--faint)", whiteSpace: "nowrap", marginLeft: 8 }}>
-                      {new Date(f.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    <div style={{ maxWidth: "75%" }}>
+                      <div style={{ fontSize: 10, color: "var(--soft)", marginBottom: 2, textAlign: m.who === myName ? "right" : "left" }}>{m.who}</div>
+                      <div style={{
+                        padding: "8px 12px", borderRadius: 12, fontSize: 13,
+                        background: m.who === myName ? "var(--blue)" : "var(--card)",
+                        color: m.who === myName ? "#fff" : "var(--text)",
+                        border: `1px solid ${m.who === myName ? "transparent" : "var(--border)"}`,
+                      }}>{m.msg}</div>
+                      <div style={{ fontSize: 9, color: "var(--faint)", marginTop: 2, textAlign: m.who === myName ? "right" : "left" }}>
+                        {new Date(m.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      </div>
                     </div>
                   </div>
                 ))}
+                <div ref={bottomRef} />
               </div>
-            )}
-          </div>
-          );
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Trash talk here..."
+                  onKeyDown={e => e.key === "Enter" && send()}
+                  style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
+                <button onClick={send} style={{
+                  padding: "10px 20px", borderRadius: 12, border: "none",
+                  background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700
+                }}>Send</button>
+              </div>
+            </>
+          ) : (
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {feed.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 40, color: "var(--faint)" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                  <div style={{ fontSize: 13 }}>No activity yet</div>
+                </div>
+              ) : feed.map((f, i) => (
+                <div key={i} style={{ padding: "10px 12px", borderRadius: 10, background: "var(--card)", marginBottom: 4, border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 12, color: "var(--text)" }}>
+                    <span style={{ fontWeight: 700 }}>{f.who}</span> {f.msg}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--faint)", whiteSpace: "nowrap", marginLeft: 8 }}>
+                    {new Date(f.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
     }
 
-          // ── Pay Tab ───────────────────────────────────────────────────
-          function PayTab({data, myName, dbr, toast}) {
+    // ── Pay Tab ───────────────────────────────────────────────────
+    function PayTab({ data, myName, dbr, toast }) {
       const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
-          const pps = data.pool?.pricePerSquare || 0;
+      const pps = data.pool?.pricePerSquare || 0;
 
       const togglePaid = (name) => {
         const current = data.paidPlayers?.[name] || false;
-          dbr.child("paidPlayers").child(name).set(!current);
-          toast(current ? `${name} unmarked` : `${name} marked as paid ✓`);
+        dbr.child("paidPlayers").child(name).set(!current);
+        toast(current ? `${name} unmarked` : `${name} marked as paid ✓`);
       };
 
-          return (
-          <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
-            {/* Zelle Card */}
-            {(data.zellePhone || data.zelleEmail) && (
-              <div style={{
-                background: "linear-gradient(135deg, #6C2BD9 0%, #3B82F6 50%, #06B6D4 100%)",
-                borderRadius: 16, padding: "20px", marginBottom: 12,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 20 }}>💸</span>
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Zelle</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>Send to either below</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {data.zellePhone && (
-                    <div style={{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
-                      <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>PHONE</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{data.zellePhone}</div>
-                      <button onClick={() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!") }} style={{
-                        marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
-                        background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
-                      }}>Copy</button>
-                    </div>
-                  )}
-                  {data.zelleEmail && (
-                    <div style={{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
-                      <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>EMAIL</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", wordBreak: "break-all" }}>{data.zelleEmail}</div>
-                      <button onClick={() => { navigator.clipboard.writeText(data.zelleEmail); toast("Copied!") }} style={{
-                        marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
-                        background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
-                      }}>Copy</button>
-                    </div>
-                  )}
+      return (
+        <div style={{ padding: "16px", animation: "fadeIn .3s ease" }}>
+          {/* Zelle Card */}
+          {(data.zellePhone || data.zelleEmail) && (
+            <div style={{
+              background: "linear-gradient(135deg, #6C2BD9 0%, #3B82F6 50%, #06B6D4 100%)",
+              borderRadius: 16, padding: "20px", marginBottom: 12,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 20 }}>💸</span>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Zelle</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>Send to either below</div>
                 </div>
               </div>
-            )}
-
-            {/* Apple Pay Card */}
-            {data.zellePhone && (
-              <div style={{ background: "#1a1a1a", borderRadius: 16, padding: "20px", marginBottom: 20, border: "1px solid #333" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 20 }}>🍎</span>
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Apple Pay</div>
-                    <div style={{ fontSize: 11, color: "#888" }}>Send via Messages</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {data.zellePhone && (
+                  <div style={{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>PHONE</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{data.zellePhone}</div>
+                    <button onClick={() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!") }} style={{
+                      marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
+                    }}>Copy</button>
                   </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px" }}>
-                  <span style={{ fontSize: 13, color: "#fff" }}>{data.zellePhone}</span>
-                  <button onClick={() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!") }} style={{
-                    padding: "4px 12px", borderRadius: 6, border: "1px solid #444", background: "transparent", color: "#888", fontSize: 11, fontWeight: 600
-                  }}>Copy</button>
+                )}
+                {data.zelleEmail && (
+                  <div style={{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>EMAIL</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", wordBreak: "break-all" }}>{data.zelleEmail}</div>
+                    <button onClick={() => { navigator.clipboard.writeText(data.zelleEmail); toast("Copied!") }} style={{
+                      marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
+                    }}>Copy</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Apple Pay Card */}
+          {data.zellePhone && (
+            <div style={{ background: "#1a1a1a", borderRadius: 16, padding: "20px", marginBottom: 20, border: "1px solid #333" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 20 }}>🍎</span>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Apple Pay</div>
+                  <div style={{ fontSize: 11, color: "#888" }}>Send via Messages</div>
                 </div>
               </div>
-            )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px" }}>
+                <span style={{ fontSize: 13, color: "#fff" }}>{data.zellePhone}</span>
+                <button onClick={() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!") }} style={{
+                  padding: "4px 12px", borderRadius: 6, border: "1px solid #444", background: "transparent", color: "#888", fontSize: 11, fontWeight: 600
+                }}>Copy</button>
+              </div>
+            </div>
+          )}
 
-            {/* Payment tracker */}
-            {allNames.length > 0 && pps > 0 && (
-              <>
-                <div className="bebas" style={{ fontSize: 16, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>PAYMENT TRACKER</div>
-                {allNames.map(name => {
-                  const ct = data.grid.flat().filter(n => n === name).length;
-                  const owed = ct * pps;
-                  const paid = data.paidPlayers?.[name] || false;
-                  return (
-                    <div key={name} onClick={() => togglePaid(name)} style={{
-                      display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                      background: "var(--card)", borderRadius: 10, marginBottom: 4, border: `1px solid ${paid ? "#22C55E33" : "var(--border)"}`,
-                      cursor: "pointer"
+          {/* Payment tracker */}
+          {allNames.length > 0 && pps > 0 && (
+            <>
+              <div className="bebas" style={{ fontSize: 16, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>PAYMENT TRACKER</div>
+              {allNames.map(name => {
+                const ct = data.grid.flat().filter(n => n === name).length;
+                const owed = ct * pps;
+                const paid = data.paidPlayers?.[name] || false;
+                return (
+                  <div key={name} onClick={() => togglePaid(name)} style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                    background: "var(--card)", borderRadius: 10, marginBottom: 4, border: `1px solid ${paid ? "#22C55E33" : "var(--border)"}`,
+                    cursor: "pointer"
+                  }}>
+                    <span style={{ fontSize: 18 }}>{getPlayerEmoji(data.playerMeta, name)}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{name}</div>
+                      <div style={{ fontSize: 11, color: "var(--soft)" }}>{ct} squares • ${owed} owed</div>
+                    </div>
+                    <div style={{
+                      padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
+                      background: paid ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
+                      color: paid ? "#22C55E" : "#EF4444",
                     }}>
-                      <span style={{ fontSize: 18 }}>{getPlayerEmoji(data.playerMeta, name)}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{name}</div>
-                        <div style={{ fontSize: 11, color: "var(--soft)" }}>{ct} squares • ${owed} owed</div>
-                      </div>
-                      <div style={{
-                        padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                        background: paid ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-                        color: paid ? "#22C55E" : "#EF4444",
-                      }}>
-                        {paid ? "✓ Paid" : "Unpaid"}
-                      </div>
+                      {paid ? "✓ Paid" : "Unpaid"}
                     </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-          );
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+      );
     }
 
-          // ── Settings Modal ────────────────────────────────────────────
-          function SettingsModal({data, dbr, onClose, toast, toggleTheme, isDark}) {
+    // ── Settings Modal ────────────────────────────────────────────
+    function SettingsModal({ data, dbr, onClose, toast, toggleTheme, isDark }) {
       const [pin, setPin] = useState("");
-          const [showPin, setShowPin] = useState(!data.hostPin);
+      const [showPin, setShowPin] = useState(!data.hostPin);
 
-          // ... same pin logic ...
-          const needsPin = data.hostPin && !showPin;
+      // ... same pin logic ...
+      const needsPin = data.hostPin && !showPin;
       const checkPin = () => {
-        if (pin === data.hostPin) {setShowPin(true); toast("Access granted"); }
-          else toast("Wrong PIN");
+        if (pin === data.hostPin) { setShowPin(true); toast("Access granted"); }
+        else toast("Wrong PIN");
       };
 
       // ... same lock logic ...
@@ -1413,37 +1398,37 @@
           for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
           return arr;
         };
-          dbr.update({isLocked: true, colNums: nums(), rowNums: nums(), feed: addFeed(data, "🔒", "Board locked! Numbers assigned.") });
-          playSound("lock");
-          toast("Board locked! Numbers assigned.");
+        dbr.update({ isLocked: true, colNums: nums(), rowNums: nums(), feed: addFeed(data, "🔒", "Board locked! Numbers assigned.") });
+        playSound("lock");
+        toast("Board locked! Numbers assigned.");
       };
 
       const unlockBoard = () => {
-            dbr.update({ isLocked: false, colNums: null, rowNums: null });
-          toast("Board unlocked");
+        dbr.update({ isLocked: false, colNums: null, rowNums: null });
+        toast("Board unlocked");
       };
 
       const resetBoard = () => {
         if (!confirm("Reset entire board? This cannot be undone!")) return;
-          dbr.update({...DEFAULT});
-          toast("Board reset");
-          onClose();
+        dbr.update({ ...DEFAULT });
+        toast("Board reset");
+        onClose();
       };
 
       const autoAssign = () => {
         // ... existing autoAssign ...
         const names = [...new Set(data.grid.flat().filter(Boolean))];
-          if (names.length === 0) {toast("Need at least 1 player first"); return; }
+        if (names.length === 0) { toast("Need at least 1 player first"); return; }
         const newGrid = data.grid.map(row => [...row]);
-          let empties = [];
+        let empties = [];
         newGrid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) empties.push([r, c]); }));
         empties.sort(() => Math.random() - 0.5);
-        empties.forEach(([r, c], i) => {newGrid[r][c] = names[i % names.length]; });
-          dbr.update({grid: newGrid, feed: addFeed(data, "🤖", "Auto-assigned remaining squares") });
-          toast("Auto-assigned!");
+        empties.forEach(([r, c], i) => { newGrid[r][c] = names[i % names.length]; });
+        dbr.update({ grid: newGrid, feed: addFeed(data, "🤖", "Auto-assigned remaining squares") });
+        toast("Auto-assigned!");
       };
 
-          if (needsPin) {
+      if (needsPin) {
         return (
           <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
             <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
@@ -1456,332 +1441,332 @@
               </div>
             </div>
           </div>
-          );
+        );
       }
 
-          return (
-          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
-            <div style={{
-              background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "20px", maxWidth: 480, width: "100%",
-              maxHeight: "85vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none",
-              animation: "slideUp .3s ease"
-            }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div className="bebas" style={{ fontSize: 22, letterSpacing: 2, color: "var(--gold)" }}>⚙ SETTINGS</div>
-                <button onClick={toggleTheme} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid var(--border2)", background: "var(--card)", fontSize: 12, fontWeight: 600 }}>
-                  {isDark ? "🌙 Dark" : "☀ Light"}
-                </button>
-              </div>
-
-              {/* Board Actions */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", marginBottom: 8 }}>BOARD ACTIONS</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {!data.isLocked ? (
-                    <button onClick={lockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
-                  ) : (
-                    <button onClick={unlockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
-                  )}
-                  <button onClick={autoAssign} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
-                </div>
-              </div>
-
-              {/* Grouped Settings */}
-              <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-                <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Pool & Prices</summary>
-                <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                  {/* Pool Settings Content */}
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Price per square</label>
-                    <input type="number" value={data.pool?.pricePerSquare || 0}
-                      onChange={e => dbr.child("pool/pricePerSquare").set(Number(e.target.value))}
-                      style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
-                  </div>
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Max per player</label>
-                    <input type="number" value={data.settings?.maxPerPlayer || 0}
-                      onChange={e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
-                      style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
-                  </div>
-                </div>
-              </details>
-
-              <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-                <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Payout Split</summary>
-                <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-                    {Object.entries(PAYOUTS).map(([k, v]) => (
-                      <button key={k} onClick={() => dbr.child("pool").update({ payoutPreset: k, payoutSplit: v.vals })} style={{
-                        flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 10, fontWeight: 600,
-                        border: `1px solid ${data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"}`,
-                        background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
-                        color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
-                      }}>{v.label}</button>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {QS.map((q, i) => (
-                      <input key={q} type="number" value={(data.pool?.payoutSplit || [])[i] || 0}
-                        onChange={e => { const s = [...(data.pool?.payoutSplit || [25, 25, 25, 25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s) }}
-                        style={{ flex: 1, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 13, textAlign: "center" }} />
-                    ))}
-                  </div>
-                </div>
-              </details>
-
-              <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-                <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Admin / Hazard</summary>
-                <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "var(--soft)", display: "block", marginBottom: 4 }}>HOST PIN</label>
-                    <input value={data.hostPin || ""} onChange={e => dbr.update({ hostPin: e.target.value })} placeholder="Set PIN"
-                      style={{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
-                  </div>
-                  <button onClick={resetBoard} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", color: "#EF4444", fontWeight: 700, fontSize: 12 }}>
-                    🗑 Reset Board
-                  </button>
-                </div>
-              </details>
-
-              <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
-                Close
+      return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
+          <div style={{
+            background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "20px", maxWidth: 480, width: "100%",
+            maxHeight: "85vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none",
+            animation: "slideUp .3s ease"
+          }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div className="bebas" style={{ fontSize: 22, letterSpacing: 2, color: "var(--gold)" }}>⚙ SETTINGS</div>
+              <button onClick={toggleTheme} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid var(--border2)", background: "var(--card)", fontSize: 12, fontWeight: 600 }}>
+                {isDark ? "🌙 Dark" : "☀ Light"}
               </button>
             </div>
+
+            {/* Board Actions */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", marginBottom: 8 }}>BOARD ACTIONS</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {!data.isLocked ? (
+                  <button onClick={lockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
+                ) : (
+                  <button onClick={unlockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
+                )}
+                <button onClick={autoAssign} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
+              </div>
+            </div>
+
+            {/* Grouped Settings */}
+            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Pool & Prices</summary>
+              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                {/* Pool Settings Content */}
+                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Price per square</label>
+                  <input type="number" value={data.pool?.pricePerSquare || 0}
+                    onChange={e => dbr.child("pool/pricePerSquare").set(Number(e.target.value))}
+                    style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+                </div>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Max per player</label>
+                  <input type="number" value={data.settings?.maxPerPlayer || 0}
+                    onChange={e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
+                    style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+                </div>
+              </div>
+            </details>
+
+            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Payout Split</summary>
+              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                  {Object.entries(PAYOUTS).map(([k, v]) => (
+                    <button key={k} onClick={() => dbr.child("pool").update({ payoutPreset: k, payoutSplit: v.vals })} style={{
+                      flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+                      border: `1px solid ${data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"}`,
+                      background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
+                      color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
+                    }}>{v.label}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {QS.map((q, i) => (
+                    <input key={q} type="number" value={(data.pool?.payoutSplit || [])[i] || 0}
+                      onChange={e => { const s = [...(data.pool?.payoutSplit || [25, 25, 25, 25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s) }}
+                      style={{ flex: 1, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 13, textAlign: "center" }} />
+                  ))}
+                </div>
+              </div>
+            </details>
+
+            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Admin / Hazard</summary>
+              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "var(--soft)", display: "block", marginBottom: 4 }}>HOST PIN</label>
+                  <input value={data.hostPin || ""} onChange={e => dbr.update({ hostPin: e.target.value })} placeholder="Set PIN"
+                    style={{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
+                </div>
+                <button onClick={resetBoard} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", color: "#EF4444", fontWeight: 700, fontSize: 12 }}>
+                  🗑 Reset Board
+                </button>
+              </div>
+            </details>
+
+            <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
+              Close
+            </button>
           </div>
-          );
+        </div>
+      );
     }
 
-          // ── Share Modal ───────────────────────────────────────────────
-          function ShareModal({data, room, onClose, toast}) {
+    // ── Share Modal ───────────────────────────────────────────────
+    function ShareModal({ data, room, onClose, toast }) {
       const url = `${window.location.origin}${window.location.pathname}?room=${room}`;
 
-          const shareText = `🏈 Super Bowl LX Squares!\n\nSEAHAWKS vs PATRIOTS\n$${data.pool?.pricePerSquare || 5}/square\n\nJoin here: ${url}\nRoom: ${room}`;
+      const shareText = `🏈 Super Bowl LX Squares!\n\nSEAHAWKS vs PATRIOTS\n$${data.pool?.pricePerSquare || 5}/square\n\nJoin here: ${url}\nRoom: ${room}`;
 
       const share = async () => {
         if (navigator.share) {
-          try {await navigator.share({ title: "Super Bowl LX Squares", text: shareText, url }); }
+          try { await navigator.share({ title: "Super Bowl LX Squares", text: shareText, url }); }
           catch (e) { }
         } else {
-            navigator.clipboard.writeText(shareText);
+          navigator.clipboard.writeText(shareText);
           toast("Link copied!");
         }
-          onClose();
+        onClose();
       };
 
       const copy = () => {
-            navigator.clipboard.writeText(url);
-          toast("Link copied!");
+        navigator.clipboard.writeText(url);
+        toast("Link copied!");
       };
 
-          return (
-          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && onClose()}>
-            <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 380, width: "100%", border: "1px solid var(--border2)", animation: "slideUp .3s ease" }}>
-              <div className="bebas" style={{ fontSize: 20, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📱 SHARE GAME</div>
+      return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && onClose()}>
+          <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 380, width: "100%", border: "1px solid var(--border2)", animation: "slideUp .3s ease" }}>
+            <div className="bebas" style={{ fontSize: 20, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📱 SHARE GAME</div>
 
-              <div style={{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16, wordBreak: "break-all" }}>
-                <div style={{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Game Link</div>
-                <div style={{ fontSize: 13, color: "var(--gold)", fontWeight: 600 }}>{url}</div>
-              </div>
-
-              <div style={{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Room Code</div>
-                <div className="bebas" style={{ fontSize: 28, color: "var(--text)", letterSpacing: 4 }}>{room}</div>
-              </div>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={share} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 13 }}>
-                  📤 Share
-                </button>
-                <button onClick={copy} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 13 }}>
-                  📋 Copy Link
-                </button>
-              </div>
+            <div style={{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16, wordBreak: "break-all" }}>
+              <div style={{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Game Link</div>
+              <div style={{ fontSize: 13, color: "var(--gold)", fontWeight: 600 }}>{url}</div>
             </div>
-          </div>
-          );
-    }
 
-          // ── Rules Modal ───────────────────────────────────────────────
-          function RulesModal({data, onClose}) {
-      const pps = data.pool?.pricePerSquare || 5;
-          const split = data.pool?.payoutSplit || [25, 25, 25, 25];
-          const claimed = data.grid?.flat().filter(Boolean).length || 0;
-          const pot = claimed * pps;
+            <div style={{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Room Code</div>
+              <div className="bebas" style={{ fontSize: 28, color: "var(--text)", letterSpacing: 4 }}>{room}</div>
+            </div>
 
-          return (
-          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
-            <div style={{
-              background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "24px", maxWidth: 480, width: "100%",
-              maxHeight: "80vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none", animation: "slideUp .3s ease"
-            }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
-              <div className="bebas" style={{ fontSize: 22, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📋 HOW TO PLAY</div>
-
-              <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.7 }}>
-                <p style={{ marginBottom: 12 }}>
-                  <strong style={{ color: "var(--gold)" }}>1. Claim Squares</strong> — Tap any empty cell on the grid to claim it.
-                  Use Quick Pick (🎲) to grab multiple random squares at once.
-                </p>
-                <p style={{ marginBottom: 12 }}>
-                  <strong style={{ color: "var(--gold)" }}>2. Numbers Get Assigned</strong> — Once all squares are claimed,
-                  the host locks the board. Random numbers 0-9 are assigned to each row (Patriots) and column (Seahawks).
-                </p>
-                <p style={{ marginBottom: 12 }}>
-                  <strong style={{ color: "var(--gold)" }}>3. Check Winners</strong> — After each quarter, look at the last digit
-                  of each team's score. The square where those digits intersect wins!
-                </p>
-                <p style={{ marginBottom: 12 }}>
-                  <strong style={{ color: "var(--gold)" }}>4. Payouts</strong> — Each square costs <strong>${pps}</strong>.
-                  The pot is split across quarters: {split.map((s, i) => `${QS[i]}: ${s}%`).join(", ")}.
-                </p>
-                <p style={{ color: "var(--soft)" }}>
-                  Example: If the score is SEA 17, NE 13 — the winning square is at column 7, row 3.
-                </p>
-              </div>
-
-              <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
-                Got it!
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={share} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 13 }}>
+                📤 Share
+              </button>
+              <button onClick={copy} style={{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 13 }}>
+                📋 Copy Link
               </button>
             </div>
           </div>
-          );
+        </div>
+      );
     }
 
-          // ── Winner Modal ──────────────────────────────────────────────
-          function WinnerModal({data, onClose}) {
+    // ── Rules Modal ───────────────────────────────────────────────
+    function RulesModal({ data, onClose }) {
+      const pps = data.pool?.pricePerSquare || 5;
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
+      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const pot = claimed * pps;
+
+      return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={e => e.target === e.currentTarget && onClose()}>
+          <div style={{
+            background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "24px", maxWidth: 480, width: "100%",
+            maxHeight: "80vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none", animation: "slideUp .3s ease"
+          }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
+            <div className="bebas" style={{ fontSize: 22, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📋 HOW TO PLAY</div>
+
+            <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.7 }}>
+              <p style={{ marginBottom: 12 }}>
+                <strong style={{ color: "var(--gold)" }}>1. Claim Squares</strong> — Tap any empty cell on the grid to claim it.
+                Use Quick Pick (🎲) to grab multiple random squares at once.
+              </p>
+              <p style={{ marginBottom: 12 }}>
+                <strong style={{ color: "var(--gold)" }}>2. Numbers Get Assigned</strong> — Once all squares are claimed,
+                the host locks the board. Random numbers 0-9 are assigned to each row (Patriots) and column (Seahawks).
+              </p>
+              <p style={{ marginBottom: 12 }}>
+                <strong style={{ color: "var(--gold)" }}>3. Check Winners</strong> — After each quarter, look at the last digit
+                of each team's score. The square where those digits intersect wins!
+              </p>
+              <p style={{ marginBottom: 12 }}>
+                <strong style={{ color: "var(--gold)" }}>4. Payouts</strong> — Each square costs <strong>${pps}</strong>.
+                The pot is split across quarters: {split.map((s, i) => `${QS[i]}: ${s}%`).join(", ")}.
+              </p>
+              <p style={{ color: "var(--soft)" }}>
+                Example: If the score is SEA 17, NE 13 — the winning square is at column 7, row 3.
+              </p>
+            </div>
+
+            <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
+              Got it!
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Winner Modal ──────────────────────────────────────────────
+    function WinnerModal({ data, onClose }) {
       const allWinners = [];
-          const claimed = data.grid?.flat().filter(Boolean).length || 0;
-          const split = data.pool?.payoutSplit || [25, 25, 25, 25];
-          const totalPot = claimed * (data.pool?.pricePerSquare || 0);
+      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
+      const totalPot = claimed * (data.pool?.pricePerSquare || 0);
 
       QS.forEach((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i], neQ = (data.scores?.NE || [])[i];
-          if (seaQ != null && neQ != null) {
+        if (seaQ != null && neQ != null) {
           const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
           const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
           if (data.colNums && data.rowNums) {
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN);
-          if (winner) allWinners.push({q, winner, amt: Math.round(totalPot * split[i] / 100) });
+            if (winner) allWinners.push({ q, winner, amt: Math.round(totalPot * split[i] / 100) });
           }
         }
       });
 
-          return (
-          <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
-            <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--gold)", animation: "slideUp .3s ease", textAlign: "center", position: "relative" }}>
-              <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", fontSize: 40 }}>🏆</div>
-              <div className="bebas" style={{ fontSize: 24, color: "var(--gold)", margin: "16px 0 16px" }}>WINNERS CIRCLE</div>
+      return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
+          <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--gold)", animation: "slideUp .3s ease", textAlign: "center", position: "relative" }}>
+            <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", fontSize: 40 }}>🏆</div>
+            <div className="bebas" style={{ fontSize: 24, color: "var(--gold)", margin: "16px 0 16px" }}>WINNERS CIRCLE</div>
 
-              {allWinners.length === 0 ? (
-                <div style={{ color: "var(--soft)" }}>No winners yet!</div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {allWinners.map(w => (
-                    <div key={w.q} style={{ background: "var(--gold-glow)", padding: "12px", borderRadius: 10, border: "1px solid var(--gold)33" }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--soft)", marginBottom: 4 }}>{w.q}</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>
-                        {getPlayerEmoji(data.playerMeta, w.winner)} {w.winner}
-                      </div>
-                      <div className="bebas" style={{ fontSize: 20, color: "var(--gold)", marginTop: 4 }}>${w.amt}</div>
+            {allWinners.length === 0 ? (
+              <div style={{ color: "var(--soft)" }}>No winners yet!</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {allWinners.map(w => (
+                  <div key={w.q} style={{ background: "var(--gold-glow)", padding: "12px", borderRadius: 10, border: "1px solid var(--gold)33" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--soft)", marginBottom: 4 }}>{w.q}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>
+                      {getPlayerEmoji(data.playerMeta, w.winner)} {w.winner}
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="bebas" style={{ fontSize: 20, color: "var(--gold)", marginTop: 4 }}>${w.amt}</div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-              <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
-                Awesome!
-              </button>
-            </div>
+            <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
+              Awesome!
+            </button>
           </div>
-          );
+        </div>
+      );
     }
 
-          // ── What Do I Need Modal ──────────────────────────────────────
-          function NeedToWinModal({data, myName, onClose}) {
+    // ── What Do I Need Modal ──────────────────────────────────────
+    function NeedToWinModal({ data, myName, onClose }) {
       if (!data.colNums || !data.rowNums) return null;
 
-          const mySquares = [];
-      data.grid.forEach((row,r) => row.forEach((cell,c) => {
-        if(cell === myName) mySquares.push({r:data.rowNums[r], c:data.colNums[c], id:`R${r}C${c}` });
+      const mySquares = [];
+      data.grid.forEach((row, r) => row.forEach((cell, c) => {
+        if (cell === myName) mySquares.push({ r: data.rowNums[r], c: data.colNums[c], id: `R${r}C${c}` });
       }));
 
-          return (
-          <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
-            <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--border)", animation: "slideUp .3s ease", maxHeight: "80vh", overflowY: "auto" }}>
-              <div className="bebas" style={{ fontSize: 24, color: "var(--text)", marginBottom: 16, textAlign: "center" }}>MY WINNING NUMBERS</div>
-              <div style={{ fontSize: 13, color: "var(--soft)", textAlign: "center", marginBottom: 16 }}>
-                To win, the last digit of the score must match your numbers (Patriots row, Seahawks col).
-              </div>
-
-              {mySquares.length === 0 ? (
-                <div style={{ color: "var(--soft)", textAlign: "center" }}>You have no covered squares!</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(80px,1fr))", gap: 8 }}>
-                  {mySquares.map((sq, i) => (
-                    <div key={i} style={{ background: "var(--input)", padding: "10px", borderRadius: 8, textAlign: "center", border: "1px solid var(--border2)" }}>
-                      <div style={{ fontSize: 10, color: "var(--soft)", marginBottom: 4 }}>SQUARE {i + 1}</div>
-                      <div style={{ display: "flex", justifyContent: "center", gap: 8, fontWeight: 700, fontSize: 14 }}>
-                        <span style={{ color: NER }}>NE {sq.r}</span>
-                        <span style={{ color: SEA }}>SEA {sq.c}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
-                Close
-              </button>
+      return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
+          <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--border)", animation: "slideUp .3s ease", maxHeight: "80vh", overflowY: "auto" }}>
+            <div className="bebas" style={{ fontSize: 24, color: "var(--text)", marginBottom: 16, textAlign: "center" }}>MY WINNING NUMBERS</div>
+            <div style={{ fontSize: 13, color: "var(--soft)", textAlign: "center", marginBottom: 16 }}>
+              To win, the last digit of the score must match your numbers (Patriots row, Seahawks col).
             </div>
+
+            {mySquares.length === 0 ? (
+              <div style={{ color: "var(--soft)", textAlign: "center" }}>You have no covered squares!</div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(80px,1fr))", gap: 8 }}>
+                {mySquares.map((sq, i) => (
+                  <div key={i} style={{ background: "var(--input)", padding: "10px", borderRadius: 8, textAlign: "center", border: "1px solid var(--border2)" }}>
+                    <div style={{ fontSize: 10, color: "var(--soft)", marginBottom: 4 }}>SQUARE {i + 1}</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 8, fontWeight: 700, fontSize: 14 }}>
+                      <span style={{ color: NER }}>NE {sq.r}</span>
+                      <span style={{ color: SEA }}>SEA {sq.c}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>
+              Close
+            </button>
           </div>
-          );
+        </div>
+      );
     }
 
-          // ── Main App ──────────────────────────────────────────────────
-          function App() {
+    // ── Main App ──────────────────────────────────────────────────
+    function App() {
       const [myName, setMyName] = useState(() => localStorage.getItem("sbName") || "");
       const [room, setRoom] = useState(() => new URLSearchParams(window.location.search).get("room") || "");
-          const [joined, setJoined] = useState(false);
-          const [data, setData] = useState(DEFAULT);
+      const [joined, setJoined] = useState(false);
+      const [data, setData] = useState(DEFAULT);
       const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") !== "light");
-          const [tab, setTab] = useState("board");
-          const [toastMsg, setToastMsg] = useState(null);
-          const [showSettings, setShowSettings] = useState(false);
-          const [showShare, setShowShare] = useState(false);
-          const [showRules, setShowRules] = useState(false);
-          const [showWin, setShowWin] = useState(false);
-          const [showNeed, setShowNeed] = useState(false);
-          const [avatar, setAvatar] = useState(null);
-          const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-          const dbrRef = useRef(null);
+      const [tab, setTab] = useState("board");
+      const [toastMsg, setToastMsg] = useState(null);
+      const [showSettings, setShowSettings] = useState(false);
+      const [showShare, setShowShare] = useState(false);
+      const [showRules, setShowRules] = useState(false);
+      const [showWin, setShowWin] = useState(false);
+      const [showNeed, setShowNeed] = useState(false);
+      const [avatar, setAvatar] = useState(null);
+      const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+      const dbrRef = useRef(null);
 
-      const toast = useCallback((msg) => {setToastMsg(msg); }, []);
+      const toast = useCallback((msg) => { setToastMsg(msg); }, []);
 
       const join = useCallback((name, rm) => {
-            // Name collision check
-            /*
-            dbRef(rm).child("playerMeta").child(name).once("value", snap => {
-              if (snap.exists() && !localStorage.getItem("sbName")) {
-                 // In a real app we'd block or ask password. 
-                 // Here we just allow rejoin but warn logic is implicit.
-              }
-            });
-            */
-            setMyName(name);
-          setRoom(rm);
-          localStorage.setItem("sbName", name);
-          const ref = dbRef(rm);
-          dbrRef.current = ref;
+        // Name collision check
+        /*
+        dbRef(rm).child("playerMeta").child(name).once("value", snap => {
+          if (snap.exists() && !localStorage.getItem("sbName")) {
+             // In a real app we'd block or ask password. 
+             // Here we just allow rejoin but warn logic is implicit.
+          }
+        });
+        */
+        setMyName(name);
+        setRoom(rm);
+        localStorage.setItem("sbName", name);
+        const ref = dbRef(rm);
+        dbrRef.current = ref;
 
-          // Set URL
-          const url = new URL(window.location);
-          url.searchParams.set("room", rm);
-          window.history.replaceState({ }, "", url);
+        // Set URL
+        const url = new URL(window.location);
+        url.searchParams.set("room", rm);
+        window.history.replaceState({}, "", url);
 
         ref.on("value", snap => {
           const val = snap.val();
-          if (val) setData({...DEFAULT, ...val });
+          if (val) setData({ ...DEFAULT, ...val });
           else ref.set(DEFAULT);
         });
 
@@ -1790,120 +1775,120 @@
           const meta = snap.val();
           if (!meta) {
             const a = AVATARS[Math.floor(Math.random() * AVATARS.length)];
-          ref.child("playerMeta").child(name).set({avatar: a, joinedAt: Date.now() });
-          setAvatar(a);
+            ref.child("playerMeta").child(name).set({ avatar: a, joinedAt: Date.now() });
+            setAvatar(a);
           } else {
             setAvatar(meta.avatar);
           }
         });
 
-        });
+      });
 
-          setJoined(true);
-      }, []);
+      setJoined(true);
+    }, []);
 
-          const dbr = dbrRef.current;
+    const dbr = dbrRef.current;
 
-      const setMyAvatar = (a) => {
-            setAvatar(a);
-          dbr?.child("playerMeta").child(myName).child("avatar").set(a);
-          setShowAvatarPicker(false);
-      };
+    const setMyAvatar = (a) => {
+      setAvatar(a);
+      dbr?.child("playerMeta").child(myName).child("avatar").set(a);
+      setShowAvatarPicker(false);
+    };
 
-      // Theme toggle
-      useEffect(() => {
-        if (isDark) document.body.classList.remove("light-theme");
-          else document.body.classList.add("light-theme");
-          localStorage.setItem("theme", isDark ? "dark" : "light");
-      }, [isDark]);
+    // Theme toggle
+    useEffect(() => {
+      if (isDark) document.body.classList.remove("light-theme");
+      else document.body.classList.add("light-theme");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    }, [isDark]);
 
-          // Tab config
-          const TABS = [
-          {id: "board", icon: "🏈", label: "Board" },
-          {id: "scores", icon: "📊", label: "Scores" },
-          {id: "props", icon: "🎯", label: "Props" },
-          {id: "chat", icon: "💬", label: "Chat", badge: (data.chat || []).length > 0 },
-          {id: "pay", icon: "💰", label: "Pay" },
-          ];
+    // Tab config
+    const TABS = [
+      { id: "board", icon: "🏈", label: "Board" },
+      { id: "scores", icon: "📊", label: "Scores" },
+      { id: "props", icon: "🎯", label: "Props" },
+      { id: "chat", icon: "💬", label: "Chat", badge: (data.chat || []).length > 0 },
+      { id: "pay", icon: "💰", label: "Pay" },
+    ];
 
-          if (!joined) return <SetupScreen onJoin={join} />;
+    if (!joined) return <SetupScreen onJoin={join} />;
 
-          return (
-          <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-            {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
-            {showSettings && <SettingsModal data={data} dbr={dbr} onClose={() => setShowSettings(false)} toast={toast} toggleTheme={() => setIsDark(!isDark)} isDark={isDark} />}
-            {showShare && <ShareModal data={data} room={room} onClose={() => setShowShare(false)} toast={toast} />}
-            {showRules && <RulesModal data={data} onClose={() => setShowRules(false)} />}
-            {showWin && <WinnerModal data={data} onClose={() => setShowWin(false)} />}
-            {showNeed && <NeedToWinModal data={data} myName={myName} onClose={() => setShowNeed(false)} />}
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+        {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
+        {showSettings && <SettingsModal data={data} dbr={dbr} onClose={() => setShowSettings(false)} toast={toast} toggleTheme={() => setIsDark(!isDark)} isDark={isDark} />}
+        {showShare && <ShareModal data={data} room={room} onClose={() => setShowShare(false)} toast={toast} />}
+        {showRules && <RulesModal data={data} onClose={() => setShowRules(false)} />}
+        {showWin && <WinnerModal data={data} onClose={() => setShowWin(false)} />}
+        {showNeed && <NeedToWinModal data={data} myName={myName} onClose={() => setShowNeed(false)} />}
 
-            {/* Avatar Picker */}
-            {showAvatarPicker && (
-              <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && setShowAvatarPicker(false)}>
-                <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
-                  <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
-                    {AVATARS.map(a => (
-                      <button key={a} onClick={() => setMyAvatar(a)} style={{
-                        fontSize: 28, padding: 8, borderRadius: 10, border: `2px solid ${avatar === a ? "var(--gold)" : "var(--border)"}`,
-                        background: avatar === a ? "var(--gold-glow)" : "var(--card)", cursor: "pointer"
-                      }}>{a}</button>
-                    ))}
-                  </div>
-                </div>
+        {/* Avatar Picker */}
+        {showAvatarPicker && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && setShowAvatarPicker(false)}>
+            <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
+              <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
+                {AVATARS.map(a => (
+                  <button key={a} onClick={() => setMyAvatar(a)} style={{
+                    fontSize: 28, padding: 8, borderRadius: 10, border: `2px solid ${avatar === a ? "var(--gold)" : "var(--border)"}`,
+                    background: avatar === a ? "var(--gold-glow)" : "var(--card)", cursor: "pointer"
+                  }}>{a}</button>
+                ))}
               </div>
-            )}
-
-            {/* Header */}
-            <GameHeader data={data} myName={myName} />
-
-            {/* Action Bar */}
-            <div style={{ display: "flex", gap: 6, padding: "8px 12px", justifyContent: "center" }}>
-              <button onClick={() => setShowAvatarPicker(true)} style={{
-                display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 8,
-                border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
-              }}>
-                <span style={{ fontSize: 16 }}>{avatar || "😀"}</span> {myName}
-              </button>
-              {data.colNums && <button onClick={() => setShowNeed(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
-                🔢 Need
-              </button>}
-              <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-                📤 Share
-              </button>
-              <button onClick={() => setShowSettings(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-                ⚙
-              </button>
-              <button onClick={() => setShowRules(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-                📋
-              </button>
-            </div>
-
-            {/* Tab Content */}
-            <div style={{ paddingBottom: 80 }}>
-              {tab === "board" && <BoardTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-              {tab === "scores" && <ScoresTab data={data} dbr={dbr} toast={toast} />}
-              {tab === "props" && <PropsTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-              {tab === "chat" && <ChatTab data={data} myName={myName} dbr={dbr} />}
-              {tab === "pay" && <PayTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-            </div>
-
-            {/* Bottom Navigation */}
-            <div className="bottom-nav">
-              {TABS.map(t => (
-                <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
-                  <span className="nav-icon">{t.icon}</span>
-                  <span>{t.label}</span>
-                  <span className="nav-dot" />
-                </button>
-              ))}
             </div>
           </div>
-          );
+        )}
+
+        {/* Header */}
+        <GameHeader data={data} myName={myName} />
+
+        {/* Action Bar */}
+        <div style={{ display: "flex", gap: 6, padding: "8px 12px", justifyContent: "center" }}>
+          <button onClick={() => setShowAvatarPicker(true)} style={{
+            display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 8,
+            border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
+          }}>
+            <span style={{ fontSize: 16 }}>{avatar || "😀"}</span> {myName}
+          </button>
+          {data.colNums && <button onClick={() => setShowNeed(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
+            🔢 Need
+          </button>}
+          <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+            📤 Share
+          </button>
+          <button onClick={() => setShowSettings(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+            ⚙
+          </button>
+          <button onClick={() => setShowRules(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+            📋
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div style={{ paddingBottom: 80 }}>
+          {tab === "board" && <BoardTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+          {tab === "scores" && <ScoresTab data={data} dbr={dbr} toast={toast} />}
+          {tab === "props" && <PropsTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+          {tab === "chat" && <ChatTab data={data} myName={myName} dbr={dbr} />}
+          {tab === "pay" && <PayTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="bottom-nav">
+          {TABS.map(t => (
+            <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
+              <span className="nav-icon">{t.icon}</span>
+              <span>{t.label}</span>
+              <span className="nav-dot" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
     }
 
-          // ── Render ─────────────────────────────────────────────────────
-          ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    // ── Render ─────────────────────────────────────────────────────
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 
