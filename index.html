@@ -4674,54 +4674,26 @@
                 }
 
               </div> </div>)
-    }
+          }
 
-    {
-      /* ═══════════ SCORES TAB ═══════════ */
-    }
+          {
+            /* ═══════════ SCORES TAB ═══════════ */
+          }
 
-    {
-      tab === "scores" && (<div> <div style={
-        {
-          background: NAV, borderRadius: 16, padding: 20, marginBottom: 14, color: "#fff"
-        }
-      }
-
-      > <div style={
-        {
-          display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12, marginBottom: 16
-        }
-      }
-
-      > <div style={
-        {
-          textAlign: "center"
-        }
-      }
-
-      ><div style={
-        {
-          fontSize: 12, fontWeight: 700, letterSpacing: 2, color: SEA, marginBottom: 4
-        }
-      }
-
-      >SEAHAWKS</div><div style={
-        {
-          fontSize: 48, fontWeight: 800
-        }
-      }
-
-      > {
-                scores.SEA.filter(v => v !== null).reduce((a, b) => Math.max(a, b), 0) || 0
-              }
-
-            </div></div> <div style={
+          {
+            tab === "scores" && (<div> <div style={
               {
-                fontSize: 11, color: "#ffffff44", fontWeight: 600
+                background: NAV, borderRadius: 16, padding: 20, marginBottom: 14, color: "#fff"
               }
             }
 
-            >SCORE</div> <div style={
+            > <div style={
+              {
+                display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12, marginBottom: 16
+              }
+            }
+
+            > <div style={
               {
                 textAlign: "center"
               }
@@ -4729,1539 +4701,415 @@
 
             ><div style={
               {
-                fontSize: 12, fontWeight: 700, letterSpacing: 2, color: NER, marginBottom: 4
+                fontSize: 12, fontWeight: 700, letterSpacing: 2, color: SEA, marginBottom: 4
               }
             }
 
-            >PATRIOTS</div><div style={
+            >SEAHAWKS</div><div style={
               {
                 fontSize: 48, fontWeight: 800
               }
             }
 
             > {
-                scores.NE.filter(v => v !== null).reduce((a, b) => Math.max(a, b), 0) || 0
+                      scores.SEA.filter(v => v !== null).reduce((a, b) => Math.max(a, b), 0) || 0
+                    }
+
+                  </div></div> <div style={
+                    {
+                      fontSize: 11, color: "#ffffff44", fontWeight: 600
+                    }
+                  }
+
+                  >SCORE</div> <div style={
+                    {
+                      textAlign: "center"
+                    }
+                  }
+
+                  ><div style={
+                    {
+                      fontSize: 12, fontWeight: 700, letterSpacing: 2, color: NER, marginBottom: 4
+                    }
+                  }
+
+                  >PATRIOTS</div><div style={
+                    {
+                      fontSize: 48, fontWeight: 800
+                    }
+                  }
+
+                  > {
+                      scores.NE.filter(v => v !== null).reduce((a, b) => Math.max(a, b), 0) || 0
+                    }
+
+                  </div></div> </div> <div style={
+                    {
+                      display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6
+                    }
+                  }
+
+                  > {
+                  QS.map((q, qi) => {
+                    const w = getWinner(qi); const isEd = editingScore && editingScore.qi === qi;
+
+                    return (<div key={
+                      q
+                    }
+
+                      onClick={
+                        () => {
+                          if (!isEd) hostAction(() => setEditingScore({
+                            qi, sea: scores.SEA[qi] || 0, ne: scores.NE[qi] || 0
+                          }));
+                        }
+                      }
+
+                      style={
+                        {
+                          background: w ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.06)", borderRadius: 10, padding: 8, textAlign: "center", cursor: "pointer", border: w ? "1px solid rgba(255,215,0,0.3)" : "1px solid rgba(255,255,255,0.08)"
+                        }
+                      }
+
+                    > <div style={
+                      {
+                        fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#ffffff66", marginBottom: 4
+                      }
+                    }
+
+                    > {
+                          q === "Q4" ? "FINAL" : q
+                        }
+
+                      </div> {
+                        isEd ? (<div onClick={
+                          e => e.stopPropagation()
+                        }
+
+                        > <div style={
+                          {
+                            display: "flex", alignItems: "center", gap: 2, justifyContent: "center", marginBottom: 4
+                          }
+                        }
+
+                        ><span style={
+                          {
+                            fontSize: 9, color: SEA
+                          }
+                        }
+
+                        >SEA</span><input type="number" value={
+                          editingScore.sea
+                        }
+
+                          onChange={
+                            e => setEditingScore({
+                              ...editingScore, sea: parseInt(e.target.value) || 0
+                            })
+                          }
+
+                          style={
+                            {
+                              width: 36, padding: "2px 4px", borderRadius: 4, border: "1px solid " + SEA + "66", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, textAlign: "center"
+                            }
+                          }
+
+                            /></div> <div style={
+                              {
+                                display: "flex", alignItems: "center", gap: 2, justifyContent: "center", marginBottom: 4
+                              }
+                            }
+
+                            ><span style={
+                              {
+                                fontSize: 9, color: NER
+                              }
+                            }
+
+                            >NE</span><input type="number" value={
+                              editingScore.ne
+                            }
+
+                              onChange={
+                                e => setEditingScore({
+                                  ...editingScore, ne: parseInt(e.target.value) || 0
+                                })
+                              }
+
+                              style={
+                                {
+                                  width: 36, padding: "2px 4px", borderRadius: 4, border: "1px solid " + NER + "66", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, textAlign: "center"
+                                }
+                              }
+
+                            /></div> <button onClick={
+                              () => {
+                                updateScore("SEA", editingScore.qi, editingScore.sea); updateScore("NE", editingScore.qi, editingScore.ne);
+                              }
+                            }
+
+                              style={
+                                {
+                                  padding: "3px 10px", borderRadius: 6, border: "none", background: SEA, color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer"
+                                }
+                              }
+
+                            >✓ Set</button> </div>) : (<div> {
+                              scores.SEA[qi] !== null ? <div style={
+                                {
+                                  fontSize: 16, fontWeight: 800
+                                }
+                              }
+
+                              > {
+                                  scores.SEA[qi]
+                                }
+
+                                - {
+                                  scores.NE[qi]
+                                }
+
+                              </div> : <div style={
+                                {
+                                  fontSize: 12, color: "#ffffff44"
+                                }
+                              }
+
+                              >Tap</div>
+                            }
+
+                              {
+                                w && <div style={
+                                  {
+                                    fontSize: 9, color: "#FFD700", marginTop: 2
+                                  }
+                                }
+
+                                >🏆 {
+                                    w.name
+                                  }
+
+                                </div>
+                              }
+
+                            </div>)
+                      }
+
+                    </div>);
+                  })
+                }
+
+              </div> </div> {
+                /* Quarter results */
               }
 
-            </div></div> </div> <div style={
               {
-                display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6
-              }
-            }
+                QS.map((q, qi) => {
+                  const w = getWinner(qi); if (!w) return null;
+                  const rev = getReverse(qi); const touch = getTouching(qi);
+                  const qPay = pool.pricePerSquare > 0 ? Math.round(fullPot * pool.payoutSplit[qi] / 100) : 0;
 
-            > {
-            QS.map((q, qi) => {
-              const w = getWinner(qi); const isEd = editingScore && editingScore.qi === qi;
-
-              return (<div key={
-                q
-              }
-
-                onClick={
-                  () => {
-                    if (!isEd) hostAction(() => setEditingScore({
-                      qi, sea: scores.SEA[qi] || 0, ne: scores.NE[qi] || 0
-                    }));
-                  }
-                }
-
-                style={
-                  {
-                    background: w ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.06)", borderRadius: 10, padding: 8, textAlign: "center", cursor: "pointer", border: w ? "1px solid rgba(255,215,0,0.3)" : "1px solid rgba(255,255,255,0.08)"
-                  }
-                }
-
-              > <div style={
-                {
-                  fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#ffffff66", marginBottom: 4
-                }
-              }
-
-              > {
-                    q === "Q4" ? "FINAL" : q
+                  return (<div key={
+                    q
                   }
 
-                </div> {
-                  isEd ? (<div onClick={
-                    e => e.stopPropagation()
+                    style={
+                      {
+                        background: T.card, borderRadius: 14, padding: 16, marginBottom: 10, border: "2px solid #FFB40030"
+                      }
+                    }
+
+                  > <div style={
+                    {
+                      display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8
+                    }
                   }
 
                   > <div style={
                     {
-                      display: "flex", alignItems: "center", gap: 2, justifyContent: "center", marginBottom: 4
+                      fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft
                     }
                   }
 
-                  ><span style={
-                    {
-                      fontSize: 9, color: SEA
-                    }
-                  }
-
-                  >SEA</span><input type="number" value={
-                    editingScore.sea
-                  }
-
-                    onChange={
-                      e => setEditingScore({
-                        ...editingScore, sea: parseInt(e.target.value) || 0
-                      })
-                    }
-
-                    style={
-                      {
-                        width: 36, padding: "2px 4px", borderRadius: 4, border: "1px solid " + SEA + "66", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, textAlign: "center"
-                      }
-                    }
-
-                      /></div> <div style={
-                        {
-                          display: "flex", alignItems: "center", gap: 2, justifyContent: "center", marginBottom: 4
-                        }
-                      }
-
-                      ><span style={
-                        {
-                          fontSize: 9, color: NER
-                        }
-                      }
-
-                      >NE</span><input type="number" value={
-                        editingScore.ne
-                      }
-
-                        onChange={
-                          e => setEditingScore({
-                            ...editingScore, ne: parseInt(e.target.value) || 0
-                          })
+                  > {
+                          q === "Q4" ? "FINAL" : q
                         }
 
-                        style={
+                        WINNER</div> {
+                        qPay > 0 && <div style={
                           {
-                            width: 36, padding: "2px 4px", borderRadius: 4, border: "1px solid " + NER + "66", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, textAlign: "center"
-                          }
-                        }
-
-                      /></div> <button onClick={
-                        () => {
-                          updateScore("SEA", editingScore.qi, editingScore.sea); updateScore("NE", editingScore.qi, editingScore.ne);
-                        }
-                      }
-
-                        style={
-                          {
-                            padding: "3px 10px", borderRadius: 6, border: "none", background: SEA, color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer"
-                          }
-                        }
-
-                      >✓ Set</button> </div>) : (<div> {
-                        scores.SEA[qi] !== null ? <div style={
-                          {
-                            fontSize: 16, fontWeight: 800
+                            fontSize: 13, fontWeight: 800, color: SEA
                           }
                         }
 
                         > {
-                            scores.SEA[qi]
+                            fmt$(qPay)
                           }
 
-                          - {
-                            scores.NE[qi]
-                          }
-
-                        </div> : <div style={
-                          {
-                            fontSize: 12, color: "#ffffff44"
-                          }
-                        }
-
-                        >Tap</div>
+                        </div>
                       }
 
-                        {
-                          w && <div style={
-                            {
-                              fontSize: 9, color: "#FFD700", marginTop: 2
-                            }
-                          }
-
-                          >🏆 {
-                              w.name
-                            }
-
-                          </div>
-                        }
-
-                      </div>)
-                }
-
-              </div>);
-            })
-          }
-
-        </div> </div> {
-          /* Quarter results */
-        }
-
-        {
-          QS.map((q, qi) => {
-            const w = getWinner(qi); if (!w) return null;
-            const rev = getReverse(qi); const touch = getTouching(qi);
-            const qPay = pool.pricePerSquare > 0 ? Math.round(fullPot * pool.payoutSplit[qi] / 100) : 0;
-
-            return (<div key={
-              q
-            }
-
-              style={
-                {
-                  background: T.card, borderRadius: 14, padding: 16, marginBottom: 10, border: "2px solid #FFB40030"
-                }
-              }
-
-            > <div style={
-              {
-                display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8
-              }
-            }
-
-            > <div style={
-              {
-                fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft
-              }
-            }
-
-            > {
-                    q === "Q4" ? "FINAL" : q
-                  }
-
-                  WINNER</div> {
-                  qPay > 0 && <div style={
-                    {
-                      fontSize: 13, fontWeight: 800, color: SEA
-                    }
-                  }
-
-                  > {
-                      fmt$(qPay)
-                    }
-
-                  </div>
-                }
-
-              </div> <div style={
-                {
-                  display: "flex", alignItems: "center", gap: 10
-                }
-              }
-
-              > <div style={
-                {
-                  fontSize: 28
-                }
-              }
-
-              > {
-                    getEmoji(w.name) || "🏆"
-                  }
-
-                </div> <div><div style={
-                  {
-                    fontSize: 18, fontWeight: 800, color: T.text
-                  }
-                }
-
-                > {
-                    w.name
-                  }
-
-                </div><div style={
-                  {
-                    fontSize: 12, color: T.textSoft
-                  }
-                }
-
-                >SEA {
-                      w.cd
-                    }
-
-                    × NE {
-                      w.rd
-                    }
-
-                  </div></div> </div> {
-                rev && rev.name !== w.name && <div style={
-                  {
-                    marginTop: 8, padding: "6px 10px", background: "#FFB40010", borderRadius: 8, fontSize: 12, color: "#B8860B"
-                  }
-                }
-
-                >🔄 Reverse: <strong> {
-                  rev.name
-                }
-
-                  </strong></div>
-              }
-
-              {
-                touch.length > 0 && <div style={
-                  {
-                    marginTop: 4, fontSize: 11, color: T.textSoft
-                  }
-                }
-
-                >📍 Touching: {
-                    touch.map(t => t.name).join(", ")
-                  }
-
-                </div>
-              }
-
-            </div>);
-          })
-        }
-
-        {
-          /* Payout summary */
-        }
-
-        {
-          players.filter(p => getRunningTotal(p) > 0).length > 0 && pool.pricePerSquare > 0 && (<div style={
-            {
-              background: T.card, borderRadius: 14, padding: 16, marginBottom: 10, border: "2px solid " + T.cardBorder
-            }
-          }
-
-          > <div style={
-            {
-              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 12
-            }
-          }
-
-          >💰 PAYOUT BREAKDOWN</div> {
-              [...players].filter(p => getRunningTotal(p) > 0).sort((a, b) => getRunningTotal(b) - getRunningTotal(a)).map((p, i) => (<div key={
-                p
-              }
-
-                style={
-                  {
-                    display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
-                  }
-                }
-
-              > <div style={
-                {
-                  fontSize: 16, width: 24, textAlign: "center"
-                }
-              }
-
-              > {
-                    getEmoji(p) || <span style={
+                    </div> <div style={
                       {
-                        display: "inline-block", width: 22, height: 22, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "22px", textAlign: "center"
-                      }
-                    }
-
-                    > {
-                        ini(p)
-                      }
-
-                    </span>
-                  }
-
-                </div> <div style={
-                  {
-                    flex: 1, fontSize: 14, fontWeight: 600
-                  }
-                }
-
-                > {
-                    i === 0 ? "👑 " : ""
-                  }
-
-                  {
-                    p
-                  }
-
-                </div> <div style={
-                  {
-                    fontSize: 16, fontWeight: 800, color: SEA
-                  }
-                }
-
-                > {
-                    fmt$(getRunningTotal(p))
-                  }
-
-                </div> </div>))
-            }
-
-          </div>)
-        }
-
-      </div>)
-    }
-
-    {
-      /* ═══════════ PLAYERS TAB ═══════════ */
-    }
-
-    {
-      tab === "players" && (<div> {
-        [...players].sort((a, b) => grid.flat().filter(n => n === b).length - grid.flat().filter(n => n === a).length).map((p, i) => {
-          const cnt = grid.flat().filter(n => n === p).length; const paid = isPaid(p);
-
-          return (<div key={
-            p
-          }
-
-            style={
-              {
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: T.card, borderRadius: 12, marginBottom: 6, border: p === activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder
-              }
-            }
-
-          > <div style={
-            {
-              fontSize: 32
-            }
-          }
-
-          > {
-                getEmoji(p) || <span style={
-                  {
-                    display: "inline-flex", width: 40, height: 40, borderRadius: "50%", background: hc(p), alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff"
-                  }
-                }
-
-                > {
-                    ini(p)
-                  }
-
-                </span>
-              }
-
-            </div> <div style={
-              {
-                flex: 1
-              }
-            }
-
-            > <div style={
-              {
-                fontWeight: 700, fontSize: 15, color: T.text
-              }
-            }
-
-            > {
-                  p
-                }
-
-                {
-                  p === activeName ? " (you)" : ""
-                }
-
-                {
-                  pool.pricePerSquare > 0 && <span style={
-                    {
-                      fontSize: 9, padding: "2px 7px", borderRadius: 99, fontWeight: 800, background: paid ? "#FFB40020" : T.cardBorder, color: paid ? "#B8860B" : T.textFaint
-                    }
-                  }
-
-                  > {
-                      paid ? "💰 PAID" : "FREE"
-                    }
-
-                  </span>
-                }
-
-              </div> <div style={
-                {
-                  fontSize: 12, color: T.textSoft
-                }
-              }
-
-              > {
-                  cnt
-                }
-
-                sq {
-                  pool.pricePerSquare > 0 && paid ? " • Owes " + fmt$(cnt * pool.pricePerSquare) : ""
-                }
-
-              </div> </div> {
-              getRunningTotal(p) > 0 && <div style={
-                {
-                  fontSize: 16, fontWeight: 800, color: SEA
-                }
-              }
-
-              > {
-                  fmt$(getRunningTotal(p))
-                }
-
-              </div>
-            }
-
-          </div>);
-        })
-      }
-
-        {
-          players.length === 0 && <div style={
-            {
-              textAlign: "center", padding: 40, color: T.textSoft
-            }
-          }
-
-          >No players yet !</div>
-        }
-
-      </div>)
-    }
-
-    {
-      /* ═══════════ PROPS TAB ═══════════ */
-    }
-
-    {
-      tab === "props" && (<div> <div style={
-        {
-          display: "flex", gap: 4, marginBottom: 14, background: T.card, borderRadius: 10, overflow: "hidden", border: "2px solid " + T.cardBorder
-        }
-      }
-
-      > {
-          [{
-            id: "pick", l: "Picks"
-          }
-
-            , {
-            id: "host", l: "Host"
-          }
-
-            , {
-            id: "results", l: "Results"
-          }
-
-          ].map(m => (<button key={
-            m.id
-          }
-
-            onClick={
-              () => setPropMode(m.id)
-            }
-
-            style={
-              {
-                flex: 1, padding: "8px 0", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", background: propMode === m.id ? "#FFB400" : T.card, color: propMode === m.id ? "#000" : T.textSoft
-              }
-            }
-
-          > {
-              m.l
-            }
-
-          </button>))
-        }
-
-      </div> {
-          tiebreaker.question && propMode === "pick" && activeName && (<div style={
-            {
-              background: T.card, borderRadius: 12, padding: 14, marginBottom: 12, border: "2px solid #7B68EE40"
-            }
-          }
-
-          > <div style={
-            {
-              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: "#7B68EE", marginBottom: 6
-            }
-          }
-
-          >🏆 TIEBREAKER</div> <div style={
-            {
-              fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 8
-            }
-          }
-
-          > {
-                tiebreaker.question
-              }
-
-            </div> <input type="number" value={
-              (tiebreaker.answers || {})[activeName] || ""
-            }
-
-              onChange={
-                e => update(d => ({
-                  ...d, tiebreaker: {
-                    ...d.tiebreaker, answers: {
-                      ...(d.tiebreaker.answers || {}), [activeName]: e.target.value
-                    }
-                  }
-                }))
-              }
-
-              placeholder="Your answer (number)" style={
-                {
-                  width: "100%", padding: "10px 14px", borderRadius: 10, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 700, textAlign: "center"
-                }
-              }
-
-            /> </div>)
-        }
-
-        {
-          propMode === "pick" && (<div> {
-            !activeName && <div style={
-              {
-                background: darkMode ? "#332B00" : "#FFF3CD", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#856404", textAlign: "center"
-              }
-            }
-
-            >Enter your name on Board first !</div>
-          }
-
-            {
-              activeName && pool.propBuyIn > 0 && (<div style={
-                {
-                  background: "linear-gradient(135deg,#B8860B,#FFB400)", borderRadius: 12, padding: 14, marginBottom: 12, color: "#fff"
-                }
-              }
-
-              > <div style={
-                {
-                  display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10
-                }
-              }
-
-              > <div><div style={
-                {
-                  fontSize: 10, fontWeight: 700, letterSpacing: 2, opacity: 0.7
-                }
-              }
-
-              >PROP POT</div><div style={
-                {
-                  fontSize: 24, fontWeight: 800
-                }
-              }
-
-              > {
-                        fmt$(propPot)
-                      }
-
-                    </div></div> <div style={
-                      {
-                        textAlign: "right"
-                      }
-                    }
-
-                    ><div style={
-                      {
-                        fontSize: 10, opacity: 0.7
-                      }
-                    }
-
-                    > {
-                        propBettors.length
-                      }
-
-                      × $ {
-                        pool.propBuyIn
-                      }
-
-                    </div></div> </div> <div style={
-                      {
-                        display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "10px 14px"
+                        display: "flex", alignItems: "center", gap: 10
                       }
                     }
 
                     > <div style={
                       {
-                        flex: 1
-                      }
-                    }
-
-                    ><div style={
-                      {
-                        fontSize: 14, fontWeight: 700
+                        fontSize: 28
                       }
                     }
 
                     > {
-                        (data.propBuyIns || {})[activeName] ? "✅ You're in!" : "Play for money?"
-                      }
-
-                    </div><div style={
-                      {
-                        fontSize: 11, opacity: 0.8
-                      }
-                    }
-
-                    > {
-                        (data.propBuyIns || {})[activeName] ? "Most correct wins" : "$" + pool.propBuyIn + " buy in"
-                      }
-
-                    </div></div> <button onClick={
-                      () => update(d => ({
-                        ...d, propBuyIns: {
-                          ...(d.propBuyIns || {}), [activeName]: !(d.propBuyIns || {})[activeName]
+                          getEmoji(w.name) || "🏆"
                         }
-                      }))
-                    }
 
-                      style={
+                      </div> <div><div style={
                         {
-                          padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.4)", background: (data.propBuyIns || {})[activeName] ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer"
-                        }
-                      }
-
-                    > {
-                      (data.propBuyIns || {})[activeName] ? "Leave" : "$" + pool.propBuyIn + " I'm In"
-                    }
-
-                  </button> </div> </div>)
-            }
-
-            {
-              ["Pre-Game", "1st Half", "Game", "Halftime", "Post-Game"].map(cat => {
-                const catBets = PROPS_LIST.filter(b => b.cat === cat); if (!catBets.length) return null;
-
-                return (<div key={
-                  cat
-                }
-
-                  style={
-                    {
-                      marginBottom: 16
-                    }
-                  }
-
-                > <div style={
-                  {
-                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
-                  }
-                }
-
-                > {
-                      cat.toUpperCase()
-                    }
-
-                  </div> {
-                    catBets.map(bet => {
-                      const myPicks = activeName && props ? (props[activeName] || {}) : {}
-
-                        ;
-                      const myPick = myPicks[bet.id] || null; const answer = propAnswers ? propAnswers[bet.id] : null;
-                      const isCorrect = answer && myPick === answer; const isWrong = answer && myPick && myPick !== answer;
-
-                      return (<div key={
-                        bet.id
-                      }
-
-                        style={
-                          {
-                            background: T.card, borderRadius: 12, padding: 14, marginBottom: 6, border: isCorrect ? "2px solid " + SEA : isWrong ? "2px solid " + NER + "40" : "2px solid " + T.cardBorder
-                          }
-                        }
-
-                      > <div style={
-                        {
-                          display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8
-                        }
-                      }
-
-                      > <div style={
-                        {
-                          fontSize: 14, fontWeight: 600, color: T.text, flex: 1
+                          fontSize: 18, fontWeight: 800, color: T.text
                         }
                       }
 
                       > {
-                              bet.q
-                            }
-
-                          </div> {
-                            isCorrect && <span style={
-                              {
-                                fontSize: 11, fontWeight: 700, color: SEA, flexShrink: 0
-                              }
-                            }
-
-                            >✅</span>
-                          }
-
-                          {
-                            isWrong && <span style={
-                              {
-                                fontSize: 11, color: NER, flexShrink: 0
-                              }
-                            }
-
-                            >❌</span>
-                          }
-
-                        </div> <div style={
-                          {
-                            display: "flex", gap: 5, flexWrap: "wrap"
-                          }
-                        }
-
-                        > {
-                            bet.opts.map(opt => (<button key={
-                              opt
-                            }
-
-                              onClick={
-                                () => {
-                                  if (!activeName) return; update(d => {
-                                    const p = {
-                                      ...(d.props || {})
-                                    }
-
-                                      ; if (!p[activeName]) p[activeName] = {}
-
-                                        ; p[activeName][bet.id] = opt; return {
-                                          ...d, props: p
-                                        }
-
-                                      ;
-                                  });
-                                }
-                              }
-
-                              style={
-                                {
-                                  padding: "7px 14px", borderRadius: 8, cursor: activeName ? "pointer" : "not-allowed", fontSize: 13, fontWeight: myPick === opt ? 700 : 500, border: myPick === opt ? "2px solid #FFB400" : "2px solid " + T.cardBorder, background: myPick === opt ? (isCorrect ? SEA + "15" : isWrong ? NER + "10" : "#FFB40015") : T.card, color: myPick === opt ? (isCorrect ? SEA : isWrong ? NER : "#B8860B") : T.textSoft
-                                }
-                              }
-
-                            > {
-                                myPick === opt ? "✓ " : ""
-                              }
-
-                              {
-                                opt
-                              }
-
-                            </button>))
-                          }
-
-                        </div> </div>);
-                    })
-                  }
-
-                </div>);
-              })
-            }
-
-          </div>)
-        }
-
-        {
-          propMode === "host" && (<div> <div style={
-            {
-              background: darkMode ? "#1a2e1a" : "#E8F5E9", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#2E7D32", textAlign: "center"
-            }
-          }
-
-          >🎮 Set correct answers as events happen</div> {
-              ["Pre-Game", "1st Half", "Game", "Halftime", "Post-Game"].map(cat => {
-                const catBets = PROPS_LIST.filter(b => b.cat === cat); if (!catBets.length) return null;
-
-                return (<div key={
-                  cat
-                }
-
-                  style={
-                    {
-                      marginBottom: 16
-                    }
-                  }
-
-                ><div style={
-                  {
-                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 6
-                  }
-                }
-
-                > {
-                      cat.toUpperCase()
-                    }
-
-                  </div> {
-                    catBets.map(bet => {
-                      const answer = propAnswers ? propAnswers[bet.id] : null; return (<div key={
-                        bet.id
-                      }
-
-                        style={
-                          {
-                            background: T.card, borderRadius: 12, padding: 14, marginBottom: 6, border: answer ? "2px solid " + SEA + "40" : "2px solid " + T.cardBorder
-                          }
-                        }
-
-                      > <div style={
-                        {
-                          fontSize: 14, fontWeight: 600, marginBottom: 8, color: T.text
-                        }
-                      }
-
-                      > {
-                            bet.q
-                          }
-
-                        </div> <div style={
-                          {
-                            display: "flex", gap: 5, flexWrap: "wrap"
-                          }
-                        }
-
-                        > {
-                            bet.opts.map(opt => (<button key={
-                              opt
-                            }
-
-                              onClick={
-                                () => hostAction(() => update(d => addAudit({
-                                  ...d, propAnswers: {
-                                    ...(d.propAnswers || {}), [bet.id]: opt
-                                  }
-                                }
-
-                                  , "Prop answer set: " + bet.q + " → " + opt, "Host")))
-                              }
-
-                              style={
-                                {
-                                  padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: answer === opt ? 700 : 500, border: answer === opt ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: answer === opt ? SEA : T.card, color: answer === opt ? "#fff" : T.textSoft
-                                }
-                              }
-
-                            > {
-                                answer === opt ? "✓ " : ""
-                              }
-
-                              {
-                                opt
-                              }
-
-                            </button>))
-                          }
-
-                        </div> </div>);
-                    })
-                  }
-
-                </div>);
-              })
-            }
-
-          </div>)
-        }
-
-        {
-          propMode === "results" && (<div> {
-            propBettors.length > 0 && (<div style={
-              {
-                background: T.card, borderRadius: 14, padding: 16, marginBottom: 14, border: "2px solid #FFB40030"
-              }
-            }
-
-            > <div style={
-              {
-                fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 10
-              }
-            }
-
-            >💰 LEADERBOARD</div> {
-                [...propBettors].sort((a, b) => getPropScore(b) - getPropScore(a)).map((p, i) => {
-                  const score = getPropScore(p); const answered = PROPS_LIST.filter(pr => (propAnswers || {})[pr.id]).length;
-
-                  return (<div key={
-                    p
-                  }
-
-                    style={
-                      {
-                        display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
-                      }
-                    }
-
-                  > <div style={
-                    {
-                      fontSize: 18, width: 28, textAlign: "center"
-                    }
-                  }
-
-                  > {
-                        i === 0 && score > 0 ? "👑" : (getEmoji(p) || <span style={
-                          {
-                            display: "inline-block", width: 22, height: 22, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "22px", textAlign: "center"
-                          }
-                        }
-
-                        > {
-                            ini(p)
-                          }
-
-                        </span>)
-                      }
-
-                    </div> <div style={
-                      {
-                        flex: 1
-                      }
-                    }
-
-                    ><div style={
-                      {
-                        fontSize: 14, fontWeight: 600, color: T.text
-                      }
-                    }
-
-                    > {
-                          p
+                          w.name
                         }
 
                       </div><div style={
                         {
-                          fontSize: 11, color: T.textSoft
+                          fontSize: 12, color: T.textSoft
+                        }
+                      }
+
+                      >SEA {
+                            w.cd
+                          }
+
+                          × NE {
+                            w.rd
+                          }
+
+                        </div></div> </div> {
+                      rev && rev.name !== w.name && <div style={
+                        {
+                          marginTop: 8, padding: "6px 10px", background: "#FFB40010", borderRadius: 8, fontSize: 12, color: "#B8860B"
+                        }
+                      }
+
+                      >🔄 Reverse: <strong> {
+                        rev.name
+                      }
+
+                        </strong></div>
+                    }
+
+                    {
+                      touch.length > 0 && <div style={
+                        {
+                          marginTop: 4, fontSize: 11, color: T.textSoft
+                        }
+                      }
+
+                      >📍 Touching: {
+                          touch.map(t => t.name).join(", ")
+                        }
+
+                      </div>
+                    }
+
+                  </div>);
+                })
+              }
+
+              {
+                /* Payout summary */
+              }
+
+              {
+                players.filter(p => getRunningTotal(p) > 0).length > 0 && pool.pricePerSquare > 0 && (<div style={
+                  {
+                    background: T.card, borderRadius: 14, padding: 16, marginBottom: 10, border: "2px solid " + T.cardBorder
+                  }
+                }
+
+                > <div style={
+                  {
+                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 12
+                  }
+                }
+
+                >💰 PAYOUT BREAKDOWN</div> {
+                    [...players].filter(p => getRunningTotal(p) > 0).sort((a, b) => getRunningTotal(b) - getRunningTotal(a)).map((p, i) => (<div key={
+                      p
+                    }
+
+                      style={
+                        {
+                          display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
+                        }
+                      }
+
+                    > <div style={
+                      {
+                        fontSize: 16, width: 24, textAlign: "center"
+                      }
+                    }
+
+                    > {
+                          getEmoji(p) || <span style={
+                            {
+                              display: "inline-block", width: 22, height: 22, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "22px", textAlign: "center"
+                            }
+                          }
+
+                          > {
+                              ini(p)
+                            }
+
+                          </span>
+                        }
+
+                      </div> <div style={
+                        {
+                          flex: 1, fontSize: 14, fontWeight: 600
                         }
                       }
 
                       > {
-                          score
+                          i === 0 ? "👑 " : ""
                         }
 
-                        / {
-                          answered
+                        {
+                          p
                         }
 
-                        correct</div></div> <div style={
-                          {
-                            fontSize: 18, fontWeight: 800, color: "#FFB400"
-                          }
+                      </div> <div style={
+                        {
+                          fontSize: 16, fontWeight: 800, color: SEA
                         }
-
-                        > {
-                        score
                       }
 
-                    </div> </div>);
-                })
+                      > {
+                          fmt$(getRunningTotal(p))
+                        }
+
+                      </div> </div>))
+                  }
+
+                </div>)
               }
 
             </div>)
           }
 
-            {
-              (!propAnswers || Object.keys(propAnswers).length === 0) && <div style={
-                {
-                  textAlign: "center", padding: 40, color: T.textSoft
-                }
-              }
-
-              >No answers set yet.</div>
-            }
-
-          </div>)
-        }
-
-      </div>)
-    }
-
-    {
-      /* ═══════════ CHAT TAB ═══════════ */
-    }
-
-    {
-      tab === "activity" && (<div> {
-        activeName && (<div style={
           {
-            display: "flex", gap: 6, marginBottom: 12
-          }
-        }
-
-        > <input value={
-          chatMsg
-        }
-
-          onChange={
-            e => setChatMsg(e.target.value)
+            /* ═══════════ PLAYERS TAB ═══════════ */
           }
 
-          onKeyDown={
-            e => {
-              if (e.key === "Enter") sendChat();
-            }
-          }
-
-          placeholder="Trash talk here..." maxLength={
-            200
-          }
-
-          style={
-            {
-              flex: 1, padding: "10px 14px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 14, fontWeight: 600
-            }
-          }
-
-          /> <button onClick={
-            sendChat
-          }
-
-            style={
-              {
-                padding: "10px 16px", borderRadius: 12, border: "none", background: "#3DB2FF", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer"
-              }
-            }
-
-          >Send</button> </div>)
-      }
-
-        {
-          !activeName && <div style={
-            {
-              background: darkMode ? "#332B00" : "#FFF3CD", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#856404", textAlign: "center"
-            }
-          }
-
-          >Enter your name on Board to chat !</div>
-        }
-
-        {
-          chat && chat.length > 0 && (<div style={
-            {
-              marginBottom: 16
-            }
-          }
-
-          > <div style={
-            {
-              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
-            }
-          }
-
-          >💬 CHAT</div> {
-              [...chat].reverse().slice(0, 30).map((m, i) => (<div key={
-                i
-              }
-
-                style={
-                  {
-                    display: "flex", gap: 8, padding: "8px 12px", background: m.from === activeName ? "#3DB2FF12" : T.card, borderRadius: 12, marginBottom: 4, border: m.from === activeName ? "1px solid #3DB2FF30" : "1px solid " + T.cardBorder
-                  }
-                }
-
-              > <div style={
-                {
-                  fontSize: 18, flexShrink: 0
-                }
-              }
-
-              > {
-                    m.emoji || "😀"
-                  }
-
-                </div> <div style={
-                  {
-                    flex: 1
-                  }
-                }
-
-                > <div style={
-                  {
-                    fontSize: 12, fontWeight: 700, color: hc(m.from)
-                  }
-                }
-
-                > {
-                      m.from
-                    }
-
-                    <span style={
-                      {
-                        fontWeight: 400, color: T.textFaint, fontSize: 10
-                      }
-                    }
-
-                    > {
-                        m.time
-                      }
-
-                    </span></div> <div style={
-                      {
-                        fontSize: 14, color: T.text, marginTop: 2
-                      }
-                    }
-
-                    > {
-                      m.msg
-                    }
-
-                  </div> </div> </div>))
-            }
-
-          </div>)
-        }
-
-        <div style={
           {
-            fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
-          }
-        }
-
-        >📡 ACTIVITY</div> {
-          feed && feed.length > 0 ? ([...feed].reverse().map((item, idx) => {
-            const realIdx = feed.length - 1 - idx;
-
-            const reactions = feedReactions ? feedReactions[realIdx] || {}
-
-              : {}
-
-              ;
-
-            return (<div key={
-              realIdx
-            }
-
-              style={
-                {
-                  background: T.card, borderRadius: 12, padding: "10px 14px", marginBottom: 4, border: "1px solid " + T.cardBorder
-                }
-              }
-
-            > <div style={
-              {
-                display: "flex", justifyContent: "space-between"
-              }
-            }
-
-            > <div style={
-              {
-                fontSize: 13, flex: 1, color: T.text
-              }
-            }
-
-            > {
-                    item.msg
-                  }
-
-                </div> <div style={
-                  {
-                    fontSize: 10, color: T.textFaint, flexShrink: 0, marginLeft: 8
-                  }
-                }
-
-                > {
-                    item.time
-                  }
-
-                </div> </div> <div style={
-                  {
-                    display: "flex", gap: 3, marginTop: 4, flexWrap: "wrap"
-                  }
-                }
-
-                > {
-                  RX_EMOJIS.map(em => {
-                    const who = reactions[em] || []; const iMine = activeName && who.includes(activeName);
-
-                    return (<button key={
-                      em
-                    }
-
-                      onClick={
-                        () => {
-                          if (activeName) addReaction(realIdx, em, activeName);
-                        }
-                      }
-
-                      style={
-                        {
-                          padding: "1px 6px", borderRadius: 99, border: iMine ? "1px solid " + SEA : "1px solid " + T.cardBorder, background: iMine ? SEA + "15" : T.bg, cursor: activeName ? "pointer" : "default", fontSize: 11
-                        }
-                      }
-
-                    > {
-                        em
-                      }
-
-                      {
-                        who.length > 0 && <span style={
-                          {
-                            fontSize: 9, fontWeight: 700, color: T.textSoft, marginLeft: 2
-                          }
-                        }
-
-                        > {
-                            who.length
-                          }
-
-                        </span>
-                      }
-
-                    </button>);
-                  })
-                }
-
-              </div> </div>);
-
-          })) : (<div style={
-            {
-              textAlign: "center", padding: 30, color: T.textSoft
-            }
-          }
-
-          >No activity yet.</div>)
-        }
-
-      </div>)
-    }
-
-    {
-      /* ═══════════ PAY TAB ═══════════ */
-    }
-
-    {
-      tab === "pay" && (<div> {
-        (zellePhone || zelleEmail) ? (<div> <div style={
-          {
-            background: "linear-gradient(135deg,#6C3BF5,#3DB2FF)", borderRadius: 16, padding: 20, marginBottom: 10, color: "#fff"
-          }
-        }
-
-        > <div style={
-          {
-            display: "flex", alignItems: "center", gap: 8, marginBottom: 12
-          }
-        }
-
-        ><span style={
-          {
-            fontSize: 24
-          }
-        }
-
-        >💸</span><div><div style={
-          {
-            fontSize: 16, fontWeight: 800
-          }
-        }
-
-        >Zelle</div><div style={
-          {
-            fontSize: 11, opacity: 0.7
-          }
-        }
-
-        >Send to either below</div></div></div> <div style={
-          {
-            display: "flex", gap: 8, flexWrap: "wrap"
-          }
-        }
-
-        > {
-              zellePhone && (<div style={
-                {
-                  flex: 1, minWidth: 140, background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: 12
-                }
-              }
-
-              ><div style={
-                {
-                  fontSize: 10, fontWeight: 700, letterSpacing: 1, opacity: 0.7, marginBottom: 4
-                }
-              }
-
-              >📱 PHONE</div><div style={
-                {
-                  fontSize: 16, fontWeight: 700, wordBreak: "break-all"
-                }
-              }
-
-              > {
-                    zellePhone
-                  }
-
-                </div><button onClick={
-                  () => {
-                    try {
-                      navigator.clipboard.writeText(zellePhone); showToast("✅ Copied!");
-                    }
-
-                    catch (e) { }
-                  }
-                }
-
-                  style={
-                    {
-                      marginTop: 8, padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%"
-                    }
-                  }
-
-                >Copy</button></div>)
-            }
-
-            {
-              zelleEmail && (<div style={
-                {
-                  flex: 1, minWidth: 140, background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: 12
-                }
-              }
-
-              ><div style={
-                {
-                  fontSize: 10, fontWeight: 700, letterSpacing: 1, opacity: 0.7, marginBottom: 4
-                }
-              }
-
-              >📧 EMAIL</div><div style={
-                {
-                  fontSize: 14, fontWeight: 700, wordBreak: "break-all"
-                }
-              }
-
-              > {
-                    zelleEmail
-                  }
-
-                </div><button onClick={
-                  () => {
-                    try {
-                      navigator.clipboard.writeText(zelleEmail); showToast("✅ Copied!");
-                    }
-
-                    catch (e) { }
-                  }
-                }
-
-                  style={
-                    {
-                      marginTop: 8, padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%"
-                    }
-                  }
-
-                >Copy</button></div>)
-            }
-
-          </div> </div> <div style={
-            {
-              background: "linear-gradient(135deg,#1a1a1a,#333)", borderRadius: 16, padding: 20, marginBottom: 14, color: "#fff"
-            }
-          }
-
-          > <div style={
-            {
-              display: "flex", alignItems: "center", gap: 8, marginBottom: 12
-            }
-          }
-
-          ><span style={
-            {
-              fontSize: 24
-            }
-          }
-
-          >🍎</span><div><div style={
-            {
-              fontSize: 16, fontWeight: 800
-            }
-          }
-
-          >Apple Pay</div><div style={
-            {
-              fontSize: 11, opacity: 0.7
-            }
-          }
-
-          >Send via Messages</div></div></div> {
-              zellePhone && (<div style={
-                {
-                  background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 14
-                }
-              }
-
-              ><div style={
-                {
-                  display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0"
-                }
-              }
-
-              ><span style={
-                {
-                  fontSize: 14, fontWeight: 600
-                }
-              }
-
-              >📱 {
-                      zellePhone
-                    }
-
-                  </span><button onClick={
-                    () => {
-                      try {
-                        navigator.clipboard.writeText(zellePhone); showToast("✅ Copied!");
-                      }
-
-                      catch (e) { }
-                    }
-                  }
-
-                    style={
-                      {
-                        padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer"
-                      }
-                    }
-
-                  >Copy</button></div></div>)
-            }
-
-          </div> </div>) : (<div style={
-            {
-              background: T.card, borderRadius: 14, padding: 20, marginBottom: 14, textAlign: "center", border: "2px solid " + T.cardBorder
-            }
-          }
-
-          ><div style={
-            {
-              fontSize: 32, marginBottom: 8
-            }
-          }
-
-          >💳</div><div style={
-            {
-              fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 4
-            }
-          }
-
-          >No payment info set</div><div style={
-            {
-              fontSize: 12, color: T.textSoft
-            }
-          }
-
-          >Host can add in Settings</div></div>)
-      }
-
-        {
-          pool.pricePerSquare > 0 && players.length > 0 && (<div style={
-            {
-              background: T.card, borderRadius: 14, padding: 16, border: "2px solid " + T.cardBorder
-            }
-          }
-
-          > <div style={
-            {
-              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 12
-            }
-          }
-
-          >💰 PAYMENT TRACKER</div> {
-              [...players].sort((a, b) => getOwed(b) - getOwed(a)).map((p, i) => {
-                const owed = getOwed(p); const paid = (payments || {})[p] || false; const winnings = getRunningTotal(p); const net = winnings - owed;
+            tab === "players" && (<div> {
+              [...players].sort((a, b) => grid.flat().filter(n => n === b).length - grid.flat().filter(n => n === a).length).map((p, i) => {
+                const cnt = grid.flat().filter(n => n === p).length; const paid = isPaid(p);
 
                 return (<div key={
                   p
@@ -6269,20 +5117,20 @@
 
                   style={
                     {
-                      display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
+                      display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: T.card, borderRadius: 12, marginBottom: 6, border: p === activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder
                     }
                   }
 
                 > <div style={
                   {
-                    fontSize: 20
+                    fontSize: 32
                   }
                 }
 
                 > {
                       getEmoji(p) || <span style={
                         {
-                          display: "inline-block", width: 24, height: 24, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "24px", textAlign: "center"
+                          display: "inline-flex", width: 40, height: 40, borderRadius: "50%", background: hc(p), alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff"
                         }
                       }
 
@@ -6301,7 +5149,7 @@
 
                   > <div style={
                     {
-                      fontSize: 14, fontWeight: 600, color: T.text
+                      fontWeight: 700, fontSize: 15, color: T.text
                     }
                   }
 
@@ -6309,159 +5157,1299 @@
                         p
                       }
 
+                      {
+                        p === activeName ? " (you)" : ""
+                      }
+
+                      {
+                        pool.pricePerSquare > 0 && <span style={
+                          {
+                            fontSize: 9, padding: "2px 7px", borderRadius: 99, fontWeight: 800, background: paid ? "#FFB40020" : T.cardBorder, color: paid ? "#B8860B" : T.textFaint
+                          }
+                        }
+
+                        > {
+                            paid ? "💰 PAID" : "FREE"
+                          }
+
+                        </span>
+                      }
+
                     </div> <div style={
                       {
-                        fontSize: 11, color: T.textSoft
+                        fontSize: 12, color: T.textSoft
                       }
                     }
 
                     > {
-                        grid.flat().filter(n => n === p).length
+                        cnt
                       }
 
-                      sq × $ {
-                        pool.pricePerSquare
+                      sq {
+                        pool.pricePerSquare > 0 && paid ? " • Owes " + fmt$(cnt * pool.pricePerSquare) : ""
                       }
 
-                      =<strong style={
-                        {
-                          color: T.text
-                        }
-                      }
-
-                      > {
-                          fmt$(owed)
-                        }
-
-                      </strong> {
-                        winnings > 0 && <span style={
-                          {
-                            color: SEA
-                          }
-                        }
-
-                        > • Won {
-                            fmt$(winnings)
-                          }
-
-                        </span>
-                      }
-
+                    </div> </div> {
+                    getRunningTotal(p) > 0 && <div style={
                       {
-                        net !== 0 && <span style={
-                          {
-                            color: net > 0 ? SEA : NER
-                          }
-                        }
-
-                        > • Net: {
-                            net > 0 ? "+" : ""
-                          }
-
-                          {
-                            fmt$(net)
-                          }
-
-                        </span>
-                      }
-
-                    </div> </div> <div style={
-                      {
-                        display: "flex", gap: 4
+                        fontSize: 16, fontWeight: 800, color: SEA
                       }
                     }
 
-                    > <button onClick={
-                      () => generatePaymentRequest(p)
-                    }
-
-                      style={
-                        {
-                          padding: "6px 8px", borderRadius: 8, border: "1px solid " + T.cardBorder, cursor: "pointer", fontSize: 11, fontWeight: 700, background: T.bg, color: T.textSoft
-                        }
+                    > {
+                        fmt$(getRunningTotal(p))
                       }
 
-                      title="Copy payment request" >📋</button> <button onClick={
-                        () => hostAction(() => update(d => addAudit({
-                          ...d, payments: {
-                            ...(d.payments || {}), [p]: !paid
-                          }
-                        }
+                    </div>
+                  }
 
-                          , (paid ? "Unmarked" : "Marked") + " " + p + " as paid", "Host")))
-                      }
-
-                        style={
-                          {
-                            padding: "6px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: paid ? SEA : "rgba(255,68,68,0.1)", color: paid ? "#fff" : "#ff4444"
-                          }
-                        }
-
-                      > {
-                        paid ? "✓ Paid" : "Unpaid"
-                      }
-
-                    </button> </div> </div>);
+                </div>);
               })
             }
 
-            <div style={
               {
-                display: "flex", justifyContent: "space-between", marginTop: 12, padding: "10px 0", borderTop: "2px solid " + T.cardBorder
-              }
-            }
+                players.length === 0 && <div style={
+                  {
+                    textAlign: "center", padding: 40, color: T.textSoft
+                  }
+                }
 
-            > <div style={
-              {
-                fontSize: 13, fontWeight: 700, color: T.text
+                >No players yet !</div>
               }
-            }
 
-            >Total collected</div> <div style={
+            </div>)
+          }
+
+          {
+            /* ═══════════ PROPS TAB ═══════════ */
+          }
+
+          {
+            tab === "props" && (<div> <div style={
               {
-                fontSize: 16, fontWeight: 800, color: SEA
+                display: "flex", gap: 4, marginBottom: 14, background: T.card, borderRadius: 10, overflow: "hidden", border: "2px solid " + T.cardBorder
               }
             }
 
             > {
-                  fmt$(players.filter(p => (payments || {})[p]).reduce((s, p) => s + getOwed(p), 0))
+                [{
+                  id: "pick", l: "Picks"
                 }
 
-                / {
-                  fmt$(totalPot)
+                  , {
+                  id: "host", l: "Host"
                 }
 
-              </div> </div> </div>)
-        }
+                  , {
+                  id: "results", l: "Results"
+                }
 
-        {
-          pool.pricePerSquare === 0 && <div style={
-            {
-              textAlign: "center", padding: 30, color: T.textSoft
+                ].map(m => (<button key={
+                  m.id
+                }
+
+                  onClick={
+                    () => setPropMode(m.id)
+                  }
+
+                  style={
+                    {
+                      flex: 1, padding: "8px 0", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", background: propMode === m.id ? "#FFB400" : T.card, color: propMode === m.id ? "#000" : T.textSoft
+                    }
+                  }
+
+                > {
+                    m.l
+                  }
+
+                </button>))
+              }
+
+            </div> {
+                tiebreaker.question && propMode === "pick" && activeName && (<div style={
+                  {
+                    background: T.card, borderRadius: 12, padding: 14, marginBottom: 12, border: "2px solid #7B68EE40"
+                  }
+                }
+
+                > <div style={
+                  {
+                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: "#7B68EE", marginBottom: 6
+                  }
+                }
+
+                >🏆 TIEBREAKER</div> <div style={
+                  {
+                    fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 8
+                  }
+                }
+
+                > {
+                      tiebreaker.question
+                    }
+
+                  </div> <input type="number" value={
+                    (tiebreaker.answers || {})[activeName] || ""
+                  }
+
+                    onChange={
+                      e => update(d => ({
+                        ...d, tiebreaker: {
+                          ...d.tiebreaker, answers: {
+                            ...(d.tiebreaker.answers || {}), [activeName]: e.target.value
+                          }
+                        }
+                      }))
+                    }
+
+                    placeholder="Your answer (number)" style={
+                      {
+                        width: "100%", padding: "10px 14px", borderRadius: 10, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 700, textAlign: "center"
+                      }
+                    }
+
+                  /> </div>)
+              }
+
+              {
+                propMode === "pick" && (<div> {
+                  !activeName && <div style={
+                    {
+                      background: darkMode ? "#332B00" : "#FFF3CD", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#856404", textAlign: "center"
+                    }
+                  }
+
+                  >Enter your name on Board first !</div>
+                }
+
+                  {
+                    activeName && pool.propBuyIn > 0 && (<div style={
+                      {
+                        background: "linear-gradient(135deg,#B8860B,#FFB400)", borderRadius: 12, padding: 14, marginBottom: 12, color: "#fff"
+                      }
+                    }
+
+                    > <div style={
+                      {
+                        display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10
+                      }
+                    }
+
+                    > <div><div style={
+                      {
+                        fontSize: 10, fontWeight: 700, letterSpacing: 2, opacity: 0.7
+                      }
+                    }
+
+                    >PROP POT</div><div style={
+                      {
+                        fontSize: 24, fontWeight: 800
+                      }
+                    }
+
+                    > {
+                              fmt$(propPot)
+                            }
+
+                          </div></div> <div style={
+                            {
+                              textAlign: "right"
+                            }
+                          }
+
+                          ><div style={
+                            {
+                              fontSize: 10, opacity: 0.7
+                            }
+                          }
+
+                          > {
+                              propBettors.length
+                            }
+
+                            × $ {
+                              pool.propBuyIn
+                            }
+
+                          </div></div> </div> <div style={
+                            {
+                              display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "10px 14px"
+                            }
+                          }
+
+                          > <div style={
+                            {
+                              flex: 1
+                            }
+                          }
+
+                          ><div style={
+                            {
+                              fontSize: 14, fontWeight: 700
+                            }
+                          }
+
+                          > {
+                              (data.propBuyIns || {})[activeName] ? "✅ You're in!" : "Play for money?"
+                            }
+
+                          </div><div style={
+                            {
+                              fontSize: 11, opacity: 0.8
+                            }
+                          }
+
+                          > {
+                              (data.propBuyIns || {})[activeName] ? "Most correct wins" : "$" + pool.propBuyIn + " buy in"
+                            }
+
+                          </div></div> <button onClick={
+                            () => update(d => ({
+                              ...d, propBuyIns: {
+                                ...(d.propBuyIns || {}), [activeName]: !(d.propBuyIns || {})[activeName]
+                              }
+                            }))
+                          }
+
+                            style={
+                              {
+                                padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.4)", background: (data.propBuyIns || {})[activeName] ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer"
+                              }
+                            }
+
+                          > {
+                            (data.propBuyIns || {})[activeName] ? "Leave" : "$" + pool.propBuyIn + " I'm In"
+                          }
+
+                        </button> </div> </div>)
+                  }
+
+                  {
+                    ["Pre-Game", "1st Half", "Game", "Halftime", "Post-Game"].map(cat => {
+                      const catBets = PROPS_LIST.filter(b => b.cat === cat); if (!catBets.length) return null;
+
+                      return (<div key={
+                        cat
+                      }
+
+                        style={
+                          {
+                            marginBottom: 16
+                          }
+                        }
+
+                      > <div style={
+                        {
+                          fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
+                        }
+                      }
+
+                      > {
+                            cat.toUpperCase()
+                          }
+
+                        </div> {
+                          catBets.map(bet => {
+                            const myPicks = activeName && props ? (props[activeName] || {}) : {}
+
+                              ;
+                            const myPick = myPicks[bet.id] || null; const answer = propAnswers ? propAnswers[bet.id] : null;
+                            const isCorrect = answer && myPick === answer; const isWrong = answer && myPick && myPick !== answer;
+
+                            return (<div key={
+                              bet.id
+                            }
+
+                              style={
+                                {
+                                  background: T.card, borderRadius: 12, padding: 14, marginBottom: 6, border: isCorrect ? "2px solid " + SEA : isWrong ? "2px solid " + NER + "40" : "2px solid " + T.cardBorder
+                                }
+                              }
+
+                            > <div style={
+                              {
+                                display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8
+                              }
+                            }
+
+                            > <div style={
+                              {
+                                fontSize: 14, fontWeight: 600, color: T.text, flex: 1
+                              }
+                            }
+
+                            > {
+                                    bet.q
+                                  }
+
+                                </div> {
+                                  isCorrect && <span style={
+                                    {
+                                      fontSize: 11, fontWeight: 700, color: SEA, flexShrink: 0
+                                    }
+                                  }
+
+                                  >✅</span>
+                                }
+
+                                {
+                                  isWrong && <span style={
+                                    {
+                                      fontSize: 11, color: NER, flexShrink: 0
+                                    }
+                                  }
+
+                                  >❌</span>
+                                }
+
+                              </div> <div style={
+                                {
+                                  display: "flex", gap: 5, flexWrap: "wrap"
+                                }
+                              }
+
+                              > {
+                                  bet.opts.map(opt => (<button key={
+                                    opt
+                                  }
+
+                                    onClick={
+                                      () => {
+                                        if (!activeName) return; update(d => {
+                                          const p = {
+                                            ...(d.props || {})
+                                          }
+
+                                            ; if (!p[activeName]) p[activeName] = {}
+
+                                              ; p[activeName][bet.id] = opt; return {
+                                                ...d, props: p
+                                              }
+
+                                            ;
+                                        });
+                                      }
+                                    }
+
+                                    style={
+                                      {
+                                        padding: "7px 14px", borderRadius: 8, cursor: activeName ? "pointer" : "not-allowed", fontSize: 13, fontWeight: myPick === opt ? 700 : 500, border: myPick === opt ? "2px solid #FFB400" : "2px solid " + T.cardBorder, background: myPick === opt ? (isCorrect ? SEA + "15" : isWrong ? NER + "10" : "#FFB40015") : T.card, color: myPick === opt ? (isCorrect ? SEA : isWrong ? NER : "#B8860B") : T.textSoft
+                                      }
+                                    }
+
+                                  > {
+                                      myPick === opt ? "✓ " : ""
+                                    }
+
+                                    {
+                                      opt
+                                    }
+
+                                  </button>))
+                                }
+
+                              </div> </div>);
+                          })
+                        }
+
+                      </div>);
+                    })
+                  }
+
+                </div>)
+              }
+
+              {
+                propMode === "host" && (<div> <div style={
+                  {
+                    background: darkMode ? "#1a2e1a" : "#E8F5E9", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#2E7D32", textAlign: "center"
+                  }
+                }
+
+                >🎮 Set correct answers as events happen</div> {
+                    ["Pre-Game", "1st Half", "Game", "Halftime", "Post-Game"].map(cat => {
+                      const catBets = PROPS_LIST.filter(b => b.cat === cat); if (!catBets.length) return null;
+
+                      return (<div key={
+                        cat
+                      }
+
+                        style={
+                          {
+                            marginBottom: 16
+                          }
+                        }
+
+                      ><div style={
+                        {
+                          fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 6
+                        }
+                      }
+
+                      > {
+                            cat.toUpperCase()
+                          }
+
+                        </div> {
+                          catBets.map(bet => {
+                            const answer = propAnswers ? propAnswers[bet.id] : null; return (<div key={
+                              bet.id
+                            }
+
+                              style={
+                                {
+                                  background: T.card, borderRadius: 12, padding: 14, marginBottom: 6, border: answer ? "2px solid " + SEA + "40" : "2px solid " + T.cardBorder
+                                }
+                              }
+
+                            > <div style={
+                              {
+                                fontSize: 14, fontWeight: 600, marginBottom: 8, color: T.text
+                              }
+                            }
+
+                            > {
+                                  bet.q
+                                }
+
+                              </div> <div style={
+                                {
+                                  display: "flex", gap: 5, flexWrap: "wrap"
+                                }
+                              }
+
+                              > {
+                                  bet.opts.map(opt => (<button key={
+                                    opt
+                                  }
+
+                                    onClick={
+                                      () => hostAction(() => update(d => addAudit({
+                                        ...d, propAnswers: {
+                                          ...(d.propAnswers || {}), [bet.id]: opt
+                                        }
+                                      }
+
+                                        , "Prop answer set: " + bet.q + " → " + opt, "Host")))
+                                    }
+
+                                    style={
+                                      {
+                                        padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: answer === opt ? 700 : 500, border: answer === opt ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: answer === opt ? SEA : T.card, color: answer === opt ? "#fff" : T.textSoft
+                                      }
+                                    }
+
+                                  > {
+                                      answer === opt ? "✓ " : ""
+                                    }
+
+                                    {
+                                      opt
+                                    }
+
+                                  </button>))
+                                }
+
+                              </div> </div>);
+                          })
+                        }
+
+                      </div>);
+                    })
+                  }
+
+                </div>)
+              }
+
+              {
+                propMode === "results" && (<div> {
+                  propBettors.length > 0 && (<div style={
+                    {
+                      background: T.card, borderRadius: 14, padding: 16, marginBottom: 14, border: "2px solid #FFB40030"
+                    }
+                  }
+
+                  > <div style={
+                    {
+                      fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 10
+                    }
+                  }
+
+                  >💰 LEADERBOARD</div> {
+                      [...propBettors].sort((a, b) => getPropScore(b) - getPropScore(a)).map((p, i) => {
+                        const score = getPropScore(p); const answered = PROPS_LIST.filter(pr => (propAnswers || {})[pr.id]).length;
+
+                        return (<div key={
+                          p
+                        }
+
+                          style={
+                            {
+                              display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
+                            }
+                          }
+
+                        > <div style={
+                          {
+                            fontSize: 18, width: 28, textAlign: "center"
+                          }
+                        }
+
+                        > {
+                              i === 0 && score > 0 ? "👑" : (getEmoji(p) || <span style={
+                                {
+                                  display: "inline-block", width: 22, height: 22, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "22px", textAlign: "center"
+                                }
+                              }
+
+                              > {
+                                  ini(p)
+                                }
+
+                              </span>)
+                            }
+
+                          </div> <div style={
+                            {
+                              flex: 1
+                            }
+                          }
+
+                          ><div style={
+                            {
+                              fontSize: 14, fontWeight: 600, color: T.text
+                            }
+                          }
+
+                          > {
+                                p
+                              }
+
+                            </div><div style={
+                              {
+                                fontSize: 11, color: T.textSoft
+                              }
+                            }
+
+                            > {
+                                score
+                              }
+
+                              / {
+                                answered
+                              }
+
+                              correct</div></div> <div style={
+                                {
+                                  fontSize: 18, fontWeight: 800, color: "#FFB400"
+                                }
+                              }
+
+                              > {
+                              score
+                            }
+
+                          </div> </div>);
+                      })
+                    }
+
+                  </div>)
+                }
+
+                  {
+                    (!propAnswers || Object.keys(propAnswers).length === 0) && <div style={
+                      {
+                        textAlign: "center", padding: 40, color: T.textSoft
+                      }
+                    }
+
+                    >No answers set yet.</div>
+                  }
+
+                </div>)
+              }
+
+            </div>)
+          }
+
+          {
+            /* ═══════════ CHAT TAB ═══════════ */
+          }
+
+          {
+            tab === "activity" && (<div> {
+              activeName && (<div style={
+                {
+                  display: "flex", gap: 6, marginBottom: 12
+                }
+              }
+
+              > <input value={
+                chatMsg
+              }
+
+                onChange={
+                  e => setChatMsg(e.target.value)
+                }
+
+                onKeyDown={
+                  e => {
+                    if (e.key === "Enter") sendChat();
+                  }
+                }
+
+                placeholder="Trash talk here..." maxLength={
+                  200
+                }
+
+                style={
+                  {
+                    flex: 1, padding: "10px 14px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 14, fontWeight: 600
+                  }
+                }
+
+                /> <button onClick={
+                  sendChat
+                }
+
+                  style={
+                    {
+                      padding: "10px 16px", borderRadius: 12, border: "none", background: "#3DB2FF", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer"
+                    }
+                  }
+
+                >Send</button> </div>)
             }
+
+              {
+                !activeName && <div style={
+                  {
+                    background: darkMode ? "#332B00" : "#FFF3CD", padding: 12, borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#856404", textAlign: "center"
+                  }
+                }
+
+                >Enter your name on Board to chat !</div>
+              }
+
+              {
+                chat && chat.length > 0 && (<div style={
+                  {
+                    marginBottom: 16
+                  }
+                }
+
+                > <div style={
+                  {
+                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
+                  }
+                }
+
+                >💬 CHAT</div> {
+                    [...chat].reverse().slice(0, 30).map((m, i) => (<div key={
+                      i
+                    }
+
+                      style={
+                        {
+                          display: "flex", gap: 8, padding: "8px 12px", background: m.from === activeName ? "#3DB2FF12" : T.card, borderRadius: 12, marginBottom: 4, border: m.from === activeName ? "1px solid #3DB2FF30" : "1px solid " + T.cardBorder
+                        }
+                      }
+
+                    > <div style={
+                      {
+                        fontSize: 18, flexShrink: 0
+                      }
+                    }
+
+                    > {
+                          m.emoji || "😀"
+                        }
+
+                      </div> <div style={
+                        {
+                          flex: 1
+                        }
+                      }
+
+                      > <div style={
+                        {
+                          fontSize: 12, fontWeight: 700, color: hc(m.from)
+                        }
+                      }
+
+                      > {
+                            m.from
+                          }
+
+                          <span style={
+                            {
+                              fontWeight: 400, color: T.textFaint, fontSize: 10
+                            }
+                          }
+
+                          > {
+                              m.time
+                            }
+
+                          </span></div> <div style={
+                            {
+                              fontSize: 14, color: T.text, marginTop: 2
+                            }
+                          }
+
+                          > {
+                            m.msg
+                          }
+
+                        </div> </div> </div>))
+                  }
+
+                </div>)
+              }
+
+              <div style={
+                {
+                  fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 8
+                }
+              }
+
+              >📡 ACTIVITY</div> {
+                feed && feed.length > 0 ? ([...feed].reverse().map((item, idx) => {
+                  const realIdx = feed.length - 1 - idx;
+
+                  const reactions = feedReactions ? feedReactions[realIdx] || {}
+
+                    : {}
+
+                    ;
+
+                  return (<div key={
+                    realIdx
+                  }
+
+                    style={
+                      {
+                        background: T.card, borderRadius: 12, padding: "10px 14px", marginBottom: 4, border: "1px solid " + T.cardBorder
+                      }
+                    }
+
+                  > <div style={
+                    {
+                      display: "flex", justifyContent: "space-between"
+                    }
+                  }
+
+                  > <div style={
+                    {
+                      fontSize: 13, flex: 1, color: T.text
+                    }
+                  }
+
+                  > {
+                          item.msg
+                        }
+
+                      </div> <div style={
+                        {
+                          fontSize: 10, color: T.textFaint, flexShrink: 0, marginLeft: 8
+                        }
+                      }
+
+                      > {
+                          item.time
+                        }
+
+                      </div> </div> <div style={
+                        {
+                          display: "flex", gap: 3, marginTop: 4, flexWrap: "wrap"
+                        }
+                      }
+
+                      > {
+                        RX_EMOJIS.map(em => {
+                          const who = reactions[em] || []; const iMine = activeName && who.includes(activeName);
+
+                          return (<button key={
+                            em
+                          }
+
+                            onClick={
+                              () => {
+                                if (activeName) addReaction(realIdx, em, activeName);
+                              }
+                            }
+
+                            style={
+                              {
+                                padding: "1px 6px", borderRadius: 99, border: iMine ? "1px solid " + SEA : "1px solid " + T.cardBorder, background: iMine ? SEA + "15" : T.bg, cursor: activeName ? "pointer" : "default", fontSize: 11
+                              }
+                            }
+
+                          > {
+                              em
+                            }
+
+                            {
+                              who.length > 0 && <span style={
+                                {
+                                  fontSize: 9, fontWeight: 700, color: T.textSoft, marginLeft: 2
+                                }
+                              }
+
+                              > {
+                                  who.length
+                                }
+
+                              </span>
+                            }
+
+                          </button>);
+                        })
+                      }
+
+                    </div> </div>);
+
+                })) : (<div style={
+                  {
+                    textAlign: "center", padding: 30, color: T.textSoft
+                  }
+                }
+
+                >No activity yet.</div>)
+              }
+
+            </div>)
           }
 
-          >Free game — no payments needed !</div>
-        }
-
-      </div>)
-    }
-
-    </div >
-
-      <div style={
-        {
-          height: 120
-        }
-      }
-
-      />
-
-          <BottomNav tab={tab} setTab={setTab} /> <HypeTicker feed={
-            feed
+          {
+            /* ═══════════ PAY TAB ═══════════ */
           }
 
-          /> </div >);
+          {
+            tab === "pay" && (<div> {
+              (zellePhone || zelleEmail) ? (<div> <div style={
+                {
+                  background: "linear-gradient(135deg,#6C3BF5,#3DB2FF)", borderRadius: 16, padding: 20, marginBottom: 10, color: "#fff"
+                }
+              }
+
+              > <div style={
+                {
+                  display: "flex", alignItems: "center", gap: 8, marginBottom: 12
+                }
+              }
+
+              ><span style={
+                {
+                  fontSize: 24
+                }
+              }
+
+              >💸</span><div><div style={
+                {
+                  fontSize: 16, fontWeight: 800
+                }
+              }
+
+              >Zelle</div><div style={
+                {
+                  fontSize: 11, opacity: 0.7
+                }
+              }
+
+              >Send to either below</div></div></div> <div style={
+                {
+                  display: "flex", gap: 8, flexWrap: "wrap"
+                }
+              }
+
+              > {
+                    zellePhone && (<div style={
+                      {
+                        flex: 1, minWidth: 140, background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: 12
+                      }
+                    }
+
+                    ><div style={
+                      {
+                        fontSize: 10, fontWeight: 700, letterSpacing: 1, opacity: 0.7, marginBottom: 4
+                      }
+                    }
+
+                    >📱 PHONE</div><div style={
+                      {
+                        fontSize: 16, fontWeight: 700, wordBreak: "break-all"
+                      }
+                    }
+
+                    > {
+                          zellePhone
+                        }
+
+                      </div><button onClick={
+                        () => {
+                          try {
+                            navigator.clipboard.writeText(zellePhone); showToast("✅ Copied!");
+                          }
+
+                          catch (e) { }
+                        }
+                      }
+
+                        style={
+                          {
+                            marginTop: 8, padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%"
+                          }
+                        }
+
+                      >Copy</button></div>)
+                  }
+
+                  {
+                    zelleEmail && (<div style={
+                      {
+                        flex: 1, minWidth: 140, background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: 12
+                      }
+                    }
+
+                    ><div style={
+                      {
+                        fontSize: 10, fontWeight: 700, letterSpacing: 1, opacity: 0.7, marginBottom: 4
+                      }
+                    }
+
+                    >📧 EMAIL</div><div style={
+                      {
+                        fontSize: 14, fontWeight: 700, wordBreak: "break-all"
+                      }
+                    }
+
+                    > {
+                          zelleEmail
+                        }
+
+                      </div><button onClick={
+                        () => {
+                          try {
+                            navigator.clipboard.writeText(zelleEmail); showToast("✅ Copied!");
+                          }
+
+                          catch (e) { }
+                        }
+                      }
+
+                        style={
+                          {
+                            marginTop: 8, padding: "6px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%"
+                          }
+                        }
+
+                      >Copy</button></div>)
+                  }
+
+                </div> </div> <div style={
+                  {
+                    background: "linear-gradient(135deg,#1a1a1a,#333)", borderRadius: 16, padding: 20, marginBottom: 14, color: "#fff"
+                  }
+                }
+
+                > <div style={
+                  {
+                    display: "flex", alignItems: "center", gap: 8, marginBottom: 12
+                  }
+                }
+
+                ><span style={
+                  {
+                    fontSize: 24
+                  }
+                }
+
+                >🍎</span><div><div style={
+                  {
+                    fontSize: 16, fontWeight: 800
+                  }
+                }
+
+                >Apple Pay</div><div style={
+                  {
+                    fontSize: 11, opacity: 0.7
+                  }
+                }
+
+                >Send via Messages</div></div></div> {
+                    zellePhone && (<div style={
+                      {
+                        background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 14
+                      }
+                    }
+
+                    ><div style={
+                      {
+                        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0"
+                      }
+                    }
+
+                    ><span style={
+                      {
+                        fontSize: 14, fontWeight: 600
+                      }
+                    }
+
+                    >📱 {
+                            zellePhone
+                          }
+
+                        </span><button onClick={
+                          () => {
+                            try {
+                              navigator.clipboard.writeText(zellePhone); showToast("✅ Copied!");
+                            }
+
+                            catch (e) { }
+                          }
+                        }
+
+                          style={
+                            {
+                              padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer"
+                            }
+                          }
+
+                        >Copy</button></div></div>)
+                  }
+
+                </div> </div>) : (<div style={
+                  {
+                    background: T.card, borderRadius: 14, padding: 20, marginBottom: 14, textAlign: "center", border: "2px solid " + T.cardBorder
+                  }
+                }
+
+                ><div style={
+                  {
+                    fontSize: 32, marginBottom: 8
+                  }
+                }
+
+                >💳</div><div style={
+                  {
+                    fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 4
+                  }
+                }
+
+                >No payment info set</div><div style={
+                  {
+                    fontSize: 12, color: T.textSoft
+                  }
+                }
+
+                >Host can add in Settings</div></div>)
+            }
+
+              {
+                pool.pricePerSquare > 0 && players.length > 0 && (<div style={
+                  {
+                    background: T.card, borderRadius: 14, padding: 16, border: "2px solid " + T.cardBorder
+                  }
+                }
+
+                > <div style={
+                  {
+                    fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.textSoft, marginBottom: 12
+                  }
+                }
+
+                >💰 PAYMENT TRACKER</div> {
+                    [...players].sort((a, b) => getOwed(b) - getOwed(a)).map((p, i) => {
+                      const owed = getOwed(p); const paid = (payments || {})[p] || false; const winnings = getRunningTotal(p); const net = winnings - owed;
+
+                      return (<div key={
+                        p
+                      }
+
+                        style={
+                          {
+                            display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i ? "1px solid " + T.cardBorder : "none"
+                          }
+                        }
+
+                      > <div style={
+                        {
+                          fontSize: 20
+                        }
+                      }
+
+                      > {
+                            getEmoji(p) || <span style={
+                              {
+                                display: "inline-block", width: 24, height: 24, borderRadius: "50%", background: hc(p), fontSize: 10, fontWeight: 800, color: "#fff", lineHeight: "24px", textAlign: "center"
+                              }
+                            }
+
+                            > {
+                                ini(p)
+                              }
+
+                            </span>
+                          }
+
+                        </div> <div style={
+                          {
+                            flex: 1
+                          }
+                        }
+
+                        > <div style={
+                          {
+                            fontSize: 14, fontWeight: 600, color: T.text
+                          }
+                        }
+
+                        > {
+                              p
+                            }
+
+                          </div> <div style={
+                            {
+                              fontSize: 11, color: T.textSoft
+                            }
+                          }
+
+                          > {
+                              grid.flat().filter(n => n === p).length
+                            }
+
+                            sq × $ {
+                              pool.pricePerSquare
+                            }
+
+                            =<strong style={
+                              {
+                                color: T.text
+                              }
+                            }
+
+                            > {
+                                fmt$(owed)
+                              }
+
+                            </strong> {
+                              winnings > 0 && <span style={
+                                {
+                                  color: SEA
+                                }
+                              }
+
+                              > • Won {
+                                  fmt$(winnings)
+                                }
+
+                              </span>
+                            }
+
+                            {
+                              net !== 0 && <span style={
+                                {
+                                  color: net > 0 ? SEA : NER
+                                }
+                              }
+
+                              > • Net: {
+                                  net > 0 ? "+" : ""
+                                }
+
+                                {
+                                  fmt$(net)
+                                }
+
+                              </span>
+                            }
+
+                          </div> </div> <div style={
+                            {
+                              display: "flex", gap: 4
+                            }
+                          }
+
+                          > <button onClick={
+                            () => generatePaymentRequest(p)
+                          }
+
+                            style={
+                              {
+                                padding: "6px 8px", borderRadius: 8, border: "1px solid " + T.cardBorder, cursor: "pointer", fontSize: 11, fontWeight: 700, background: T.bg, color: T.textSoft
+                              }
+                            }
+
+                            title="Copy payment request" >📋</button> <button onClick={
+                              () => hostAction(() => update(d => addAudit({
+                                ...d, payments: {
+                                  ...(d.payments || {}), [p]: !paid
+                                }
+                              }
+
+                                , (paid ? "Unmarked" : "Marked") + " " + p + " as paid", "Host")))
+                            }
+
+                              style={
+                                {
+                                  padding: "6px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: paid ? SEA : "rgba(255,68,68,0.1)", color: paid ? "#fff" : "#ff4444"
+                                }
+                              }
+
+                            > {
+                              paid ? "✓ Paid" : "Unpaid"
+                            }
+
+                          </button> </div> </div>);
+                    })
+                  }
+
+                  <div style={
+                    {
+                      display: "flex", justifyContent: "space-between", marginTop: 12, padding: "10px 0", borderTop: "2px solid " + T.cardBorder
+                    }
+                  }
+
+                  > <div style={
+                    {
+                      fontSize: 13, fontWeight: 700, color: T.text
+                    }
+                  }
+
+                  >Total collected</div> <div style={
+                    {
+                      fontSize: 16, fontWeight: 800, color: SEA
+                    }
+                  }
+
+                  > {
+                        fmt$(players.filter(p => (payments || {})[p]).reduce((s, p) => s + getOwed(p), 0))
+                      }
+
+                      / {
+                        fmt$(totalPot)
+                      }
+
+                    </div> </div> </div>)
+              }
+
+              {
+                pool.pricePerSquare === 0 && <div style={
+                  {
+                    textAlign: "center", padding: 30, color: T.textSoft
+                  }
+                }
+
+                >Free game — no payments needed !</div>
+              }
+
+            </div>)
+          }
+
+          <BottomNav tab={tab} setTab={setTab} />
+          <HypeTicker feed={feed} />
+        </div>);
     }
 
     // ═══════ SETUP SCREEN ═══════
