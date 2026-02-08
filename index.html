@@ -891,22 +891,22 @@
         if (data.grid[r][c]) { toast("Already claimed by " + data.grid[r][c]); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
 
-        // Build new grid
-        const newGrid = data.grid.map(row => [...row]);
-        newGrid[r][c] = myName;
-
-        // Update Firebase with error handling
+        // Update ONLY the specific cell path (more reliable than full grid update)
         toast("⏳ Claiming...");
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed a square") })
+        const updates = {};
+        updates["grid/" + r + "/" + c] = myName;
+        updates["feed"] = addFeed(data, myName, "claimed square [" + r + "," + c + "]");
+
+        dbr.update(updates)
           .then(() => {
-            console.log("Firebase update SUCCESS");
+            console.log("Firebase update SUCCESS for cell", r, c);
             playSound("claim");
-            toast("✅ " + myName + " claimed square!");
+            toast("✅ " + myName + " claimed [" + r + "," + c + "]!");
             if (navigator.vibrate) navigator.vibrate(50);
           })
           .catch(err => {
             console.error("Firebase update FAILED:", err);
-            toast("❌ Failed to claim: " + err.message);
+            toast("❌ Failed: " + err.message);
           });
 
         justClaimedRef.current = r + "-" + c;
@@ -936,17 +936,23 @@
         const pick = Math.min(n, maxPP > 0 ? maxPP - myCt : n, avail.length);
         if (pick <= 0) { toast("Max " + maxPP + " squares reached"); return; }
 
-        const newGrid = data.grid.map(row => [...row]);
+        // Pick random cells
         const shuffled = avail.sort(() => Math.random() - 0.5).slice(0, pick);
-        shuffled.forEach(([r, c]) => newGrid[r][c] = myName);
+
+        // Build update object for individual cell paths
+        const updates = {};
+        shuffled.forEach(([r, c]) => {
+          updates["grid/" + r + "/" + c] = myName;
+        });
+        updates["feed"] = addFeed(data, myName, "quick picked " + pick + " squares");
 
         // Update Firebase with error handling
         toast("⏳ Claiming " + pick + " squares...");
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed " + pick + " squares") })
+        dbr.update(updates)
           .then(() => {
-            console.log("Firebase quickPick SUCCESS");
+            console.log("Firebase quickPick SUCCESS for", pick, "cells");
             playSound("claim");
-            toast("🎲 " + myName + " got " + pick + " squares!");
+            toast("🎲 " + myName + " got " + pick + " random squares!");
             if (navigator.vibrate) navigator.vibrate(50);
           })
           .catch(err => {
@@ -992,13 +998,10 @@
                 <div style=${{ display: "flex", gap: 6, flex: 1 }}>
                   ${[1, 3, 5, 10].map(n => html`
                     <button key=${n} onClick=${() => { console.log("Dice button " + n + " clicked"); quickPick(n); }} style=${{
-              flex: 1, padding: "12px 0", borderRadius: 10, border: "2px solid var(--gold)",
-              background: "var(--gold-glow)", color: "var(--gold)", fontSize: 14, fontWeight: 800,
-              cursor: "pointer", transition: "transform 0.1s, background 0.1s"
-            }}
-                      onTouchStart=${e => e.currentTarget.style.transform = "scale(0.95)"}
-                      onTouchEnd=${e => e.currentTarget.style.transform = "scale(1)"}
-                    >🎲 ${n}</button>
+              flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid var(--border2)",
+              background: "var(--card)", color: "var(--text)", fontSize: 13, fontWeight: 700,
+              cursor: "pointer"
+            }}>🎲 ${n}</button>
                   `)}
                 </div>
               </div>
