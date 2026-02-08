@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Super Bowl LX Squares — Seahawks vs Patriots</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <!-- #17 FIX: Replaced Babel-standalone (800KB) with htm (1KB) -->
   <script src="https://unpkg.com/htm@3.1.1/dist/htm.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
     /* ═══ #15 FIX: Cohesive color palette — gold/navy/team colors ═══ */
     :root {
@@ -27,7 +30,7 @@
       --ner: #C60C30;
       --nav: #002244;
       --gold: #d4a843;
-      --gold-glow: rgba(212,168,67,0.15);
+      --gold-glow: rgba(212, 168, 67, 0.15);
       --accent: #3b82f6;
       --input: #0f1724;
       --success: #2dd4bf;
@@ -48,101 +51,305 @@
       --input: #f8f5f0;
       --nav: #f5f2ed;
       --gold: #b8892e;
-      --gold-glow: rgba(184,137,46,0.12);
+      --gold-glow: rgba(184, 137, 46, 0.12);
     }
-    body.light-theme .sq-cell { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    body.light-theme .sq-cell.empty { background: #f0ece5; border-color: var(--border); }
-    body.light-theme .bottom-nav { background: rgba(255,255,255,0.92); }
-    body.light-theme .nav-btn { color: #94a3b8; }
-    body.light-theme .nav-btn.active { color: var(--gold); }
-    body.light-theme .sq-hdr { background: var(--card2); color: var(--soft); }
-    body.light-theme .header-bar { background: rgba(255,255,255,0.92) !important; }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin:0; padding:0; }
+    body.light-theme .sq-cell {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    body.light-theme .sq-cell.empty {
+      background: #f0ece5;
+      border-color: var(--border);
+    }
+
+    body.light-theme .bottom-nav {
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    body.light-theme .nav-btn {
+      color: #94a3b8;
+    }
+
+    body.light-theme .nav-btn.active {
+      color: var(--gold);
+    }
+
+    body.light-theme .sq-hdr {
+      background: var(--card2);
+      color: var(--soft);
+    }
+
+    body.light-theme .header-bar {
+      background: rgba(255, 255, 255, 0.92) !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-      background: var(--bg); color: var(--text); font-weight: 500;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden; width: 100vw;
+      overflow-x: hidden;
+      width: 100vw;
       padding-bottom: calc(64px + var(--safe));
     }
-    input:focus, button:focus { outline: none; }
-    button { font-family: inherit; cursor: pointer; }
-    .bebas { font-family: 'Bebas Neue', sans-serif; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    input:focus,
+    button:focus {
+      outline: none;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .bebas {
+      font-family: 'Bebas Neue', sans-serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px;
+    }
 
     /* ═══ Animations ═══ */
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes winPulse {
-      0%,100%{box-shadow:inset 0 0 0 2px var(--gold),0 0 8px rgba(212,168,67,0.3)}
-      50%{box-shadow:inset 0 0 0 2px var(--gold),0 0 20px rgba(212,168,67,0.6)}
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
     }
-    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-    @keyframes bigWin { 0%{transform:scale(0) rotate(-10deg);opacity:0} 30%{transform:scale(1.1) rotate(2deg);opacity:1} 50%{transform:scale(1) rotate(0)} 70%{transform:scale(1.05)} 100%{transform:scale(1)} }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes winPulse {
+
+      0%,
+      100% {
+        box-shadow: inset 0 0 0 2px var(--gold), 0 0 8px rgba(212, 168, 67, 0.3)
+      }
+
+      50% {
+        box-shadow: inset 0 0 0 2px var(--gold), 0 0 20px rgba(212, 168, 67, 0.6)
+      }
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0)
+      }
+    }
+
+    @keyframes bigWin {
+      0% {
+        transform: scale(0) rotate(-10deg);
+        opacity: 0
+      }
+
+      30% {
+        transform: scale(1.1) rotate(2deg);
+        opacity: 1
+      }
+
+      50% {
+        transform: scale(1) rotate(0)
+      }
+
+      70% {
+        transform: scale(1.05)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
 
     /* ═══ #10 FIX: Celebration animation on claim ═══ */
     @keyframes claimPop {
-      0% { transform: scale(0.5); opacity: 0; }
-      40% { transform: scale(1.2); background: var(--gold); }
-      70% { transform: scale(0.95); }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      40% {
+        transform: scale(1.2);
+        background: var(--gold);
+      }
+
+      70% {
+        transform: scale(0.95);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
+
     @keyframes claimRipple {
-      0% { box-shadow: 0 0 0 0 rgba(212,168,67,0.6); }
-      100% { box-shadow: 0 0 0 12px rgba(212,168,67,0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.6);
+      }
+
+      100% {
+        box-shadow: 0 0 0 12px rgba(212, 168, 67, 0);
+      }
     }
+
     @keyframes claimFlash {
-      0% { background: var(--gold); }
-      100% { background: transparent; }
+      0% {
+        background: var(--gold);
+      }
+
+      100% {
+        background: transparent;
+      }
     }
+
     .sq-cell.just-claimed {
-      animation: claimPop 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
-                 claimRipple 0.6s ease-out;
+      animation: claimPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        claimRipple 0.6s ease-out;
       z-index: 10;
     }
 
     /* ═══ Bottom Nav ═══ */
     .bottom-nav {
-      position:fixed; bottom:0; left:0; right:0; z-index:900;
-      background:rgba(10,15,24,0.95); backdrop-filter:blur(20px);
-      border-top:1px solid var(--border); display:flex;
-      padding:6px 0 calc(6px + var(--safe));
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      background: rgba(10, 15, 24, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 6px 0 calc(6px + var(--safe));
     }
+
     .nav-btn {
-      flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
-      background:none; border:none; color:var(--faint);
-      font-size:10px; font-weight:600; padding:6px 0; transition:color .2s; letter-spacing:.3px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 6px 0;
+      transition: color .2s;
+      letter-spacing: .3px;
     }
-    .nav-btn.active { color:var(--gold); }
-    .nav-btn .nav-icon { font-size:20px; line-height:1; }
-    .nav-btn .nav-dot { width:4px; height:4px; border-radius:50%; background:var(--gold); margin-top:2px; opacity:0; transition:opacity .2s; }
-    .nav-btn.active .nav-dot { opacity:1; }
+
+    .nav-btn.active {
+      color: var(--gold);
+    }
+
+    .nav-btn .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .nav-btn .nav-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 2px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .nav-btn.active .nav-dot {
+      opacity: 1;
+    }
 
     /* ═══ Grid — #14 FIX: No vertical label, reclaim space ═══ */
     .sq-grid {
-      display:grid; gap:1px;
+      display: grid;
+      gap: 1px;
       grid-template-columns: 22px repeat(10, 1fr);
-      width:100%; max-width:100vw;
+      width: 100%;
+      max-width: 100vw;
     }
+
     .sq-cell {
-      aspect-ratio:1/1; border-radius:3px;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      cursor:pointer; background:var(--card); border:1px solid var(--border);
-      transition:transform .15s, border-color .2s, opacity .3s;
-      position:relative; overflow:hidden; min-width:0; padding:0;
+      aspect-ratio: 1/1;
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: var(--card);
+      border: 1px solid var(--border);
+      transition: transform .15s, border-color .2s, opacity .3s;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      padding: 0;
     }
-    .sq-cell:active { transform:scale(0.93); }
+
+    .sq-cell:active {
+      transform: scale(0.93);
+    }
 
     /* ═══ #9 FIX: Visible empty cell CTAs ═══ */
     .sq-cell.empty {
-      background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(212,168,67,0.06) 3px, rgba(212,168,67,0.06) 6px);
+      background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(212, 168, 67, 0.06) 3px, rgba(212, 168, 67, 0.06) 6px);
       border: 1.5px dashed var(--border2);
       transition: border-color .2s, background .2s;
     }
+
     .sq-cell.empty::after {
       content: "TAP";
       font-size: 8px;
@@ -151,74 +358,181 @@
       color: var(--soft);
       opacity: 0.5;
     }
-    .sq-cell.empty:hover, .sq-cell.empty:active {
+
+    .sq-cell.empty:hover,
+    .sq-cell.empty:active {
       border-color: var(--gold);
       background: var(--gold-glow);
     }
+
     body.light-theme .sq-cell.empty {
-      background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(184,137,46,0.08) 3px, rgba(184,137,46,0.08) 6px);
+      background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(184, 137, 46, 0.08) 3px, rgba(184, 137, 46, 0.08) 6px);
       border-color: var(--border);
     }
 
-    .sq-cell.claimed { border-color:transparent; animation:claimPop .4s cubic-bezier(0.175,0.885,0.32,1.275); }
-    .sq-cell.mine { border:2px solid rgba(105,190,40,0.8); z-index:2; }
-    .sq-cell.winner { animation:winPulse 2s infinite; z-index:3; }
-    .sq-cell.highlight { border:2px solid var(--gold); z-index:2; }
+    .sq-cell.claimed {
+      border-color: transparent;
+      animation: claimPop .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .sq-cell.mine {
+      border: 2px solid rgba(105, 190, 40, 0.8);
+      z-index: 2;
+    }
+
+    .sq-cell.winner {
+      animation: winPulse 2s infinite;
+      z-index: 3;
+    }
+
+    .sq-cell.highlight {
+      border: 2px solid var(--gold);
+      z-index: 2;
+    }
 
     /* ═══ #21 FIX: Dimmed cells when "My Squares" is on ═══ */
-    .sq-cell.dimmed { opacity:0.15; filter:grayscale(0.5); transition:opacity .3s, filter .3s; }
+    .sq-cell.dimmed {
+      opacity: 0.15;
+      filter: grayscale(0.5);
+      transition: opacity .3s, filter .3s;
+    }
 
     .sq-hdr {
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Bebas Neue',sans-serif; font-size:13px;
-      border-radius:2px; min-width:0; padding:0; line-height:1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px;
+      border-radius: 2px;
+      min-width: 0;
+      padding: 0;
+      line-height: 1;
     }
 
     /* ═══ #20 FIX: Game status badges ═══ */
     .status-badge {
-      display:inline-flex; align-items:center; gap:4px;
-      padding:2px 8px; border-radius:99px; font-size:10px;
-      font-weight:700; letter-spacing:1.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
     }
-    .status-badge.live { background:rgba(239,68,68,0.15); color:#ef4444; }
-    .status-badge.live::before { content:''; width:6px; height:6px; border-radius:50%; background:#ef4444; animation:pulse 1.5s infinite; }
-    .status-badge.final { background:rgba(45,212,191,0.15); color:var(--success); }
-    .status-badge.soon { background:rgba(212,168,67,0.15); color:var(--gold); }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .status-badge.live {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .status-badge.live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-badge.final {
+      background: rgba(45, 212, 191, 0.15);
+      color: var(--success);
+    }
+
+    .status-badge.soon {
+      background: rgba(212, 168, 67, 0.15);
+      color: var(--gold);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
 
     /* Toast */
     .toast {
-      position:fixed; top:12px; left:50%; transform:translateX(-50%);
-      z-index:9999; background:var(--card2); color:var(--text);
-      padding:10px 24px; border-radius:99px; font-size:13px; font-weight:600;
-      border:1px solid var(--border2); animation:toastIn .3s ease;
-      box-shadow:0 8px 32px rgba(0,0,0,0.4); max-width:90%; text-align:center;
-      backdrop-filter:blur(12px);
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: var(--card2);
+      color: var(--text);
+      padding: 10px 24px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border2);
+      animation: toastIn .3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      max-width: 90%;
+      text-align: center;
+      backdrop-filter: blur(12px);
     }
 
     /* Toggle switch for #7 */
     .toggle-switch {
-      position:relative; width:44px; height:24px; border-radius:12px;
-      background:var(--border2); border:none; cursor:pointer; padding:0;
-      transition:background .2s;
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--border2);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: background .2s;
     }
-    .toggle-switch.on { background:var(--gold); }
+
+    .toggle-switch.on {
+      background: var(--gold);
+    }
+
     .toggle-switch::after {
-      content:''; position:absolute; top:2px; left:2px;
-      width:20px; height:20px; border-radius:50%;
-      background:#fff; transition:transform .2s;
-      box-shadow:0 1px 3px rgba(0,0,0,0.3);
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
-    .toggle-switch.on::after { transform:translateX(20px); }
+
+    .toggle-switch.on::after {
+      transform: translateX(20px);
+    }
 
     @media (max-width:480px) {
-      .nav-btn span:not(.nav-icon) { display:none; }
-      .nav-btn .nav-icon { font-size:24px; margin-bottom:4px; }
-      .nav-btn { padding:8px 0; }
-      .sq-hdr { font-size:11px; }
+      .nav-btn span:not(.nav-icon) {
+        display: none;
+      }
+
+      .nav-btn .nav-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+      }
+
+      .nav-btn {
+        padding: 8px 0;
+      }
+
+      .sq-hdr {
+        font-size: 11px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div id="root"></div>
   <script>
@@ -232,30 +546,30 @@
        ═══════════════════════════════════════════════════════════════ */
 
     const SEA = "#69BE28", NER = "#C60C30", NAV = "#002244";
-    const QS = ["Q1","Q2","Q3","Q4"];
+    const QS = ["Q1", "Q2", "Q3", "Q4"];
     const PAYOUTS = {
-      even: { label:"Even (25ea)", vals:[25,25,25,25] },
-      progressive: { label:"Progressive", vals:[10,20,20,50] },
-      heavy: { label:"Final Heavy", vals:[10,15,15,60] },
-      flat: { label:"Flat (20/30)", vals:[20,30,20,30] },
+      even: { label: "Even (25ea)", vals: [25, 25, 25, 25] },
+      progressive: { label: "Progressive", vals: [10, 20, 20, 50] },
+      heavy: { label: "Final Heavy", vals: [10, 15, 15, 60] },
+      flat: { label: "Flat (20/30)", vals: [20, 30, 20, 30] },
     };
-    const AVATARS = ["😀","😎","🤠","🦅","🐻","🦁","🐶","🐱","🦊","🐸","🎅","👻","🤖","🦸","🧙","💪","🏈","⭐","🔥","💎","🍕","🌮","🍺","🎸"];
+    const AVATARS = ["😀", "😎", "🤠", "🦅", "🐻", "🦁", "🐶", "🐱", "🦊", "🐸", "🎅", "👻", "🤖", "🦸", "🧙", "💪", "🏈", "⭐", "🔥", "💎", "🍕", "🌮", "🍺", "🎸"];
     const PROPS_LIST = [
-      { id:"anthem", q:"National Anthem over/under 2:00?", opts:["Over","Under"], cat:"Pre-Game" },
-      { id:"coin", q:"Coin toss result?", opts:["Heads","Tails"], cat:"Pre-Game" },
-      { id:"coinWin", q:"Coin toss winner elects to?", opts:["Receive","Defer","Kick"], cat:"Pre-Game" },
-      { id:"firstScore", q:"First score type?", opts:["TD","FG","Safety"], cat:"1st Half" },
-      { id:"firstTeamScore", q:"First team to score?", opts:["SEA","NE"], cat:"1st Half" },
-      { id:"firstTD", q:"First TD scored by?", opts:["SEA","NE"], cat:"1st Half" },
-      { id:"longestTD", q:"Longest TD over/under 40 yards?", opts:["Over","Under"], cat:"Game" },
-      { id:"totalTD", q:"Total TDs in game?", opts:["Under 5","5-6","7+"], cat:"Game" },
-      { id:"totalPts", q:"Total combined points?", opts:["Under 40","40-49","50-59","60+"], cat:"Game" },
-      { id:"margin", q:"Winning margin?", opts:["1-6","7-13","14-20","21+"], cat:"Game" },
-      { id:"overtime", q:"Will there be overtime?", opts:["Yes","No"], cat:"Game" },
-      { id:"scoreless", q:"Scoreless quarter?", opts:["Yes","No"], cat:"Game" },
-      { id:"halftime", q:"Halftime performer plays guitar?", opts:["Yes","No"], cat:"Halftime" },
-      { id:"mvp", q:"MVP position?", opts:["QB","RB/WR","Defense","Other"], cat:"Post-Game" },
-      { id:"gatorade", q:"Gatorade shower color?", opts:["Orange","Blue","Clear","Yellow","None"], cat:"Post-Game" },
+      { id: "anthem", q: "National Anthem over/under 2:00?", opts: ["Over", "Under"], cat: "Pre-Game" },
+      { id: "coin", q: "Coin toss result?", opts: ["Heads", "Tails"], cat: "Pre-Game" },
+      { id: "coinWin", q: "Coin toss winner elects to?", opts: ["Receive", "Defer", "Kick"], cat: "Pre-Game" },
+      { id: "firstScore", q: "First score type?", opts: ["TD", "FG", "Safety"], cat: "1st Half" },
+      { id: "firstTeamScore", q: "First team to score?", opts: ["SEA", "NE"], cat: "1st Half" },
+      { id: "firstTD", q: "First TD scored by?", opts: ["SEA", "NE"], cat: "1st Half" },
+      { id: "longestTD", q: "Longest TD over/under 40 yards?", opts: ["Over", "Under"], cat: "Game" },
+      { id: "totalTD", q: "Total TDs in game?", opts: ["Under 5", "5-6", "7+"], cat: "Game" },
+      { id: "totalPts", q: "Total combined points?", opts: ["Under 40", "40-49", "50-59", "60+"], cat: "Game" },
+      { id: "margin", q: "Winning margin?", opts: ["1-6", "7-13", "14-20", "21+"], cat: "Game" },
+      { id: "overtime", q: "Will there be overtime?", opts: ["Yes", "No"], cat: "Game" },
+      { id: "scoreless", q: "Scoreless quarter?", opts: ["Yes", "No"], cat: "Game" },
+      { id: "halftime", q: "Halftime performer plays guitar?", opts: ["Yes", "No"], cat: "Halftime" },
+      { id: "mvp", q: "MVP position?", opts: ["QB", "RB/WR", "Defense", "Other"], cat: "Post-Game" },
+      { id: "gatorade", q: "Gatorade shower color?", opts: ["Orange", "Blue", "Clear", "Yellow", "None"], cat: "Post-Game" },
     ];
     const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
 
@@ -273,18 +587,18 @@
     const rtdb = firebase.database();
 
     const DEFAULT = {
-      grid: Array.from({length:10}, () => Array(10).fill(null)),
-      colNums:null, rowNums:null, isLocked:false,
-      scores: { SEA:[null,null,null,null], NE:[null,null,null,null] },
-      pool: { pricePerSquare:5, payoutSplit:[25,25,25,25], payoutPreset:"even", propBuyIn:2 },
-      settings: { maxPerPlayer:0, showHeatMap:false },
-      feed:[], playerMeta:{}, props:{}, propAnswers:{},
-      feedReactions:{}, squareReactions:{},
-      hostPin:"", zellePhone:"", zelleEmail:"", darkMode:true,
-      trades:[], chat:[], payments:{}, propBuyIns:{}, paidPlayers:{},
-      priorityMode:false, admins:[], auditLog:[],
-      gameState:"PRE", // #20 FIX: PRE, LIVE, FINAL
-      tiebreaker: { question:"Total combined points in the game?", answers:{} },
+      grid: Array.from({ length: 10 }, () => Array(10).fill(null)),
+      colNums: null, rowNums: null, isLocked: false,
+      scores: { SEA: [null, null, null, null], NE: [null, null, null, null] },
+      pool: { pricePerSquare: 5, payoutSplit: [25, 25, 25, 25], payoutPreset: "even", propBuyIn: 2 },
+      settings: { maxPerPlayer: 0, showHeatMap: false },
+      feed: [], playerMeta: {}, props: {}, propAnswers: {},
+      feedReactions: {}, squareReactions: {},
+      hostPin: "", zellePhone: "", zelleEmail: "", darkMode: true,
+      trades: [], chat: [], payments: {}, propBuyIns: {}, paidPlayers: {},
+      priorityMode: false, admins: [], auditLog: [],
+      gameState: "PRE", // #20 FIX: PRE, LIVE, FINAL
+      tiebreaker: { question: "Total combined points in the game?", answers: {} },
     };
 
     function dbRef(room) { return rtdb.ref("rooms/" + (room || "MAIN")); }
@@ -294,7 +608,7 @@
       const key = "sbPlayerId_" + name;
       let id = localStorage.getItem(key);
       if (!id) {
-        id = name + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+        id = name + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         localStorage.setItem(key, id);
       }
       return id;
@@ -310,11 +624,11 @@
         else if (type === "win") { o.frequency.value = 523; g.gain.value = 0.15; o.start(); setTimeout(() => o.frequency.value = 659, 100); setTimeout(() => o.frequency.value = 784, 200); o.stop(ctx.currentTime + 0.4); }
         else if (type === "lock") { o.frequency.value = 440; g.gain.value = 0.1; o.start(); setTimeout(() => o.frequency.value = 880, 80); o.stop(ctx.currentTime + 0.2); }
         else if (type === "chat") { o.frequency.value = 660; g.gain.value = 0.05; o.start(); o.stop(ctx.currentTime + 0.05); }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     function addFeed(data, name, msg) {
-      return [...(data.feed || []), { who:name, msg, ts:Date.now() }].slice(-80);
+      return [...(data.feed || []), { who: name, msg, ts: Date.now() }].slice(-80);
     }
 
     function getWinner(grid, colNums, rowNums, seaScore, neScore) {
@@ -326,7 +640,7 @@
     }
 
     function getPlayerColor(name, allNames) {
-      const palette = ["#69BE28","#C60C30","#3B82F6","#D4A843","#A855F7","#EC4899","#14B8A6","#F97316","#6366F1","#EF4444","#22C55E","#06B6D4","#E879F9","#FACC15","#FB923C","#34D399","#818CF8","#F472B6","#84CC16","#2DD4BF"];
+      const palette = ["#69BE28", "#C60C30", "#3B82F6", "#D4A843", "#A855F7", "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#EF4444", "#22C55E", "#06B6D4", "#E879F9", "#FACC15", "#FB923C", "#34D399", "#818CF8", "#F472B6", "#84CC16", "#2DD4BF"];
       const idx = allNames.indexOf(name);
       return palette[idx % palette.length];
     }
@@ -359,16 +673,17 @@
     // ── #8 FIX: Single AvatarPicker component ─────────────────────
     function AvatarPicker({ value, onChange, disabled, onClose }) {
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:999, background:"rgba(0,0,0,0.8)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
+        <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick=${e => e.target === e.currentTarget && onClose && onClose()}>
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:340, width:"100%", border:"1px solid var(--border2)" }}>
-            <div className="bebas" style=${{ fontSize:18, letterSpacing:2, color:"var(--gold)", marginBottom:12 }}>CHOOSE AVATAR</div>
-            <div style=${{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:8 }}>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
+            <div className="bebas" style=${{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
+            <div style=${{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
               ${AVATARS.map(a => html`
                 <button key=${a} onClick=${() => !disabled && onChange(a)} disabled=${disabled}
-                  style=${{ fontSize:28, padding:8, borderRadius:10, border:"2px solid " + (value === a ? "var(--gold)" : "var(--border)"),
-                    background: value === a ? "var(--gold-glow)" : "var(--card)", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1
-                  }}>${a}</button>
+                  style=${{
+          fontSize: 28, padding: 8, borderRadius: 10, border: "2px solid " + (value === a ? "var(--gold)" : "var(--border)"),
+          background: value === a ? "var(--gold-glow)" : "var(--card)", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1
+        }}>${a}</button>
               `)}
             </div>
           </div>
@@ -393,11 +708,11 @@
       const cd = useCountdown();
       const hasAnyScore = (data.scores?.SEA || []).some(s => s != null);
       const allScored = (data.scores?.SEA || []).every(s => s != null);
-      if (allScored && hasAnyScore) return { status:"FINAL", cd:null };
-      if (hasAnyScore) return { status:"LIVE", cd:null };
-      if (!cd) return { status:"LIVE", cd:null }; // Past kickoff
-      if (cd.d === 0 && cd.h === 0 && cd.m <= 30) return { status:"SOON", cd };
-      return { status:"PRE", cd };
+      if (allScored && hasAnyScore) return { status: "FINAL", cd: null };
+      if (hasAnyScore) return { status: "LIVE", cd: null };
+      if (!cd) return { status: "LIVE", cd: null }; // Past kickoff
+      if (cd.d === 0 && cd.h === 0 && cd.m <= 30) return { status: "SOON", cd };
+      return { status: "PRE", cd };
     }
 
     // ── Setup Screen ──────────────────────────────────────────────
@@ -415,58 +730,58 @@
 
       return html`
         <div style=${{
-          minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+          minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           background: "radial-gradient(ellipse at 30% 20%, " + NAV + " 0%, #0a0f18 60%, #10060a 100%)",
-          padding:"24px", position:"relative", overflow:"hidden"
+          padding: "24px", position: "relative", overflow: "hidden"
         }}>
-          <div style=${{ position:"absolute", top:"-20%", left:"-10%", width:"60%", height:"60%", background:"radial-gradient(circle, rgba(105,190,40,0.08) 0%, transparent 70%)", pointerEvents:"none" }} />
-          <div style=${{ position:"absolute", bottom:"-20%", right:"-10%", width:"60%", height:"60%", background:"radial-gradient(circle, rgba(198,12,48,0.08) 0%, transparent 70%)", pointerEvents:"none" }} />
+          <div style=${{ position: "absolute", top: "-20%", left: "-10%", width: "60%", height: "60%", background: "radial-gradient(circle, rgba(105,190,40,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <div style=${{ position: "absolute", bottom: "-20%", right: "-10%", width: "60%", height: "60%", background: "radial-gradient(circle, rgba(198,12,48,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-          <div style=${{ position:"relative", zIndex:1, textAlign:"center", animation:"fadeIn .6s ease" }}>
+          <div style=${{ position: "relative", zIndex: 1, textAlign: "center", animation: "fadeIn .6s ease" }}>
             ${cd && html`
-              <div style=${{ marginBottom:24, display:"flex", gap:8, justifyContent:"center" }}>
-                ${[["D",cd.d],["H",cd.h],["M",cd.m],["S",cd.s]].map(([l,v]) => html`
-                  <div key=${l} style=${{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"8px 12px", minWidth:48 }}>
-                    <div className="bebas" style=${{ fontSize:28, lineHeight:1, color:"var(--text)" }}>${String(v).padStart(2,"0")}</div>
-                    <div style=${{ fontSize:9, color:"var(--soft)", letterSpacing:2, marginTop:2 }}>${l}</div>
+              <div style=${{ marginBottom: 24, display: "flex", gap: 8, justifyContent: "center" }}>
+                ${[["D", cd.d], ["H", cd.h], ["M", cd.m], ["S", cd.s]].map(([l, v]) => html`
+                  <div key=${l} style=${{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px", minWidth: 48 }}>
+                    <div className="bebas" style=${{ fontSize: 28, lineHeight: 1, color: "var(--text)" }}>${String(v).padStart(2, "0")}</div>
+                    <div style=${{ fontSize: 9, color: "var(--soft)", letterSpacing: 2, marginTop: 2 }}>${l}</div>
                   </div>
                 `)}
               </div>
             `}
 
-            <div style=${{ fontSize:11, letterSpacing:6, color:"var(--soft)", marginBottom:4, fontWeight:600 }}>FEB 8 • 2026</div>
-            <h1 className="bebas" style=${{ fontSize:"clamp(36px,10vw,56px)", lineHeight:0.95, margin:"4px 0 16px", letterSpacing:2, color:"#fff" }}>
-              SUPER BOWL <span style=${{ color:"var(--gold)" }}>LX</span>
+            <div style=${{ fontSize: 11, letterSpacing: 6, color: "var(--soft)", marginBottom: 4, fontWeight: 600 }}>FEB 8 • 2026</div>
+            <h1 className="bebas" style=${{ fontSize: "clamp(36px,10vw,56px)", lineHeight: 0.95, margin: "4px 0 16px", letterSpacing: 2, color: "#fff" }}>
+              SUPER BOWL <span style=${{ color: "var(--gold)" }}>LX</span>
             </h1>
 
-            <div style=${{ display:"flex", alignItems:"center", justifyContent:"center", gap:20, marginBottom:32 }}>
-              <div style=${{ textAlign:"center" }}>
-                <div style=${{ width:56, height:56, borderRadius:"50%", background:SEA, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, boxShadow: "0 0 20px " + SEA + "33" }}>🦅</div>
-                <div className="bebas" style=${{ fontSize:14, color:SEA, marginTop:6, letterSpacing:2 }}>SEAHAWKS</div>
+            <div style=${{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 32 }}>
+              <div style=${{ textAlign: "center" }}>
+                <div style=${{ width: 56, height: 56, borderRadius: "50%", background: SEA, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 0 20px " + SEA + "33" }}>🦅</div>
+                <div className="bebas" style=${{ fontSize: 14, color: SEA, marginTop: 6, letterSpacing: 2 }}>SEAHAWKS</div>
               </div>
-              <div className="bebas" style=${{ fontSize:20, color:"var(--faint)" }}>VS</div>
-              <div style=${{ textAlign:"center" }}>
-                <div style=${{ width:56, height:56, borderRadius:"50%", background:NER, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, boxShadow: "0 0 20px " + NER + "33" }}>🏴</div>
-                <div className="bebas" style=${{ fontSize:14, color:NER, marginTop:6, letterSpacing:2 }}>PATRIOTS</div>
+              <div className="bebas" style=${{ fontSize: 20, color: "var(--faint)" }}>VS</div>
+              <div style=${{ textAlign: "center" }}>
+                <div style=${{ width: 56, height: 56, borderRadius: "50%", background: NER, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 0 20px " + NER + "33" }}>🏴</div>
+                <div className="bebas" style=${{ fontSize: 14, color: NER, marginTop: 6, letterSpacing: 2 }}>PATRIOTS</div>
               </div>
             </div>
 
-            <div style=${{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"24px", maxWidth:340, margin:"0 auto" }}>
-              <label style=${{ fontSize:10, fontWeight:700, letterSpacing:2, color:"var(--soft)", display:"block", textAlign:"left", marginBottom:6 }}>YOUR NAME</label>
+            <div style=${{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px", maxWidth: 340, margin: "0 auto" }}>
+              <label style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", display: "block", textAlign: "left", marginBottom: 6 }}>YOUR NAME</label>
               <input value=${name} onChange=${e => setName(e.target.value)} placeholder="Enter your name"
                 onKeyDown=${e => e.key === "Enter" && go()}
-                style=${{ width:"100%", padding:"12px 14px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:16, fontWeight:600, marginBottom:16 }} />
+                style=${{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 16, fontWeight: 600, marginBottom: 16 }} />
 
-              <label style=${{ fontSize:10, fontWeight:700, letterSpacing:2, color:"var(--soft)", display:"block", textAlign:"left", marginBottom:6 }}>ROOM CODE</label>
+              <label style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", display: "block", textAlign: "left", marginBottom: 6 }}>ROOM CODE</label>
               <input value=${room} onChange=${e => setRoom(e.target.value.toUpperCase())} placeholder="MAIN"
-                style=${{ width:"100%", padding:"12px 14px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:16, fontWeight:600, marginBottom:20, letterSpacing:3 }} />
+                style=${{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 16, fontWeight: 600, marginBottom: 20, letterSpacing: 3 }} />
 
               <button onClick=${go} style=${{
-                width:"100%", padding:"14px", borderRadius:12, border:"none",
-                background:"linear-gradient(135deg, var(--gold) 0%, #C4983A 100%)",
-                color:"#1a1a1a", fontSize:15, fontWeight:800, letterSpacing:1,
-                boxShadow:"0 4px 20px rgba(212,168,67,0.3)"
-              }}>ENTER GAME →</button>
+          width: "100%", padding: "14px", borderRadius: 12, border: "none",
+          background: "linear-gradient(135deg, var(--gold) 0%, #C4983A 100%)",
+          color: "#1a1a1a", fontSize: 15, fontWeight: 800, letterSpacing: 1,
+          boxShadow: "0 4px 20px rgba(212,168,67,0.3)"
+        }}>ENTER GAME →</button>
             </div>
           </div>
         </div>
@@ -476,67 +791,67 @@
     // ── #6 FIX: Compact Header (~60px) ────────────────────────────
     function GameHeader({ data, myName }) {
       const { status, cd } = useGameStatus(data);
-      const totalSea = (data.scores?.SEA || []).reduce((a,b) => a + (b||0), 0);
-      const totalNe = (data.scores?.NE || []).reduce((a,b) => a + (b||0), 0);
+      const totalSea = (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
+      const totalNe = (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
       const claimed = data.grid?.flat().filter(Boolean).length || 0;
       const pot = claimed * (data.pool?.pricePerSquare || 0);
 
       return html`
         <div className="header-bar" style=${{
-          background:"linear-gradient(180deg, rgba(17,24,39,0.98) 0%, rgba(10,15,24,0.95) 100%)",
-          borderBottom:"1px solid var(--border)",
-          padding:"8px 16px 6px", position:"sticky", top:0, zIndex:100,
-          backdropFilter:"blur(16px)"
+          background: "linear-gradient(180deg, rgba(17,24,39,0.98) 0%, rgba(10,15,24,0.95) 100%)",
+          borderBottom: "1px solid var(--border)",
+          padding: "8px 16px 6px", position: "sticky", top: 0, zIndex: 100,
+          backdropFilter: "blur(16px)"
         }}>
           <!-- Single compact row: Team - Score/Status - Team -->
-          <div style=${{ display:"flex", alignItems:"center", justifyContent:"center", gap:0 }}>
-            <div style=${{ flex:1, display:"flex", alignItems:"center", gap:6 }}>
-              <div style=${{ width:28, height:28, borderRadius:"50%", background:SEA, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🦅</div>
+          <div style=${{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style=${{ width: 28, height: 28, borderRadius: "50%", background: SEA, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🦅</div>
               <div>
-                <div className="bebas" style=${{ fontSize:12, color:SEA, letterSpacing:2, lineHeight:1 }}>SEA</div>
+                <div className="bebas" style=${{ fontSize: 12, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
                 ${(status === "LIVE" || status === "FINAL") && html`
-                  <div className="bebas" style=${{ fontSize:22, lineHeight:1, color:"#fff" }}>${totalSea}</div>
+                  <div className="bebas" style=${{ fontSize: 22, lineHeight: 1, color: "#fff" }}>${totalSea}</div>
                 `}
               </div>
             </div>
 
-            <div style=${{ textAlign:"center", padding:"0 10px", minWidth:70 }}>
+            <div style=${{ textAlign: "center", padding: "0 10px", minWidth: 70 }}>
               ${status === "FINAL" && html`<span className="status-badge final">FINAL</span>`}
               ${status === "LIVE" && html`<span className="status-badge live">LIVE</span>`}
               ${status === "SOON" && html`<span className="status-badge soon">SOON</span>`}
               ${status === "PRE" && cd && html`
-                <div style=${{ display:"flex", gap:3, justifyContent:"center" }}>
-                  ${[cd.h,cd.m,cd.s].map((v,i) => html`
+                <div style=${{ display: "flex", gap: 3, justifyContent: "center" }}>
+                  ${[cd.h, cd.m, cd.s].map((v, i) => html`
                     <${React.Fragment} key=${i}>
-                      <span className="bebas" style=${{ fontSize:14, color:"var(--text)" }}>${String(v).padStart(2,"0")}</span>
-                      ${i < 2 && html`<span style=${{ color:"var(--faint)", fontSize:12 }}>:</span>`}
+                      <span className="bebas" style=${{ fontSize: 14, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
+                      ${i < 2 && html`<span style=${{ color: "var(--faint)", fontSize: 12 }}>:</span>`}
                     <//>
                   `)}
                 </div>
-                ${cd.d > 0 && html`<div style=${{ fontSize:8, color:"var(--faint)", letterSpacing:1 }}>${cd.d}D LEFT</div>`}
+                ${cd.d > 0 && html`<div style=${{ fontSize: 8, color: "var(--faint)", letterSpacing: 1 }}>${cd.d}D LEFT</div>`}
               `}
             </div>
 
-            <div style=${{ flex:1, display:"flex", alignItems:"center", justifyContent:"flex-end", gap:6 }}>
-              <div style=${{ textAlign:"right" }}>
-                <div className="bebas" style=${{ fontSize:12, color:NER, letterSpacing:2, lineHeight:1 }}>NE</div>
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+              <div style=${{ textAlign: "right" }}>
+                <div className="bebas" style=${{ fontSize: 12, color: NER, letterSpacing: 2, lineHeight: 1 }}>NE</div>
                 ${(status === "LIVE" || status === "FINAL") && html`
-                  <div className="bebas" style=${{ fontSize:22, lineHeight:1, color:"#fff" }}>${totalNe}</div>
+                  <div className="bebas" style=${{ fontSize: 22, lineHeight: 1, color: "#fff" }}>${totalNe}</div>
                 `}
               </div>
-              <div style=${{ width:28, height:28, borderRadius:"50%", background:NER, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🏴</div>
+              <div style=${{ width: 28, height: 28, borderRadius: "50%", background: NER, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🏴</div>
             </div>
           </div>
 
           <!-- Thin progress bar (4px) -->
-          <div style=${{ height:3, background:"var(--border)", borderRadius:2, marginTop:6, overflow:"hidden" }}>
-            <div style=${{ height:"100%", width: claimed + "%", background: "linear-gradient(90deg, " + SEA + ", var(--gold), " + NER + ")", borderRadius:2, transition:"width .5s ease" }} />
+          <div style=${{ height: 3, background: "var(--border)", borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
+            <div style=${{ height: "100%", width: claimed + "%", background: "linear-gradient(90deg, " + SEA + ", var(--gold), " + NER + ")", borderRadius: 2, transition: "width .5s ease" }} />
           </div>
           <!-- Micro info line -->
-          <div style=${{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--faint)", marginTop:3 }}>
+          <div style=${{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--faint)", marginTop: 3 }}>
             <span>${claimed}/100</span>
-            ${pot > 0 && html`<span style=${{ color:"var(--gold)" }}>💰 $${pot}</span>`}
-            <span>${Object.keys(data.grid?.flat().filter(Boolean).reduce((a,n) => ({...a,[n]:1}), {}) || {}).length} players</span>
+            ${pot > 0 && html`<span style=${{ color: "var(--gold)" }}>💰 $${pot}</span>`}
+            <span>${Object.keys(data.grid?.flat().filter(Boolean).reduce((a, n) => ({ ...a, [n]: 1 }), {}) || {}).length} players</span>
           </div>
         </div>
       `;
@@ -552,12 +867,15 @@
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
-        if (data.isLocked || data.grid[r][c]) return;
+        if (!dbr) { toast("Connecting..."); return; }
+        if (data.isLocked) { toast("Board is locked!"); return; }
+        if (data.grid[r][c]) return;
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
         const newGrid = data.grid.map(row => [...row]);
         newGrid[r][c] = myName;
         dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed a square") });
         playSound("claim");
+        toast("Claimed!");
         // #10 FIX: Mark cell for celebration animation
         justClaimedRef.current = r + "-" + c;
         setTimeout(() => { justClaimedRef.current = null; }, 600);
@@ -566,18 +884,19 @@
       };
 
       const quickPick = (n) => {
-        if (data.isLocked) return;
+        if (!dbr) { toast("Connecting..."); return; }
+        if (data.isLocked) { toast("Board is locked!"); return; }
         const avail = [];
-        data.grid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) avail.push([r,c]); }));
+        data.grid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) avail.push([r, c]); }));
         if (avail.length === 0) { toast("Board is full!"); return; }
         const pick = Math.min(n, maxPP > 0 ? maxPP - myCt : n, avail.length);
         if (pick <= 0) { toast("Max " + maxPP + " squares reached"); return; }
         const newGrid = data.grid.map(row => [...row]);
         const shuffled = avail.sort(() => Math.random() - 0.5).slice(0, pick);
-        shuffled.forEach(([r,c]) => newGrid[r][c] = myName);
+        shuffled.forEach(([r, c]) => newGrid[r][c] = myName);
         dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed " + pick + " squares") });
         playSound("claim");
-        toast("Claimed " + pick + " squares!");
+        toast("🎲 Claimed " + pick + " squares!");
         if (navigator.vibrate) navigator.vibrate(50);
       };
 
@@ -588,12 +907,12 @@
         QS.forEach((q, i) => {
           const ss = (data.scores?.SEA || [])[i], ns = (data.scores?.NE || [])[i];
           if (ss != null && ns != null) {
-            const cumS = data.scores.SEA.slice(0, i+1).reduce((a,b) => a + (b||0), 0);
-            const cumN = data.scores.NE.slice(0, i+1).reduce((a,b) => a + (b||0), 0);
+            const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+            const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN);
             if (winner) {
               const ci = data.colNums.indexOf(cumS % 10), ri = data.rowNums.indexOf(cumN % 10);
-              w[ri + "-" + ci] = { quarter:q, winner };
+              w[ri + "-" + ci] = { quarter: q, winner };
             }
           }
         });
@@ -601,31 +920,31 @@
       }, [data]);
 
       return html`
-        <div style=${{ padding:"4px 4px", animation:"fadeIn .3s ease", flex:1, display:"flex", flexDirection:"column", justifyContent:"center" }}>
+        <div style=${{ padding: "4px 4px", animation: "fadeIn .3s ease", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <!-- Quick actions -->
           ${!data.isLocked && html`
-            <div style=${{ marginBottom:10 }}>
-              <div style=${{ display:"flex", gap:6, marginBottom:6 }}>
+            <div style=${{ marginBottom: 10 }}>
+              <div style=${{ display: "flex", gap: 6, marginBottom: 6 }}>
                 <button onClick=${() => setShowMine(!showMine)} style=${{
-                  flex:"0 0 auto", padding:"7px 12px", borderRadius:8,
-                  border: "1px solid " + (showMine ? "var(--gold)" : "var(--border2)"),
-                  background: showMine ? "var(--gold-glow)" : "transparent",
-                  color: showMine ? "var(--gold)" : "var(--soft)",
-                  fontSize:12, fontWeight:600, whiteSpace:"nowrap"
-                }}>
+            flex: "0 0 auto", padding: "7px 12px", borderRadius: 8,
+            border: "1px solid " + (showMine ? "var(--gold)" : "var(--border2)"),
+            background: showMine ? "var(--gold-glow)" : "transparent",
+            color: showMine ? "var(--gold)" : "var(--soft)",
+            fontSize: 12, fontWeight: 600, whiteSpace: "nowrap"
+          }}>
                   ${showMine ? "👁 All" : "⭐ Mine"}
                 </button>
-                <div style=${{ display:"flex", gap:4, flex:1 }}>
-                  ${[1,3,5,10].map(n => html`
+                <div style=${{ display: "flex", gap: 4, flex: 1 }}>
+                  ${[1, 3, 5, 10].map(n => html`
                     <button key=${n} onClick=${() => quickPick(n)} style=${{
-                      flex:1, padding:"7px 0", borderRadius:8, border:"1px solid var(--border2)",
-                      background:"var(--card)", color:"var(--text)", fontSize:12, fontWeight:700,
-                    }}>🎲 ${n}</button>
+              flex: 1, padding: "7px 0", borderRadius: 8, border: "1px solid var(--border2)",
+              background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 700,
+            }}>🎲 ${n}</button>
                   `)}
                 </div>
               </div>
-              <div style=${{ fontSize:11, color:"var(--soft)", textAlign:"center" }}>
-                You have <span style=${{ color:"var(--gold)", fontWeight:700 }}>${myCt}</span> square${myCt !== 1 ? "s" : ""}
+              <div style=${{ fontSize: 11, color: "var(--soft)", textAlign: "center" }}>
+                You have <span style=${{ color: "var(--gold)", fontWeight: 700 }}>${myCt}</span> square${myCt !== 1 ? "s" : ""}
                 ${maxPP > 0 && html`<span> (max ${maxPP})</span>`}
               </div>
             </div>
@@ -633,14 +952,14 @@
 
           <!-- #21 FIX: Show Mine toggle when locked too -->
           ${data.isLocked && html`
-            <div style=${{ display:"flex", justifyContent:"center", marginBottom:8, gap:8 }}>
+            <div style=${{ display: "flex", justifyContent: "center", marginBottom: 8, gap: 8 }}>
               <button onClick=${() => setShowMine(!showMine)} style=${{
-                padding:"6px 14px", borderRadius:8,
-                border: "1px solid " + (showMine ? "var(--gold)" : "var(--border2)"),
-                background: showMine ? "var(--gold-glow)" : "transparent",
-                color: showMine ? "var(--gold)" : "var(--soft)",
-                fontSize:12, fontWeight:600
-              }}>
+            padding: "6px 14px", borderRadius: 8,
+            border: "1px solid " + (showMine ? "var(--gold)" : "var(--border2)"),
+            background: showMine ? "var(--gold-glow)" : "transparent",
+            color: showMine ? "var(--gold)" : "var(--soft)",
+            fontSize: 12, fontWeight: 600
+          }}>
                 ${showMine ? "👁 Show All" : "⭐ My Squares (" + myCt + ")"}
               </button>
             </div>
@@ -649,27 +968,27 @@
           <!-- The Grid — #14 FIX: No vertical label -->
           <div>
             <!-- Team axis labels integrated into grid headers -->
-            <div style=${{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:4, marginBottom:4, paddingLeft:24 }}>
-              <span className="bebas" style=${{ fontSize:14, color:SEA, letterSpacing:2 }}>← SEAHAWKS →</span>
+            <div style=${{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 4, marginBottom: 4, paddingLeft: 24 }}>
+              <span className="bebas" style=${{ fontSize: 14, color: SEA, letterSpacing: 2 }}>← SEAHAWKS →</span>
             </div>
 
-            <div style=${{ display:"flex", alignItems:"center" }}>
+            <div style=${{ display: "flex", alignItems: "center" }}>
               <!-- #14 FIX: NE label as small rotated text instead of huge vertical -->
-              <div style=${{ writingMode:"vertical-lr", transform:"rotate(180deg)", display:"flex", alignItems:"center", justifyContent:"center", width:14, flexShrink:0 }}>
-                <span className="bebas" style=${{ fontSize:11, color:NER, letterSpacing:2 }}>NE</span>
+              <div style=${{ writingMode: "vertical-lr", transform: "rotate(180deg)", display: "flex", alignItems: "center", justifyContent: "center", width: 14, flexShrink: 0 }}>
+                <span className="bebas" style=${{ fontSize: 11, color: NER, letterSpacing: 2 }}>NE</span>
               </div>
 
-              <div style=${{ flex:1 }}>
+              <div style=${{ flex: 1 }}>
                 <div className="sq-grid">
                   <!-- Corner cell -->
-                  <div className="sq-hdr" style=${{ background:"transparent" }} />
+                  <div className="sq-hdr" style=${{ background: "transparent" }} />
                   <!-- Column headers -->
-                  ${Array.from({length:10}).map((_,c) => html`
-                    <div key=${"ch"+c} className="sq-hdr" style=${{
-                      background: data.colNums ? SEA + "22" : "var(--card)",
-                      color: data.colNums ? SEA : "var(--faint)", aspectRatio:"1",
-                      border: "1px solid " + (data.colNums ? SEA + "33" : "var(--border)"),
-                    }}>
+                  ${Array.from({ length: 10 }).map((_, c) => html`
+                    <div key=${"ch" + c} className="sq-hdr" style=${{
+              background: data.colNums ? SEA + "22" : "var(--card)",
+              color: data.colNums ? SEA : "var(--faint)", aspectRatio: "1",
+              border: "1px solid " + (data.colNums ? SEA + "33" : "var(--border)"),
+            }}>
                       ${data.colNums ? data.colNums[c] : "?"}
                     </div>
                   `)}
@@ -677,38 +996,41 @@
                   ${data.grid?.map((row, r) => html`
                     <${React.Fragment} key=${r}>
                       <div className="sq-hdr" style=${{
-                        background: data.rowNums ? NER + "22" : "var(--card)",
-                        color: data.rowNums ? NER : "var(--faint)", aspectRatio:"1",
-                        border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"), fontSize:12,
-                      }}>
+                background: data.rowNums ? NER + "22" : "var(--card)",
+                color: data.rowNums ? NER : "var(--faint)", aspectRatio: "1",
+                border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"), fontSize: 12,
+              }}>
                         ${data.rowNums ? data.rowNums[r] : "?"}
                       </div>
                       ${row.map((cell, c) => {
-                        const mine = cell === myName;
-                        const winKey = r + "-" + c;
-                        const isWin = qWinners[winKey];
-                        const color = cell ? getPlayerColor(cell, allNames) : null;
-                        const hidden = showMine && cell && !mine;
-                        const isJustClaimed = justClaimedRef.current === winKey;
+                const mine = cell === myName;
+                const winKey = r + "-" + c;
+                const isWin = qWinners[winKey];
+                const color = cell ? getPlayerColor(cell, allNames) : null;
+                const hidden = showMine && cell && !mine;
+                const isJustClaimed = justClaimedRef.current === winKey;
 
-                        return html`
-                          <div key=${r+"-"+c}
+                return html`
+                          <div key=${r + "-" + c}
                             className=${"sq-cell " + (cell ? "claimed" : "empty") + (mine ? " mine" : "") + (isWin ? " winner" : "") + (hidden ? " dimmed" : "") + (isJustClaimed ? " just-claimed" : "")}
                             onClick=${() => !cell && claimSquare(r, c)}
                             style=${{
-                              background: cell ? color + "22" : undefined,
-                              borderColor: mine ? color + "88" : isWin ? "var(--gold)" : undefined,
-                            }}
+                    background: cell ? color + "22" : undefined,
+                    borderColor: mine ? color + "88" : isWin ? "var(--gold)" : undefined,
+                  }}
                           >
                             ${cell ? html`
-                              <span style=${{ fontSize:"clamp(8px,2.2vw,12px)", fontWeight:700, color, lineHeight:1, textOverflow:"ellipsis", overflow:"hidden", maxWidth:"100%", textAlign:"center" }}>
+                              <span style=${{ fontSize: "clamp(12px,3vw,16px)", lineHeight: 1 }}>
                                 ${getPlayerEmoji(data.playerMeta, cell)}
                               </span>
-                              ${isWin && html`<span style=${{ fontSize:7, color:"var(--gold)", fontWeight:800, lineHeight:1 }}>${isWin.quarter}</span>`}
+                              <span style=${{ fontSize: "clamp(6px,1.8vw,9px)", fontWeight: 700, color, lineHeight: 1, textOverflow: "ellipsis", overflow: "hidden", maxWidth: "100%", textAlign: "center", marginTop: 1 }}>
+                                ${cell.length > 4 ? cell.substring(0, 3) : cell}
+                              </span>
+                              ${isWin && html`<span style=${{ fontSize: 6, color: "var(--gold)", fontWeight: 800, lineHeight: 1, position: "absolute", top: 1, right: 2 }}>${isWin.quarter}</span>`}
                             ` : null}
                           </div>
                         `;
-                      })}
+              })}
                     <//>
                   `)}
                 </div>
@@ -717,16 +1039,16 @@
 
             <!-- Legend -->
             ${allNames.length > 0 && html`
-              <div style=${{ display:"flex", flexWrap:"wrap", gap:6, marginTop:10, justifyContent:"center" }}>
+              <div style=${{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, justifyContent: "center" }}>
                 ${allNames.map(name => html`
                   <div key=${name} style=${{
-                    display:"flex", alignItems:"center", gap:4, padding:"3px 8px",
-                    borderRadius:6, background: getPlayerColor(name, allNames) + "15",
-                    border: "1px solid " + getPlayerColor(name, allNames) + "33", fontSize:11, fontWeight:600,
-                    color: getPlayerColor(name, allNames)
-                  }}>
+                  display: "flex", alignItems: "center", gap: 4, padding: "3px 8px",
+                  borderRadius: 6, background: getPlayerColor(name, allNames) + "15",
+                  border: "1px solid " + getPlayerColor(name, allNames) + "33", fontSize: 11, fontWeight: 600,
+                  color: getPlayerColor(name, allNames)
+                }}>
                     ${getPlayerEmoji(data.playerMeta, name)} ${name}
-                    <span style=${{ opacity:0.6 }}>(${data.grid.flat().filter(n => n === name).length})</span>
+                    <span style=${{ opacity: 0.6 }}>(${data.grid.flat().filter(n => n === name).length})</span>
                   </div>
                 `)}
               </div>
@@ -745,15 +1067,15 @@
       const claimed = data.grid?.flat().filter(Boolean).length || 0;
       const pps = data.pool?.pricePerSquare || 0;
       const totalPot = claimed * pps;
-      const split = data.pool?.payoutSplit || [25,25,25,25];
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
 
       const saveScore = (qi) => {
         const s = parseInt(tempSea), n = parseInt(tempNe);
         if (isNaN(s) || isNaN(n)) { toast("Enter valid scores"); return; }
-        const newSea = [...(data.scores?.SEA || [null,null,null,null])];
-        const newNe = [...(data.scores?.NE || [null,null,null,null])];
+        const newSea = [...(data.scores?.SEA || [null, null, null, null])];
+        const newNe = [...(data.scores?.NE || [null, null, null, null])];
         newSea[qi] = s; newNe[qi] = n;
-        dbr.update({ scores: { SEA:newSea, NE:newNe }, feed: addFeed(data, "🏈", QS[qi] + " score: SEA " + s + " - NE " + n) });
+        dbr.update({ scores: { SEA: newSea, NE: newNe }, feed: addFeed(data, "🏈", QS[qi] + " score: SEA " + s + " - NE " + n) });
         setEditing(null);
         playSound("lock");
         toast(QS[qi] + " score saved!");
@@ -763,25 +1085,25 @@
       const fetchScores = async (retries) => {
         if (retries === undefined) retries = 3;
         try {
-          toast("Fetching from ESPN" + (retries < 3 ? " (retry " + (4-retries) + ")..." : "..."));
+          toast("Fetching from ESPN" + (retries < 3 ? " (retry " + (4 - retries) + ")..." : "..."));
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
           if (!res.ok) throw new Error("HTTP " + res.status);
           const json = await res.json();
-          const game = json.events?.find(function(e) {
+          const game = json.events?.find(function (e) {
             return (e.shortName && (e.shortName.includes("SEA") || e.shortName.includes("NE"))) || (e.name && e.name.includes("Super Bowl"));
           });
           if (!game) { toast("No game data found. Use manual entry below."); return; }
           const competitors = game.competitions[0].competitors;
-          const sea = competitors.find(function(c) { return c.team.abbreviation === "SEA"; });
-          const ne = competitors.find(function(c) { return c.team.abbreviation === "NE"; });
+          const sea = competitors.find(function (c) { return c.team.abbreviation === "SEA"; });
+          const ne = competitors.find(function (c) { return c.team.abbreviation === "NE"; });
           if (sea && ne) {
             toast("Found: SEA " + sea.score + " - NE " + ne.score + ". Use Edit (Manual) to enter quarter scores.");
           } else {
             toast("Could not parse teams. Use manual entry.");
           }
-        } catch(e) {
+        } catch (e) {
           if (retries > 1) {
-            await new Promise(function(r) { setTimeout(r, 2000); });
+            await new Promise(function (r) { setTimeout(r, 2000); });
             return fetchScores(retries - 1);
           }
           toast("ESPN unavailable. Use 'Edit (Manual)' to enter scores.");
@@ -792,34 +1114,34 @@
         const seaQ = (data.scores?.SEA || [])[i];
         const neQ = (data.scores?.NE || [])[i];
         const hasSc = seaQ != null && neQ != null;
-        const cumS = hasSc ? data.scores.SEA.slice(0,i+1).reduce((a,b) => a + (b||0), 0) : null;
-        const cumN = hasSc ? data.scores.NE.slice(0,i+1).reduce((a,b) => a + (b||0), 0) : null;
+        const cumS = hasSc ? data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
+        const cumN = hasSc ? data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
         const winner = hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
         const payout = Math.round(totalPot * split[i] / 100);
         return { q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc };
       });
 
       return html`
-        <div style=${{ padding:"16px", animation:"fadeIn .3s ease" }}>
+        <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
           <!-- Live scoreboard -->
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:"20px", border:"1px solid var(--border)", marginBottom:16 }}>
-            <div style=${{ display:"flex", alignItems:"center", justifyContent:"space-around" }}>
-              <div style=${{ textAlign:"center" }}>
-                <div style=${{ fontSize:24, marginBottom:4 }}>🦅</div>
-                <div className="bebas" style=${{ fontSize:14, color:SEA, letterSpacing:2 }}>SEAHAWKS</div>
-                <div className="bebas" style=${{ fontSize:48, lineHeight:1, color:"#fff", marginTop:4 }}>
-                  ${quarters.reduce((a,q) => a + (q.seaQ || 0), 0)}
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
+            <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+              <div style=${{ textAlign: "center" }}>
+                <div style=${{ fontSize: 24, marginBottom: 4 }}>🦅</div>
+                <div className="bebas" style=${{ fontSize: 14, color: SEA, letterSpacing: 2 }}>SEAHAWKS</div>
+                <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
+                  ${quarters.reduce((a, q) => a + (q.seaQ || 0), 0)}
                 </div>
               </div>
-              <div style=${{ textAlign:"center" }}>
-                <div className="bebas" style=${{ fontSize:12, color:"var(--faint)", letterSpacing:2 }}>SCORE</div>
-                <button onClick=${() => fetchScores()} style=${{ marginTop:8, fontSize:9, padding:"4px 8px", borderRadius:4, border:"1px solid var(--border2)", background:"transparent", color:"var(--soft)" }}>🔄 Sync</button>
+              <div style=${{ textAlign: "center" }}>
+                <div className="bebas" style=${{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
+                <button onClick=${() => fetchScores()} style=${{ marginTop: 8, fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)" }}>🔄 Sync</button>
               </div>
-              <div style=${{ textAlign:"center" }}>
-                <div style=${{ fontSize:24, marginBottom:4 }}>🏴</div>
-                <div className="bebas" style=${{ fontSize:14, color:NER, letterSpacing:2 }}>PATRIOTS</div>
-                <div className="bebas" style=${{ fontSize:48, lineHeight:1, color:"#fff", marginTop:4 }}>
-                  ${quarters.reduce((a,q) => a + (q.neQ || 0), 0)}
+              <div style=${{ textAlign: "center" }}>
+                <div style=${{ fontSize: 24, marginBottom: 4 }}>🏴</div>
+                <div className="bebas" style=${{ fontSize: 14, color: NER, letterSpacing: 2 }}>PATRIOTS</div>
+                <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
+                  ${quarters.reduce((a, q) => a + (q.neQ || 0), 0)}
                 </div>
               </div>
             </div>
@@ -828,37 +1150,37 @@
           <!-- Quarter cards -->
           ${quarters.map(({ q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc }) => html`
             <div key=${q} style=${{
-              background:"var(--card)", borderRadius:12, padding:"14px",
-              border: "1px solid " + (winner ? "var(--gold)33" : "var(--border)"), marginBottom:8,
-            }}>
-              <div style=${{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: hasSc ? 8 : 0 }}>
-                <div style=${{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span className="bebas" style=${{ fontSize:16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>${q}</span>
-                  ${payout > 0 && html`<span style=${{ fontSize:11, color:"var(--gold)", background:"var(--gold-glow)", padding:"2px 8px", borderRadius:99, fontWeight:600 }}>$${payout}</span>`}
+          background: "var(--card)", borderRadius: 12, padding: "14px",
+          border: "1px solid " + (winner ? "var(--gold)33" : "var(--border)"), marginBottom: 8,
+        }}>
+              <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: hasSc ? 8 : 0 }}>
+                <div style=${{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="bebas" style=${{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>${q}</span>
+                  ${payout > 0 && html`<span style=${{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>$${payout}</span>`}
                 </div>
                 ${hasSc ? html`
-                  <div className="bebas" style=${{ fontSize:15, color:"var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
+                  <div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
                 ` : editing?.q === i ? html`
-                  <div style=${{ display:"flex", gap:6, alignItems:"center" }}>
+                  <div style=${{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input value=${tempSea} onChange=${e => setTempSea(e.target.value)} placeholder="SEA" type="number"
-                      style=${{ width:50, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:SEA, fontSize:14, fontWeight:700, textAlign:"center" }} />
-                    <span style=${{ color:"var(--faint)" }}>—</span>
+                      style=${{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: SEA, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
+                    <span style=${{ color: "var(--faint)" }}>—</span>
                     <input value=${tempNe} onChange=${e => setTempNe(e.target.value)} placeholder="NE" type="number"
-                      style=${{ width:50, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:NER, fontSize:14, fontWeight:700, textAlign:"center" }} />
-                    <button onClick=${() => saveScore(i)} style=${{ padding:"6px 12px", borderRadius:6, border:"none", background:"var(--gold)", color:"#1a1a1a", fontSize:12, fontWeight:700 }}>✓</button>
+                      style=${{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: NER, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
+                    <button onClick=${() => saveScore(i)} style=${{ padding: "6px 12px", borderRadius: 6, border: "none", background: "var(--gold)", color: "#1a1a1a", fontSize: 12, fontWeight: 700 }}>✓</button>
                   </div>
                 ` : html`
-                  <button onClick=${() => { setEditing({q:i}); setTempSea(""); setTempNe(""); }} style=${{
-                    padding:"6px 12px", borderRadius:6, border:"1px solid var(--border2)",
-                    background:"transparent", color:"var(--soft)", fontSize:11, fontWeight:600
-                  }}>Edit (Manual)</button>
+                  <button onClick=${() => { setEditing({ q: i }); setTempSea(""); setTempNe(""); }} style=${{
+            padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
+            background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
+          }}>Edit (Manual)</button>
                 `}
               </div>
               ${winner && html`
-                <div style=${{ display:"flex", alignItems:"center", gap:6, marginTop:4, padding:"6px 10px", borderRadius:8, background:"var(--gold-glow)" }}>
-                  <span style=${{ fontSize:14 }}>${getPlayerEmoji(data.playerMeta, winner)}</span>
-                  <span style=${{ fontSize:13, fontWeight:700, color:"var(--gold)" }}>${winner} wins ${q}!</span>
-                  ${payout > 0 && html`<span style=${{ fontSize:12, color:"var(--gold)", marginLeft:"auto", fontWeight:700 }}>$${payout}</span>`}
+                <div style=${{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, padding: "6px 10px", borderRadius: 8, background: "var(--gold-glow)" }}>
+                  <span style=${{ fontSize: 14 }}>${getPlayerEmoji(data.playerMeta, winner)}</span>
+                  <span style=${{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>${winner} wins ${q}!</span>
+                  ${payout > 0 && html`<span style=${{ fontSize: 12, color: "var(--gold)", marginLeft: "auto", fontWeight: 700 }}>$${payout}</span>`}
                 </div>
               `}
             </div>
@@ -866,13 +1188,13 @@
 
           <!-- Payout summary -->
           ${totalPot > 0 && html`
-            <div style=${{ marginTop:16, padding:"14px", borderRadius:12, background:"var(--gold-glow)", border:"1px solid var(--gold)33" }}>
-              <div style=${{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span className="bebas" style=${{ fontSize:16, color:"var(--gold)", letterSpacing:2 }}>TOTAL POT</span>
-                <span className="bebas" style=${{ fontSize:28, color:"var(--gold)" }}>$${totalPot}</span>
+            <div style=${{ marginTop: 16, padding: "14px", borderRadius: 12, background: "var(--gold-glow)", border: "1px solid var(--gold)33" }}>
+              <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span className="bebas" style=${{ fontSize: 16, color: "var(--gold)", letterSpacing: 2 }}>TOTAL POT</span>
+                <span className="bebas" style=${{ fontSize: 28, color: "var(--gold)" }}>$${totalPot}</span>
               </div>
-              <div style=${{ fontSize:11, color:"var(--soft)", marginTop:4 }}>
-                Split: ${split.map((s,i) => QS[i] + " " + s + "%").join(" • ")}
+              <div style=${{ fontSize: 11, color: "var(--soft)", marginTop: 4 }}>
+                Split: ${split.map((s, i) => QS[i] + " " + s + "%").join(" • ")}
               </div>
             </div>
           `}
@@ -905,44 +1227,44 @@
           Object.entries(picks).forEach(([qid, pick]) => { if (answers[qid] && answers[qid] === pick) pts++; });
           scores[player] = pts;
         });
-        return Object.entries(scores).sort((a,b) => b[1] - a[1]);
+        return Object.entries(scores).sort((a, b) => b[1] - a[1]);
       }, [data.props, data.propAnswers]);
 
       return html`
-        <div style=${{ padding:"16px", animation:"fadeIn .3s ease" }}>
-          <div style=${{ display:"flex", gap:4, marginBottom:16, background:"var(--card)", borderRadius:10, padding:3 }}>
-            ${[["picks","My Picks"],["host","Host"],["results","Results"]].map(([k,l]) => html`
+        <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
+          <div style=${{ display: "flex", gap: 4, marginBottom: 16, background: "var(--card)", borderRadius: 10, padding: 3 }}>
+            ${[["picks", "My Picks"], ["host", "Host"], ["results", "Results"]].map(([k, l]) => html`
               <button key=${k} onClick=${() => setSub(k)} style=${{
-                flex:1, padding:"8px", borderRadius:8, border:"none", fontSize:12, fontWeight:600,
-                background: sub === k ? "var(--gold)" : "transparent", color: sub === k ? "#1a1a1a" : "var(--soft)",
-              }}>${l}</button>
+          flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
+          background: sub === k ? "var(--gold)" : "transparent", color: sub === k ? "#1a1a1a" : "var(--soft)",
+        }}>${l}</button>
             `)}
           </div>
 
-          <div style=${{ background:"linear-gradient(135deg, #D4A843 0%, #B8892E 100%)", borderRadius:12, padding:"12px 16px", marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div style=${{ background: "linear-gradient(135deg, #D4A843 0%, #B8892E 100%)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style=${{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(0,0,0,0.5)" }}>PROP POT</div>
-              <div className="bebas" style=${{ fontSize:24, color:"#1a1a1a" }}>$${totalPropPot}</div>
+              <div style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "rgba(0,0,0,0.5)" }}>PROP POT</div>
+              <div className="bebas" style=${{ fontSize: 24, color: "#1a1a1a" }}>$${totalPropPot}</div>
             </div>
             ${!boughtIn ? html`
-              <button onClick=${buyInProps} style=${{ padding:"8px 16px", borderRadius:8, border:"none", background:"rgba(0,0,0,0.2)", color:"#fff", fontSize:12, fontWeight:700 }}>$${buyIn} I'm In</button>
-            ` : html`<span style=${{ fontSize:12, fontWeight:600, color:"rgba(0,0,0,0.5)" }}>✓ You're in</span>`}
+              <button onClick=${buyInProps} style=${{ padding: "8px 16px", borderRadius: 8, border: "none", background: "rgba(0,0,0,0.2)", color: "#fff", fontSize: 12, fontWeight: 700 }}>$${buyIn} I'm In</button>
+            ` : html`<span style=${{ fontSize: 12, fontWeight: 600, color: "rgba(0,0,0,0.5)" }}>✓ You're in</span>`}
           </div>
 
           ${sub === "picks" && cats.map(cat => html`
             <div key=${cat}>
-              <div style=${{ fontSize:10, fontWeight:700, letterSpacing:2, color:"var(--soft)", margin:"16px 0 8px", textTransform:"uppercase" }}>${cat}</div>
+              <div style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", margin: "16px 0 8px", textTransform: "uppercase" }}>${cat}</div>
               ${PROPS_LIST.filter(p => p.cat === cat).map(p => html`
-                <div key=${p.id} style=${{ background:"var(--card)", borderRadius:10, padding:"12px", marginBottom:6, border:"1px solid var(--border)" }}>
-                  <div style=${{ fontSize:13, fontWeight:600, marginBottom:8, color:"var(--text)" }}>${p.q}</div>
-                  <div style=${{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                <div key=${p.id} style=${{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
+                  <div style=${{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>${p.q}</div>
+                  <div style=${{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     ${p.opts.map(opt => html`
                       <button key=${opt} onClick=${() => pickProp(p.id, opt)} style=${{
-                        padding:"6px 14px", borderRadius:8,
-                        border: "1px solid " + (myPicks[p.id] === opt ? "var(--gold)" : "var(--border2)"),
-                        background: myPicks[p.id] === opt ? "var(--gold-glow)" : "transparent",
-                        color: myPicks[p.id] === opt ? "var(--gold)" : "var(--soft)", fontSize:12, fontWeight:600,
-                      }}>${opt}</button>
+            padding: "6px 14px", borderRadius: 8,
+            border: "1px solid " + (myPicks[p.id] === opt ? "var(--gold)" : "var(--border2)"),
+            background: myPicks[p.id] === opt ? "var(--gold-glow)" : "transparent",
+            color: myPicks[p.id] === opt ? "var(--gold)" : "var(--soft)", fontSize: 12, fontWeight: 600,
+          }}>${opt}</button>
                     `)}
                   </div>
                 </div>
@@ -951,18 +1273,18 @@
           `)}
 
           ${sub === "host" && html`
-            <div style=${{ fontSize:12, color:"var(--soft)", marginBottom:12 }}>Set correct answers for each prop:</div>
+            <div style=${{ fontSize: 12, color: "var(--soft)", marginBottom: 12 }}>Set correct answers for each prop:</div>
             ${PROPS_LIST.map(p => html`
-              <div key=${p.id} style=${{ background:"var(--card)", borderRadius:10, padding:"12px", marginBottom:6, border:"1px solid var(--border)" }}>
-                <div style=${{ fontSize:13, fontWeight:600, marginBottom:8 }}>${p.q}</div>
-                <div style=${{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              <div key=${p.id} style=${{ background: "var(--card)", borderRadius: 10, padding: "12px", marginBottom: 6, border: "1px solid var(--border)" }}>
+                <div style=${{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>${p.q}</div>
+                <div style=${{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   ${p.opts.map(opt => html`
                     <button key=${opt} onClick=${() => setAnswer(p.id, opt)} style=${{
-                      padding:"6px 14px", borderRadius:8,
-                      border: "1px solid " + (data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--border2)"),
-                      background: data.propAnswers?.[p.id] === opt ? "rgba(34,197,94,0.15)" : "transparent",
-                      color: data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--soft)", fontSize:12, fontWeight:600
-                    }}>${opt}</button>
+              padding: "6px 14px", borderRadius: 8,
+              border: "1px solid " + (data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--border2)"),
+              background: data.propAnswers?.[p.id] === opt ? "rgba(34,197,94,0.15)" : "transparent",
+              color: data.propAnswers?.[p.id] === opt ? "#22C55E" : "var(--soft)", fontSize: 12, fontWeight: 600
+            }}>${opt}</button>
                   `)}
                 </div>
               </div>
@@ -970,19 +1292,19 @@
           `}
 
           ${sub === "results" && html`
-            <div className="bebas" style=${{ fontSize:18, letterSpacing:2, color:"var(--gold)", marginBottom:12 }}>LEADERBOARD</div>
+            <div className="bebas" style=${{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>LEADERBOARD</div>
             ${leaderboard.length === 0 ? html`
-              <div style=${{ color:"var(--soft)", fontSize:13, textAlign:"center", padding:24 }}>No picks yet</div>
+              <div style=${{ color: "var(--soft)", fontSize: 13, textAlign: "center", padding: 24 }}>No picks yet</div>
             ` : leaderboard.map(([name, pts], i) => html`
               <div key=${name} style=${{
-                display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
-                background: i === 0 ? "var(--gold-glow)" : "var(--card)", borderRadius:10, marginBottom:4,
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                background: i === 0 ? "var(--gold-glow)" : "var(--card)", borderRadius: 10, marginBottom: 4,
                 border: "1px solid " + (i === 0 ? "var(--gold)33" : "var(--border)"),
               }}>
-                <span style=${{ fontSize:16, width:28, textAlign:"center", fontWeight:800, color: i === 0 ? "var(--gold)" : "var(--soft)" }}>${i+1}</span>
-                <span style=${{ fontSize:16 }}>${getPlayerEmoji(data.playerMeta, name)}</span>
-                <span style=${{ flex:1, fontSize:13, fontWeight:600 }}>${name}</span>
-                <span className="bebas" style=${{ fontSize:20, color: i === 0 ? "var(--gold)" : "var(--text)" }}>${pts}/${Object.keys(data.propAnswers || {}).length}</span>
+                <span style=${{ fontSize: 16, width: 28, textAlign: "center", fontWeight: 800, color: i === 0 ? "var(--gold)" : "var(--soft)" }}>${i + 1}</span>
+                <span style=${{ fontSize: 16 }}>${getPlayerEmoji(data.playerMeta, name)}</span>
+                <span style=${{ flex: 1, fontSize: 13, fontWeight: 600 }}>${name}</span>
+                <span className="bebas" style=${{ fontSize: 20, color: i === 0 ? "var(--gold)" : "var(--text)" }}>${pts}/${Object.keys(data.propAnswers || {}).length}</span>
               </div>
             `)}
           `}
@@ -998,84 +1320,84 @@
 
       const send = () => {
         if (!msg.trim()) return;
-        const chat = [...(data.chat || []), { who:myName, msg:msg.trim(), ts:Date.now() }].slice(-200);
+        const chat = [...(data.chat || []), { who: myName, msg: msg.trim(), ts: Date.now() }].slice(-200);
         dbr.update({ chat });
         setMsg("");
         playSound("chat");
       };
 
-      useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [data.chat, data.feed]);
+      useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [data.chat, data.feed]);
       const feed = useMemo(() => [...(data.feed || [])].reverse(), [data.feed]);
 
       return html`
-        <div style=${{ padding:"16px", animation:"fadeIn .3s ease", display:"flex", flexDirection:"column", minHeight:"calc(100vh - 180px)" }}>
-          <div style=${{ display:"flex", gap:4, marginBottom:12, background:"var(--card)", borderRadius:10, padding:3 }}>
-            ${[["chat","💬 Chat"],["activity","📋 Activity"]].map(([k,l]) => html`
+        <div style=${{ padding: "16px", animation: "fadeIn .3s ease", display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
+          <div style=${{ display: "flex", gap: 4, marginBottom: 12, background: "var(--card)", borderRadius: 10, padding: 3 }}>
+            ${[["chat", "💬 Chat"], ["activity", "📋 Activity"]].map(([k, l]) => html`
               <button key=${k} onClick=${() => setSub(k)} style=${{
-                flex:1, padding:"8px", borderRadius:8, border:"none", fontSize:12, fontWeight:600,
-                background: sub === k ? "var(--accent)" : "transparent", color: sub === k ? "#fff" : "var(--soft)",
-              }}>${l}</button>
+          flex: 1, padding: "8px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600,
+          background: sub === k ? "var(--accent)" : "transparent", color: sub === k ? "#fff" : "var(--soft)",
+        }}>${l}</button>
             `)}
           </div>
 
           ${sub === "chat" ? html`
-            <div style=${{ flex:1, overflowY:"auto", marginBottom:12 }}>
+            <div style=${{ flex: 1, overflowY: "auto", marginBottom: 12 }}>
               ${(data.chat || []).length === 0 ? html`
-                <div style=${{ textAlign:"center", padding:40, color:"var(--faint)" }}>
-                  <div style=${{ fontSize:32, marginBottom:8 }}>💬</div>
-                  <div style=${{ fontSize:13 }}>No messages yet. Start the trash talk!</div>
+                <div style=${{ textAlign: "center", padding: 40, color: "var(--faint)" }}>
+                  <div style=${{ fontSize: 32, marginBottom: 8 }}>💬</div>
+                  <div style=${{ fontSize: 13 }}>No messages yet. Start the trash talk!</div>
                 </div>
-              ` : (data.chat || []).map((m,i) => html`
+              ` : (data.chat || []).map((m, i) => html`
                 <div key=${i} style=${{
-                  marginBottom:8, display:"flex",
-                  flexDirection: m.who === myName ? "row-reverse" : "row", gap:8, alignItems:"flex-start"
-                }}>
+            marginBottom: 8, display: "flex",
+            flexDirection: m.who === myName ? "row-reverse" : "row", gap: 8, alignItems: "flex-start"
+          }}>
                   <div style=${{
-                    fontSize:20, width:32, height:32, borderRadius:"50%",
-                    background: getPlayerColor(m.who, [...new Set((data.chat || []).map(c => c.who))]) + "22",
-                    display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0
-                  }}>
+            fontSize: 20, width: 32, height: 32, borderRadius: "50%",
+            background: getPlayerColor(m.who, [...new Set((data.chat || []).map(c => c.who))]) + "22",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+          }}>
                     ${getPlayerEmoji(data.playerMeta, m.who)}
                   </div>
-                  <div style=${{ maxWidth:"75%" }}>
-                    <div style=${{ fontSize:10, color:"var(--soft)", marginBottom:2, textAlign: m.who === myName ? "right" : "left" }}>${m.who}</div>
+                  <div style=${{ maxWidth: "75%" }}>
+                    <div style=${{ fontSize: 10, color: "var(--soft)", marginBottom: 2, textAlign: m.who === myName ? "right" : "left" }}>${m.who}</div>
                     <div style=${{
-                      padding:"8px 12px", borderRadius:12, fontSize:13,
-                      background: m.who === myName ? "var(--accent)" : "var(--card)",
-                      color: m.who === myName ? "#fff" : "var(--text)",
-                      border: "1px solid " + (m.who === myName ? "transparent" : "var(--border)"),
-                    }}>${m.msg}</div>
-                    <div style=${{ fontSize:9, color:"var(--faint)", marginTop:2, textAlign: m.who === myName ? "right" : "left" }}>
-                      ${new Date(m.ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })}
+            padding: "8px 12px", borderRadius: 12, fontSize: 13,
+            background: m.who === myName ? "var(--accent)" : "var(--card)",
+            color: m.who === myName ? "#fff" : "var(--text)",
+            border: "1px solid " + (m.who === myName ? "transparent" : "var(--border)"),
+          }}>${m.msg}</div>
+                    <div style=${{ fontSize: 9, color: "var(--faint)", marginTop: 2, textAlign: m.who === myName ? "right" : "left" }}>
+                      ${new Date(m.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                     </div>
                   </div>
                 </div>
               `)}
               <div ref=${bottomRef} />
             </div>
-            <div style=${{ display:"flex", gap:8 }}>
+            <div style=${{ display: "flex", gap: 8 }}>
               <input value=${msg} onChange=${e => setMsg(e.target.value)} placeholder="Trash talk here..."
                 onKeyDown=${e => e.key === "Enter" && send()}
-                style=${{ flex:1, padding:"10px 14px", borderRadius:12, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:14 }} />
+                style=${{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
               <button onClick=${send} style=${{
-                padding:"10px 20px", borderRadius:12, border:"none",
-                background:"var(--accent)", color:"#fff", fontSize:13, fontWeight:700
-              }}>Send</button>
+            padding: "10px 20px", borderRadius: 12, border: "none",
+            background: "var(--accent)", color: "#fff", fontSize: 13, fontWeight: 700
+          }}>Send</button>
             </div>
           ` : html`
-            <div style=${{ flex:1, overflowY:"auto" }}>
+            <div style=${{ flex: 1, overflowY: "auto" }}>
               ${feed.length === 0 ? html`
-                <div style=${{ textAlign:"center", padding:40, color:"var(--faint)" }}>
-                  <div style=${{ fontSize:32, marginBottom:8 }}>📋</div>
-                  <div style=${{ fontSize:13 }}>No activity yet</div>
+                <div style=${{ textAlign: "center", padding: 40, color: "var(--faint)" }}>
+                  <div style=${{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                  <div style=${{ fontSize: 13 }}>No activity yet</div>
                 </div>
-              ` : feed.map((f,i) => html`
-                <div key=${i} style=${{ padding:"10px 12px", borderRadius:10, background:"var(--card)", marginBottom:4, border:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <div style=${{ fontSize:12, color:"var(--text)" }}>
-                    <span style=${{ fontWeight:700 }}>${f.who}</span> ${f.msg}
+              ` : feed.map((f, i) => html`
+                <div key=${i} style=${{ padding: "10px 12px", borderRadius: 10, background: "var(--card)", marginBottom: 4, border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style=${{ fontSize: 12, color: "var(--text)" }}>
+                    <span style=${{ fontWeight: 700 }}>${f.who}</span> ${f.msg}
                   </div>
-                  <div style=${{ fontSize:10, color:"var(--faint)", whiteSpace:"nowrap", marginLeft:8 }}>
-                    ${new Date(f.ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" })}
+                  <div style=${{ fontSize: 10, color: "var(--faint)", whiteSpace: "nowrap", marginLeft: 8 }}>
+                    ${new Date(f.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                   </div>
                 </div>
               `)}
@@ -1097,38 +1419,38 @@
       };
 
       return html`
-        <div style=${{ padding:"16px", animation:"fadeIn .3s ease" }}>
+        <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
           ${(data.zellePhone || data.zelleEmail) && html`
             <div style=${{
-              background:"linear-gradient(135deg, #6C2BD9 0%, #3B82F6 50%, #06B6D4 100%)",
-              borderRadius:16, padding:"20px", marginBottom:12,
-            }}>
-              <div style=${{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                <span style=${{ fontSize:20 }}>💸</span>
+            background: "linear-gradient(135deg, #6C2BD9 0%, #3B82F6 50%, #06B6D4 100%)",
+            borderRadius: 16, padding: "20px", marginBottom: 12,
+          }}>
+              <div style=${{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style=${{ fontSize: 20 }}>💸</span>
                 <div>
-                  <div style=${{ fontSize:16, fontWeight:700, color:"#fff" }}>Zelle</div>
-                  <div style=${{ fontSize:11, color:"rgba(255,255,255,0.7)" }}>Send to either below</div>
+                  <div style=${{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Zelle</div>
+                  <div style=${{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>Send to either below</div>
                 </div>
               </div>
-              <div style=${{ display:"flex", gap:8 }}>
+              <div style=${{ display: "flex", gap: 8 }}>
                 ${data.zellePhone && html`
-                  <div style=${{ flex:1, background:"rgba(0,0,0,0.2)", borderRadius:10, padding:"10px" }}>
-                    <div style=${{ fontSize:9, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.5)", marginBottom:4 }}>PHONE</div>
-                    <div style=${{ fontSize:14, fontWeight:700, color:"#fff" }}>${data.zellePhone}</div>
+                  <div style=${{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
+                    <div style=${{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>PHONE</div>
+                    <div style=${{ fontSize: 14, fontWeight: 700, color: "#fff" }}>${data.zellePhone}</div>
                     <button onClick=${() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!"); }} style=${{
-                      marginTop:6, width:"100%", padding:"6px", borderRadius:6, border:"1px solid rgba(255,255,255,0.2)",
-                      background:"rgba(255,255,255,0.1)", color:"#fff", fontSize:11, fontWeight:600
-                    }}>Copy</button>
+              marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
+            }}>Copy</button>
                   </div>
                 `}
                 ${data.zelleEmail && html`
-                  <div style=${{ flex:1, background:"rgba(0,0,0,0.2)", borderRadius:10, padding:"10px" }}>
-                    <div style=${{ fontSize:9, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.5)", marginBottom:4 }}>EMAIL</div>
-                    <div style=${{ fontSize:13, fontWeight:700, color:"#fff", wordBreak:"break-all" }}>${data.zelleEmail}</div>
+                  <div style=${{ flex: 1, background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px" }}>
+                    <div style=${{ fontSize: 9, fontWeight: 600, letterSpacing: 1, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>EMAIL</div>
+                    <div style=${{ fontSize: 13, fontWeight: 700, color: "#fff", wordBreak: "break-all" }}>${data.zelleEmail}</div>
                     <button onClick=${() => { navigator.clipboard.writeText(data.zelleEmail); toast("Copied!"); }} style=${{
-                      marginTop:6, width:"100%", padding:"6px", borderRadius:6, border:"1px solid rgba(255,255,255,0.2)",
-                      background:"rgba(255,255,255,0.1)", color:"#fff", fontSize:11, fontWeight:600
-                    }}>Copy</button>
+              marginTop: 6, width: "100%", padding: "6px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 11, fontWeight: 600
+            }}>Copy</button>
                   </div>
                 `}
               </div>
@@ -1136,56 +1458,56 @@
           `}
 
           ${!data.zellePhone && !data.zelleEmail && allNames.length === 0 && html`
-            <div style=${{ textAlign:"center", padding:40, color:"var(--soft)", border:"1px solid var(--border)", borderRadius:16 }}>
-              <div style=${{ fontSize:32, marginBottom:12 }}>💰</div>
-              <div style=${{ fontWeight:700, marginBottom:4 }}>Payment Info Not Set</div>
-              <div style=${{ fontSize:12 }}>The host hasn't added payment details yet.</div>
+            <div style=${{ textAlign: "center", padding: 40, color: "var(--soft)", border: "1px solid var(--border)", borderRadius: 16 }}>
+              <div style=${{ fontSize: 32, marginBottom: 12 }}>💰</div>
+              <div style=${{ fontWeight: 700, marginBottom: 4 }}>Payment Info Not Set</div>
+              <div style=${{ fontSize: 12 }}>The host hasn't added payment details yet.</div>
             </div>
           `}
 
           ${data.zellePhone && html`
-            <div style=${{ background:"#1a1a1a", borderRadius:16, padding:"20px", marginBottom:20, border:"1px solid #333" }}>
-              <div style=${{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-                <span style=${{ fontSize:20 }}>🍎</span>
+            <div style=${{ background: "#1a1a1a", borderRadius: 16, padding: "20px", marginBottom: 20, border: "1px solid #333" }}>
+              <div style=${{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style=${{ fontSize: 20 }}>🍎</span>
                 <div>
-                  <div style=${{ fontSize:16, fontWeight:700, color:"#fff" }}>Apple Pay</div>
-                  <div style=${{ fontSize:11, color:"#888" }}>Send via Messages</div>
+                  <div style=${{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Apple Pay</div>
+                  <div style=${{ fontSize: 11, color: "#888" }}>Send via Messages</div>
                 </div>
               </div>
-              <div style=${{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:"8px 12px" }}>
-                <span style=${{ fontSize:13, color:"#fff" }}>${data.zellePhone}</span>
+              <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px" }}>
+                <span style=${{ fontSize: 13, color: "#fff" }}>${data.zellePhone}</span>
                 <button onClick=${() => { navigator.clipboard.writeText(data.zellePhone); toast("Copied!"); }} style=${{
-                  padding:"4px 12px", borderRadius:6, border:"1px solid #444", background:"transparent", color:"#888", fontSize:11, fontWeight:600
-                }}>Copy</button>
+            padding: "4px 12px", borderRadius: 6, border: "1px solid #444", background: "transparent", color: "#888", fontSize: 11, fontWeight: 600
+          }}>Copy</button>
               </div>
             </div>
           `}
 
           ${allNames.length > 0 && pps > 0 && html`
-            <div className="bebas" style=${{ fontSize:16, letterSpacing:2, color:"var(--gold)", marginBottom:12 }}>PAYMENT TRACKER</div>
+            <div className="bebas" style=${{ fontSize: 16, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>PAYMENT TRACKER</div>
             ${allNames.map(name => {
-              const ct = data.grid.flat().filter(n => n === name).length;
-              const owed = ct * pps;
-              const paid = data.paidPlayers?.[name] || false;
-              return html`
+            const ct = data.grid.flat().filter(n => n === name).length;
+            const owed = ct * pps;
+            const paid = data.paidPlayers?.[name] || false;
+            return html`
                 <div key=${name} onClick=${() => togglePaid(name)} style=${{
-                  display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
-                  background:"var(--card)", borderRadius:10, marginBottom:4,
-                  border: "1px solid " + (paid ? "#22C55E33" : "var(--border)"), cursor:"pointer"
-                }}>
-                  <span style=${{ fontSize:18 }}>${getPlayerEmoji(data.playerMeta, name)}</span>
-                  <div style=${{ flex:1 }}>
-                    <div style=${{ fontSize:13, fontWeight:600 }}>${name}</div>
-                    <div style=${{ fontSize:11, color:"var(--soft)" }}>${ct} squares • $${owed} owed</div>
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                background: "var(--card)", borderRadius: 10, marginBottom: 4,
+                border: "1px solid " + (paid ? "#22C55E33" : "var(--border)"), cursor: "pointer"
+              }}>
+                  <span style=${{ fontSize: 18 }}>${getPlayerEmoji(data.playerMeta, name)}</span>
+                  <div style=${{ flex: 1 }}>
+                    <div style=${{ fontSize: 13, fontWeight: 600 }}>${name}</div>
+                    <div style=${{ fontSize: 11, color: "var(--soft)" }}>${ct} squares • $${owed} owed</div>
                   </div>
                   <div style=${{
-                    padding:"4px 10px", borderRadius:6, fontSize:11, fontWeight:700,
-                    background: paid ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-                    color: paid ? "#22C55E" : "#EF4444",
-                  }}>${paid ? "✓ Paid" : "Unpaid"}</div>
+                padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
+                background: paid ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
+                color: paid ? "#22C55E" : "#EF4444",
+              }}>${paid ? "✓ Paid" : "Unpaid"}</div>
                 </div>
               `;
-            })}
+          })}
           `}
         </div>
       `;
@@ -1205,14 +1527,14 @@
 
       const lockBoard = () => {
         const nums = () => {
-          const arr = [0,1,2,3,4,5,6,7,8,9];
-          for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [arr[i],arr[j]] = [arr[j],arr[i]]; }
+          const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+          for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
           return arr;
         };
-        dbr.update({ isLocked:true, colNums:nums(), rowNums:nums(), feed: addFeed(data, "🔒", "Board locked! Numbers assigned.") });
+        dbr.update({ isLocked: true, colNums: nums(), rowNums: nums(), feed: addFeed(data, "🔒", "Board locked! Numbers assigned.") });
         playSound("lock"); toast("Board locked! Numbers assigned.");
       };
-      const unlockBoard = () => { dbr.update({ isLocked:false, colNums:null, rowNums:null }); toast("Board unlocked"); };
+      const unlockBoard = () => { dbr.update({ isLocked: false, colNums: null, rowNums: null }); toast("Board unlocked"); };
       const resetBoard = () => {
         if (!confirm("Reset entire board? This cannot be undone!")) return;
         dbr.update({ ...DEFAULT }); toast("Board reset"); onClose();
@@ -1222,23 +1544,23 @@
         if (names.length === 0) { toast("Need at least 1 player first"); return; }
         const newGrid = data.grid.map(row => [...row]);
         let empties = [];
-        newGrid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) empties.push([r,c]); }));
+        newGrid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) empties.push([r, c]); }));
         empties.sort(() => Math.random() - 0.5);
-        empties.forEach(([r,c], i) => { newGrid[r][c] = names[i % names.length]; });
-        dbr.update({ grid:newGrid, feed: addFeed(data, "🤖", "Auto-assigned remaining squares") });
+        empties.forEach(([r, c], i) => { newGrid[r][c] = names[i % names.length]; });
+        dbr.update({ grid: newGrid, feed: addFeed(data, "🤖", "Auto-assigned remaining squares") });
         toast("Auto-assigned!");
       };
 
       if (needsPin) {
         return html`
-          <div style=${{ position:"fixed", inset:0, zIndex:999, background:"rgba(0,0,0,0.8)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-            <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:340, width:"100%", border:"1px solid var(--border2)" }}>
-              <div className="bebas" style=${{ fontSize:20, letterSpacing:2, color:"var(--gold)", marginBottom:16 }}>HOST ACCESS</div>
+          <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+            <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
+              <div className="bebas" style=${{ fontSize: 20, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>HOST ACCESS</div>
               <input value=${pin} onChange=${e => setPin(e.target.value)} placeholder="Enter PIN" type="password"
-                style=${{ width:"100%", padding:"12px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:16, marginBottom:12 }} />
-              <div style=${{ display:"flex", gap:8 }}>
-                <button onClick=${checkPin} style=${{ flex:1, padding:"10px", borderRadius:8, border:"none", background:"var(--gold)", color:"#1a1a1a", fontWeight:700, fontSize:13 }}>Unlock</button>
-                <button onClick=${onClose} style=${{ flex:1, padding:"10px", borderRadius:8, border:"1px solid var(--border2)", background:"transparent", color:"var(--soft)", fontWeight:700, fontSize:13 }}>Cancel</button>
+                style=${{ width: "100%", padding: "12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 16, marginBottom: 12 }} />
+              <div style=${{ display: "flex", gap: 8 }}>
+                <button onClick=${checkPin} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 13 }}>Unlock</button>
+                <button onClick=${onClose} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)", fontWeight: 700, fontSize: 13 }}>Cancel</button>
               </div>
             </div>
           </div>
@@ -1246,101 +1568,101 @@
       }
 
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:999, background:"rgba(0,0,0,0.8)", display:"flex", alignItems:"flex-end", justifyContent:"center" }}
+        <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
           onClick=${e => e.target === e.currentTarget && onClose()}>
           <div style=${{
-            background:"var(--bg)", borderRadius:"20px 20px 0 0", padding:"20px", maxWidth:480, width:"100%",
-            maxHeight:"85vh", overflowY:"auto", border:"1px solid var(--border2)", borderBottom:"none", animation:"slideUp .3s ease"
-          }}>
-            <div style=${{ width:40, height:4, borderRadius:2, background:"var(--border2)", margin:"0 auto 16px" }} />
-            <div style=${{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-              <div className="bebas" style=${{ fontSize:22, letterSpacing:2, color:"var(--gold)" }}>⚙ SETTINGS</div>
+          background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "20px", maxWidth: 480, width: "100%",
+          maxHeight: "85vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none", animation: "slideUp .3s ease"
+        }}>
+            <div style=${{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
+            <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div className="bebas" style=${{ fontSize: 22, letterSpacing: 2, color: "var(--gold)" }}>⚙ SETTINGS</div>
               <!-- #7 FIX: Proper toggle switch for dark mode -->
-              <div style=${{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style=${{ fontSize:12, color:"var(--soft)" }}>${isDark ? "🌙" : "☀️"}</span>
+              <div style=${{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style=${{ fontSize: 12, color: "var(--soft)" }}>${isDark ? "🌙" : "☀️"}</span>
                 <button className=${"toggle-switch" + (isDark ? " on" : "")} onClick=${toggleTheme} />
               </div>
             </div>
 
-            <button onClick=${onShowAvatarPicker} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--text)", fontWeight:700, fontSize:14, marginBottom:20 }}>
+            <button onClick=${onShowAvatarPicker} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginBottom: 20 }}>
               🙂 Change Avatar
             </button>
 
             <!-- #11 FIX: Host controls only shown for hosts or after PIN -->
             ${isHost ? html`
-              <div style=${{ animation:"fadeIn .3s ease" }}>
-                <div style=${{ marginBottom:20 }}>
-                  <div style=${{ fontSize:10, fontWeight:700, letterSpacing:2, color:"var(--soft)", marginBottom:8 }}>BOARD ACTIONS</div>
-                  <div style=${{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <div style=${{ animation: "fadeIn .3s ease" }}>
+                <div style=${{ marginBottom: 20 }}>
+                  <div style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", marginBottom: 8 }}>BOARD ACTIONS</div>
+                  <div style=${{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     ${!data.isLocked ? html`
-                      <button onClick=${lockBoard} style=${{ flex:1, padding:"10px", borderRadius:8, border:"none", background:"#22C55E", color:"#fff", fontWeight:700, fontSize:12 }}>🔒 Lock & Assign</button>
+                      <button onClick=${lockBoard} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
                     ` : html`
-                      <button onClick=${unlockBoard} style=${{ flex:1, padding:"10px", borderRadius:8, border:"none", background:"#EF4444", color:"#fff", fontWeight:700, fontSize:12 }}>🔓 Unlock</button>
+                      <button onClick=${unlockBoard} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
                     `}
-                    <button onClick=${autoAssign} style=${{ flex:1, padding:"10px", borderRadius:8, border:"1px solid var(--border2)", background:"transparent", color:"var(--text)", fontWeight:700, fontSize:12 }}>🤖 Auto-Assign</button>
+                    <button onClick=${autoAssign} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
                   </div>
                 </div>
 
-                <details style=${{ marginBottom:16, background:"var(--card)", borderRadius:10, border:"1px solid var(--border)" }}>
-                  <summary style=${{ padding:"12px", fontWeight:600, fontSize:13, cursor:"pointer", color:"var(--text)" }}>Pool & Prices</summary>
-                  <div style=${{ padding:"12px", borderTop:"1px solid var(--border)" }}>
-                    <div style=${{ display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
-                      <label style=${{ fontSize:12, color:"var(--text)", flex:1 }}>Price per square</label>
+                <details style=${{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style=${{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Pool & Prices</summary>
+                  <div style=${{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    <div style=${{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Price per square</label>
                       <input type="number" value=${data.pool?.pricePerSquare || 0}
                         onChange=${e => dbr.child("pool/pricePerSquare").set(Number(e.target.value))}
-                        style=${{ width:60, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:14, textAlign:"center" }} />
+                        style=${{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
                     </div>
-                    <div style=${{ display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
-                      <label style=${{ fontSize:12, color:"var(--text)", flex:1 }}>Max per player</label>
+                    <div style=${{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Max per player</label>
                       <input type="number" value=${data.settings?.maxPerPlayer || 0}
                         onChange=${e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
-                        style=${{ width:60, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:14, textAlign:"center" }} />
+                        style=${{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
                     </div>
-                    <div style=${{ display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
-                      <label style=${{ fontSize:12, color:"var(--text)", flex:1 }}>Zelle Phone</label>
-                      <input value=${data.zellePhone || ""} onChange=${e => dbr.update({ zellePhone:e.target.value })} placeholder="Phone"
-                        style=${{ width:140, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:12 }} />
+                    <div style=${{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Zelle Phone</label>
+                      <input value=${data.zellePhone || ""} onChange=${e => dbr.update({ zellePhone: e.target.value })} placeholder="Phone"
+                        style=${{ width: 140, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 12 }} />
                     </div>
-                    <div style=${{ display:"flex", gap:12, alignItems:"center" }}>
-                      <label style=${{ fontSize:12, color:"var(--text)", flex:1 }}>Zelle Email</label>
-                      <input value=${data.zelleEmail || ""} onChange=${e => dbr.update({ zelleEmail:e.target.value })} placeholder="Email"
-                        style=${{ width:140, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:12 }} />
+                    <div style=${{ display: "flex", gap: 12, alignItems: "center" }}>
+                      <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Zelle Email</label>
+                      <input value=${data.zelleEmail || ""} onChange=${e => dbr.update({ zelleEmail: e.target.value })} placeholder="Email"
+                        style=${{ width: 140, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 12 }} />
                     </div>
                   </div>
                 </details>
 
-                <details style=${{ marginBottom:16, background:"var(--card)", borderRadius:10, border:"1px solid var(--border)" }}>
-                  <summary style=${{ padding:"12px", fontWeight:600, fontSize:13, cursor:"pointer", color:"var(--text)" }}>Payout Split</summary>
-                  <div style=${{ padding:"12px", borderTop:"1px solid var(--border)" }}>
-                    <div style=${{ display:"flex", gap:4, marginBottom:8 }}>
-                      ${Object.entries(PAYOUTS).map(([k,v]) => html`
-                        <button key=${k} onClick=${() => dbr.child("pool").update({ payoutPreset:k, payoutSplit:v.vals })} style=${{
-                          flex:1, padding:"8px 4px", borderRadius:8, fontSize:10, fontWeight:600,
-                          border: "1px solid " + (data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"),
-                          background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
-                          color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
-                        }}>${v.label}</button>
+                <details style=${{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style=${{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Payout Split</summary>
+                  <div style=${{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    <div style=${{ display: "flex", gap: 4, marginBottom: 8 }}>
+                      ${Object.entries(PAYOUTS).map(([k, v]) => html`
+                        <button key=${k} onClick=${() => dbr.child("pool").update({ payoutPreset: k, payoutSplit: v.vals })} style=${{
+            flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+            border: "1px solid " + (data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"),
+            background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
+            color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
+          }}>${v.label}</button>
                       `)}
                     </div>
-                    <div style=${{ display:"flex", gap:8 }}>
-                      ${QS.map((q,i) => html`
+                    <div style=${{ display: "flex", gap: 8 }}>
+                      ${QS.map((q, i) => html`
                         <input key=${q} type="number" value=${(data.pool?.payoutSplit || [])[i] || 0}
-                          onChange=${e => { const s = [...(data.pool?.payoutSplit || [25,25,25,25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s); }}
-                          style=${{ flex:1, padding:"6px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:13, textAlign:"center" }} />
+                          onChange=${e => { const s = [...(data.pool?.payoutSplit || [25, 25, 25, 25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s); }}
+                          style=${{ flex: 1, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 13, textAlign: "center" }} />
                       `)}
                     </div>
                   </div>
                 </details>
 
-                <details style=${{ marginBottom:16, background:"var(--card)", borderRadius:10, border:"1px solid var(--border)" }}>
-                  <summary style=${{ padding:"12px", fontWeight:600, fontSize:13, cursor:"pointer", color:"var(--text)" }}>Admin / Hazard</summary>
-                  <div style=${{ padding:"12px", borderTop:"1px solid var(--border)" }}>
-                    <div style=${{ marginBottom:12 }}>
-                      <label style=${{ fontSize:10, fontWeight:700, letterSpacing:1, color:"var(--soft)", display:"block", marginBottom:4 }}>HOST PIN</label>
-                      <input value=${data.hostPin || ""} onChange=${e => dbr.update({ hostPin:e.target.value })} placeholder="Set PIN"
-                        style=${{ width:"100%", padding:"8px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--input)", color:"var(--text)", fontSize:14 }} />
+                <details style=${{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style=${{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Admin / Hazard</summary>
+                  <div style=${{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    <div style=${{ marginBottom: 12 }}>
+                      <label style=${{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "var(--soft)", display: "block", marginBottom: 4 }}>HOST PIN</label>
+                      <input value=${data.hostPin || ""} onChange=${e => dbr.update({ hostPin: e.target.value })} placeholder="Set PIN"
+                        style=${{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
                     </div>
-                    <button onClick=${resetBoard} style=${{ width:"100%", padding:"10px", borderRadius:8, border:"1px solid rgba(239,68,68,0.3)", background:"rgba(239,68,68,0.05)", color:"#EF4444", fontWeight:700, fontSize:12 }}>
+                    <button onClick=${resetBoard} style=${{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", color: "#EF4444", fontWeight: 700, fontSize: 12 }}>
                       🗑 Reset Board
                     </button>
                   </div>
@@ -1349,13 +1671,13 @@
             ` : html`
               <!-- Non-host: just show "Host controls require PIN" -->
               ${data.hostPin && html`
-                <div style=${{ padding:"12px", background:"var(--card)", borderRadius:10, textAlign:"center", color:"var(--soft)", fontSize:13, marginBottom:20, border:"1px solid var(--border)" }}>
+                <div style=${{ padding: "12px", background: "var(--card)", borderRadius: 10, textAlign: "center", color: "var(--soft)", fontSize: 13, marginBottom: 20, border: "1px solid var(--border)" }}>
                   🔒 Host controls require PIN
                 </div>
               `}
             `}
 
-            <button onClick=${onClose} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--text)", fontWeight:700, fontSize:14, marginBottom:12 }}>
+            <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
               Close
             </button>
           </div>
@@ -1372,7 +1694,7 @@
 
       const share = async () => {
         if (navigator.share) {
-          try { await navigator.share({ title:"Super Bowl LX Squares", text:shareText, url }); } catch(e) {}
+          try { await navigator.share({ title: "Super Bowl LX Squares", text: shareText, url }); } catch (e) { }
         } else {
           navigator.clipboard.writeText(shareText);
           toast("Link copied!");
@@ -1382,21 +1704,21 @@
       const copy = () => { navigator.clipboard.writeText(url); toast("Link copied!"); };
 
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:999, background:"rgba(0,0,0,0.8)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
+        <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick=${e => e.target === e.currentTarget && onClose()}>
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:380, width:"100%", border:"1px solid var(--border2)", animation:"slideUp .3s ease" }}>
-            <div className="bebas" style=${{ fontSize:20, letterSpacing:2, color:"var(--gold)", marginBottom:16 }}>📱 SHARE GAME</div>
-            <div style=${{ background:"var(--input)", borderRadius:10, padding:"12px", marginBottom:16 }}>
-              <div style=${{ fontSize:11, color:"var(--soft)", marginBottom:4 }}>Room Code</div>
-              <div className="bebas" style=${{ fontSize:28, color:"var(--text)", letterSpacing:4 }}>${room}</div>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 380, width: "100%", border: "1px solid var(--border2)", animation: "slideUp .3s ease" }}>
+            <div className="bebas" style=${{ fontSize: 20, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📱 SHARE GAME</div>
+            <div style=${{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16 }}>
+              <div style=${{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Room Code</div>
+              <div className="bebas" style=${{ fontSize: 28, color: "var(--text)", letterSpacing: 4 }}>${room}</div>
             </div>
-            <div style=${{ background:"var(--input)", borderRadius:10, padding:"12px", marginBottom:16, wordBreak:"break-all" }}>
-              <div style=${{ fontSize:11, color:"var(--soft)", marginBottom:4 }}>Game Link</div>
-              <div style=${{ fontSize:12, color:"var(--gold)", fontWeight:600 }}>${url}</div>
+            <div style=${{ background: "var(--input)", borderRadius: 10, padding: "12px", marginBottom: 16, wordBreak: "break-all" }}>
+              <div style=${{ fontSize: 11, color: "var(--soft)", marginBottom: 4 }}>Game Link</div>
+              <div style=${{ fontSize: 12, color: "var(--gold)", fontWeight: 600 }}>${url}</div>
             </div>
-            <div style=${{ display:"flex", gap:8 }}>
-              <button onClick=${share} style=${{ flex:1, padding:"12px", borderRadius:10, border:"none", background:"var(--gold)", color:"#1a1a1a", fontWeight:700, fontSize:13 }}>📤 Share</button>
-              <button onClick=${copy} style=${{ flex:1, padding:"12px", borderRadius:10, border:"1px solid var(--border2)", background:"transparent", color:"var(--text)", fontWeight:700, fontSize:13 }}>📋 Copy Link</button>
+            <div style=${{ display: "flex", gap: 8 }}>
+              <button onClick=${share} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 13 }}>📤 Share</button>
+              <button onClick=${copy} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 13 }}>📋 Copy Link</button>
             </div>
           </div>
         </div>
@@ -1406,34 +1728,34 @@
     // ── Rules Modal ───────────────────────────────────────────────
     function RulesModal({ data, onClose }) {
       const pps = data.pool?.pricePerSquare || 5;
-      const split = data.pool?.payoutSplit || [25,25,25,25];
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:999, background:"rgba(0,0,0,0.8)", display:"flex", alignItems:"flex-end", justifyContent:"center" }}
+        <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
           onClick=${e => e.target === e.currentTarget && onClose()}>
           <div style=${{
-            background:"var(--bg)", borderRadius:"20px 20px 0 0", padding:"24px", maxWidth:480, width:"100%",
-            maxHeight:"80vh", overflowY:"auto", border:"1px solid var(--border2)", borderBottom:"none", animation:"slideUp .3s ease"
-          }}>
-            <div style=${{ width:40, height:4, borderRadius:2, background:"var(--border2)", margin:"0 auto 16px" }} />
-            <div className="bebas" style=${{ fontSize:22, letterSpacing:2, color:"var(--gold)", marginBottom:16 }}>📋 HOW TO PLAY</div>
-            <div style=${{ fontSize:13, color:"var(--text)", lineHeight:1.7 }}>
-              <p style=${{ marginBottom:12 }}>
-                <strong style=${{ color:"var(--gold)" }}>1. Claim Squares</strong> — Tap any empty cell on the grid to claim it. Use Quick Pick (🎲) to grab multiple random squares at once.
+          background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "24px", maxWidth: 480, width: "100%",
+          maxHeight: "80vh", overflowY: "auto", border: "1px solid var(--border2)", borderBottom: "none", animation: "slideUp .3s ease"
+        }}>
+            <div style=${{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
+            <div className="bebas" style=${{ fontSize: 22, letterSpacing: 2, color: "var(--gold)", marginBottom: 16 }}>📋 HOW TO PLAY</div>
+            <div style=${{ fontSize: 13, color: "var(--text)", lineHeight: 1.7 }}>
+              <p style=${{ marginBottom: 12 }}>
+                <strong style=${{ color: "var(--gold)" }}>1. Claim Squares</strong> — Tap any empty cell on the grid to claim it. Use Quick Pick (🎲) to grab multiple random squares at once.
               </p>
-              <p style=${{ marginBottom:12 }}>
-                <strong style=${{ color:"var(--gold)" }}>2. Numbers Get Assigned</strong> — Once all squares are claimed, the host locks the board. Random numbers 0-9 are assigned to each row (Patriots) and column (Seahawks).
+              <p style=${{ marginBottom: 12 }}>
+                <strong style=${{ color: "var(--gold)" }}>2. Numbers Get Assigned</strong> — Once all squares are claimed, the host locks the board. Random numbers 0-9 are assigned to each row (Patriots) and column (Seahawks).
               </p>
-              <p style=${{ marginBottom:12 }}>
-                <strong style=${{ color:"var(--gold)" }}>3. Check Winners</strong> — After each quarter, look at the last digit of each team's score. The square where those digits intersect wins!
+              <p style=${{ marginBottom: 12 }}>
+                <strong style=${{ color: "var(--gold)" }}>3. Check Winners</strong> — After each quarter, look at the last digit of each team's score. The square where those digits intersect wins!
               </p>
-              <p style=${{ marginBottom:12 }}>
-                <strong style=${{ color:"var(--gold)" }}>4. Payouts</strong> — Each square costs $${pps}. The pot is split across quarters: ${split.map((s,i) => QS[i] + ": " + s + "%").join(", ")}.
+              <p style=${{ marginBottom: 12 }}>
+                <strong style=${{ color: "var(--gold)" }}>4. Payouts</strong> — Each square costs $${pps}. The pot is split across quarters: ${split.map((s, i) => QS[i] + ": " + s + "%").join(", ")}.
               </p>
-              <p style=${{ color:"var(--soft)" }}>
+              <p style=${{ color: "var(--soft)" }}>
                 Example: If the score is SEA 17, NE 13 — the winning square is at column 7, row 3.
               </p>
             </div>
-            <button onClick=${onClose} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--text)", fontWeight:700, fontSize:14, marginTop:20 }}>Got it!</button>
+            <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>Got it!</button>
           </div>
         </div>
       `;
@@ -1443,39 +1765,39 @@
     function WinnerModal({ data, onClose }) {
       const allWinners = [];
       const claimed = data.grid?.flat().filter(Boolean).length || 0;
-      const split = data.pool?.payoutSplit || [25,25,25,25];
+      const split = data.pool?.payoutSplit || [25, 25, 25, 25];
       const totalPot = claimed * (data.pool?.pricePerSquare || 0);
-      QS.forEach((q,i) => {
+      QS.forEach((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i], neQ = (data.scores?.NE || [])[i];
         if (seaQ != null && neQ != null) {
-          const cumS = data.scores.SEA.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
-          const cumN = data.scores.NE.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
+          const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
           if (data.colNums && data.rowNums) {
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN);
-            if (winner) allWinners.push({ q, winner, amt:Math.round(totalPot * split[i] / 100) });
+            if (winner) allWinners.push({ q, winner, amt: Math.round(totalPot * split[i] / 100) });
           }
         }
       });
 
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:2000, background:"rgba(0,0,0,0.85)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }} onClick=${onClose}>
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:360, width:"100%", border:"1px solid var(--gold)", animation:"slideUp .3s ease", textAlign:"center", position:"relative" }}>
-            <div style=${{ position:"absolute", top:-20, left:"50%", transform:"translateX(-50%)", fontSize:40 }}>🏆</div>
-            <div className="bebas" style=${{ fontSize:24, color:"var(--gold)", margin:"16px 0 16px" }}>WINNERS CIRCLE</div>
+        <div style=${{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick=${onClose}>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--gold)", animation: "slideUp .3s ease", textAlign: "center", position: "relative" }}>
+            <div style=${{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", fontSize: 40 }}>🏆</div>
+            <div className="bebas" style=${{ fontSize: 24, color: "var(--gold)", margin: "16px 0 16px" }}>WINNERS CIRCLE</div>
             ${allWinners.length === 0 ? html`
-              <div style=${{ color:"var(--soft)" }}>No winners yet!</div>
+              <div style=${{ color: "var(--soft)" }}>No winners yet!</div>
             ` : html`
-              <div style=${{ display:"flex", flexDirection:"column", gap:10 }}>
+              <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
                 ${allWinners.map(w => html`
-                  <div key=${w.q} style=${{ background:"var(--gold-glow)", padding:"12px", borderRadius:10, border:"1px solid var(--gold)33" }}>
-                    <div style=${{ fontSize:12, fontWeight:700, color:"var(--soft)", marginBottom:4 }}>${w.q}</div>
-                    <div style=${{ fontSize:18, fontWeight:800, color:"var(--text)" }}>${getPlayerEmoji(data.playerMeta, w.winner)} ${w.winner}</div>
-                    <div className="bebas" style=${{ fontSize:20, color:"var(--gold)", marginTop:4 }}>$${w.amt}</div>
+                  <div key=${w.q} style=${{ background: "var(--gold-glow)", padding: "12px", borderRadius: 10, border: "1px solid var(--gold)33" }}>
+                    <div style=${{ fontSize: 12, fontWeight: 700, color: "var(--soft)", marginBottom: 4 }}>${w.q}</div>
+                    <div style=${{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>${getPlayerEmoji(data.playerMeta, w.winner)} ${w.winner}</div>
+                    <div className="bebas" style=${{ fontSize: 20, color: "var(--gold)", marginTop: 4 }}>$${w.amt}</div>
                   </div>
                 `)}
               </div>
             `}
-            <button onClick=${onClose} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"none", background:"var(--gold)", color:"#1a1a1a", fontWeight:700, fontSize:14, marginTop:20 }}>Awesome!</button>
+            <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "var(--gold)", color: "#1a1a1a", fontWeight: 700, fontSize: 14, marginTop: 20 }}>Awesome!</button>
           </div>
         </div>
       `;
@@ -1486,7 +1808,7 @@
       if (!data.colNums || !data.rowNums) return null;
       const mySquares = [];
       data.grid.forEach((row, r) => row.forEach((cell, c) => {
-        if (cell === myName) mySquares.push({ r: data.rowNums[r], c: data.colNums[c], row:r, col:c });
+        if (cell === myName) mySquares.push({ r: data.rowNums[r], c: data.colNums[c], row: r, col: c });
       }));
 
       // Calculate which squares have already won
@@ -1494,45 +1816,45 @@
       QS.forEach((q, i) => {
         const ss = (data.scores?.SEA || [])[i], ns = (data.scores?.NE || [])[i];
         if (ss != null && ns != null) {
-          const cumS = data.scores.SEA.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
-          const cumN = data.scores.NE.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
-          wonSquares.add((cumS%10) + "-" + (cumN%10));
+          const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          wonSquares.add((cumS % 10) + "-" + (cumN % 10));
         }
       });
 
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:2000, background:"rgba(0,0,0,0.85)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }} onClick=${onClose}>
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:360, width:"100%", border:"1px solid var(--border)", animation:"slideUp .3s ease", maxHeight:"80vh", overflowY:"auto" }}
+        <div style=${{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick=${onClose}>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--border)", animation: "slideUp .3s ease", maxHeight: "80vh", overflowY: "auto" }}
             onClick=${e => e.stopPropagation()}>
-            <div className="bebas" style=${{ fontSize:24, color:"var(--text)", marginBottom:8, textAlign:"center" }}>MY WINNING NUMBERS</div>
-            <div style=${{ fontSize:12, color:"var(--soft)", textAlign:"center", marginBottom:16 }}>
+            <div className="bebas" style=${{ fontSize: 24, color: "var(--text)", marginBottom: 8, textAlign: "center" }}>MY WINNING NUMBERS</div>
+            <div style=${{ fontSize: 12, color: "var(--soft)", textAlign: "center", marginBottom: 16 }}>
               You win when the last digit of each team's score matches your numbers.
             </div>
             ${mySquares.length === 0 ? html`
-              <div style=${{ color:"var(--soft)", textAlign:"center", padding:20 }}>You have no squares!</div>
+              <div style=${{ color: "var(--soft)", textAlign: "center", padding: 20 }}>You have no squares!</div>
             ` : html`
-              <div style=${{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(90px,1fr))", gap:8 }}>
+              <div style=${{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(90px,1fr))", gap: 8 }}>
                 ${mySquares.map((sq, i) => {
-                  const key = sq.c + "-" + sq.r;
-                  const alreadyWon = wonSquares.has(key);
-                  return html`
+        const key = sq.c + "-" + sq.r;
+        const alreadyWon = wonSquares.has(key);
+        return html`
                     <div key=${i} style=${{
-                      background: alreadyWon ? "var(--gold-glow)" : "var(--input)", padding:"10px", borderRadius:8, textAlign:"center",
-                      border: "1px solid " + (alreadyWon ? "var(--gold)" : "var(--border2)")
-                    }}>
-                      <div style=${{ fontSize:9, color: alreadyWon ? "var(--gold)" : "var(--soft)", marginBottom:4, fontWeight:700 }}>
-                        ${alreadyWon ? "🏆 WON" : "SQUARE " + (i+1)}
+            background: alreadyWon ? "var(--gold-glow)" : "var(--input)", padding: "10px", borderRadius: 8, textAlign: "center",
+            border: "1px solid " + (alreadyWon ? "var(--gold)" : "var(--border2)")
+          }}>
+                      <div style=${{ fontSize: 9, color: alreadyWon ? "var(--gold)" : "var(--soft)", marginBottom: 4, fontWeight: 700 }}>
+                        ${alreadyWon ? "🏆 WON" : "SQUARE " + (i + 1)}
                       </div>
-                      <div style=${{ display:"flex", justifyContent:"center", gap:6, fontWeight:700, fontSize:13 }}>
-                        <span style=${{ color:SEA }}>SEA ${sq.c}</span>
-                        <span style=${{ color:NER }}>NE ${sq.r}</span>
+                      <div style=${{ display: "flex", justifyContent: "center", gap: 6, fontWeight: 700, fontSize: 13 }}>
+                        <span style=${{ color: SEA }}>SEA ${sq.c}</span>
+                        <span style=${{ color: NER }}>NE ${sq.r}</span>
                       </div>
                     </div>
                   `;
-                })}
+      })}
               </div>
             `}
-            <button onClick=${onClose} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--text)", fontWeight:700, fontSize:14, marginTop:20 }}>Close</button>
+            <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>Close</button>
           </div>
         </div>
       `;
@@ -1541,28 +1863,28 @@
     // ── Onboarding Modal ──────────────────────────────────────────
     function OnboardingModal({ onClose }) {
       return html`
-        <div style=${{ position:"fixed", inset:0, zIndex:3000, background:"rgba(0,0,0,0.9)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-          <div style=${{ background:"var(--card)", borderRadius:16, padding:24, maxWidth:360, width:"100%", border:"1px solid var(--gold)", animation:"slideUp .3s ease" }}>
-            <div style=${{ textAlign:"center", marginBottom:20 }}>
-              <div style=${{ fontSize:40, marginBottom:10 }}>🏈</div>
-              <div className="bebas" style=${{ fontSize:24, color:"var(--gold)" }}>HOW TO PLAY</div>
+        <div style=${{ position: "fixed", inset: 0, zIndex: 3000, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--gold)", animation: "slideUp .3s ease" }}>
+            <div style=${{ textAlign: "center", marginBottom: 20 }}>
+              <div style=${{ fontSize: 40, marginBottom: 10 }}>🏈</div>
+              <div className="bebas" style=${{ fontSize: 24, color: "var(--gold)" }}>HOW TO PLAY</div>
             </div>
-            <div style=${{ display:"flex", flexDirection:"column", gap:16, marginBottom:24 }}>
+            <div style=${{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
               ${[
-                ["1","Pick your squares.","Tap any empty square to claim it."],
-                ["2","Watch the game.","Rows & Cols get random numbers at kickoff."],
-                ["3","Win prizes!","Match the last digit of the score at end of Q1, Q2, Q3, Final."]
-              ].map(([num,bold,text]) => html`
-                <div key=${num} style=${{ display:"flex", gap:12 }}>
-                  <div style=${{ background:"var(--gold)", color:"#000", width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, flexShrink:0 }}>${num}</div>
-                  <div style=${{ fontSize:13, color:"var(--text)" }}><strong>${bold}</strong> ${text}</div>
+          ["1", "Pick your squares.", "Tap any empty square to claim it."],
+          ["2", "Watch the game.", "Rows & Cols get random numbers at kickoff."],
+          ["3", "Win prizes!", "Match the last digit of the score at end of Q1, Q2, Q3, Final."]
+        ].map(([num, bold, text]) => html`
+                <div key=${num} style=${{ display: "flex", gap: 12 }}>
+                  <div style=${{ background: "var(--gold)", color: "#000", width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>${num}</div>
+                  <div style=${{ fontSize: 13, color: "var(--text)" }}><strong>${bold}</strong> ${text}</div>
                 </div>
               `)}
             </div>
             <button onClick=${onClose} style=${{
-              width:"100%", padding:"12px", borderRadius:10, border:"none",
-              background:"var(--gold)", color:"#1a1a1a", fontSize:14, fontWeight:700
-            }}>LET'S GO!</button>
+          width: "100%", padding: "12px", borderRadius: 10, border: "none",
+          background: "var(--gold)", color: "#1a1a1a", fontSize: 14, fontWeight: 700
+        }}>LET'S GO!</button>
           </div>
         </div>
       `;
@@ -1631,7 +1953,7 @@
           const meta = snap.val();
           if (!meta) {
             const a = AVATARS[Math.floor(Math.random() * AVATARS.length)];
-            ref.child("playerMeta").child(name).set({ avatar:a, joinedAt:Date.now(), playerId });
+            ref.child("playerMeta").child(name).set({ avatar: a, joinedAt: Date.now(), playerId });
             setAvatar(a);
           } else {
             setAvatar(meta.avatar);
@@ -1671,13 +1993,13 @@
 
         const claimed = data.grid?.flat().filter(Boolean).length || 0;
         const totalPot = claimed * (data.pool?.pricePerSquare || 0);
-        const split = data.pool?.payoutSplit || [25,25,25,25];
+        const split = data.pool?.payoutSplit || [25, 25, 25, 25];
 
         for (let i = 0; i < 4; i++) {
           const s = data.scores.SEA[i], n = data.scores.NE[i];
           if (s != null && n != null) {
-            const cs = data.scores.SEA.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
-            const cn = data.scores.NE.slice(0,i+1).reduce((a,b) => a + (b||0), 0);
+            const cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+            const cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cs, cn);
             if (winner) {
               setShowWin(true);
@@ -1695,22 +2017,22 @@
 
       // Tab config
       const TABS = [
-        { id:"board", icon:"🏈", label:"Board" },
-        { id:"scores", icon:"📊", label:"Scores" },
-        { id:"props", icon:"🎯", label:"Props" },
-        { id:"chat", icon:"💬", label:"Chat" },
-        { id:"pay", icon:"💰", label:"Pay" },
+        { id: "board", icon: "🏈", label: "Board" },
+        { id: "scores", icon: "📊", label: "Scores" },
+        { id: "props", icon: "🎯", label: "Props" },
+        { id: "chat", icon: "💬", label: "Chat" },
+        { id: "pay", icon: "💰", label: "Pay" },
       ];
 
       if (!joined) return html`<${SetupScreen} onJoin=${join} />`;
 
       return html`
-        <div style=${{ minHeight:"100vh", background:"var(--bg)" }}>
+        <div style=${{ minHeight: "100vh", background: "var(--bg)" }}>
           ${toastMsg && html`<${Toast} msg=${toastMsg} onDone=${() => setToastMsg(null)} />`}
           ${showSettings && html`<${SettingsModal} data=${data} dbr=${dbr} onClose=${() => setShowSettings(false)} toast=${toast}
             toggleTheme=${() => setIsDark(!isDark)} isDark=${isDark}
             onShowAvatarPicker=${() => { setShowSettings(false); setShowAvatarPicker(true); }} isHost=${isHost} />`}
-          ${showOnboarding && html`<${OnboardingModal} onClose=${() => { setShowOnboarding(false); localStorage.setItem("onboarded","true"); }} />`}
+          ${showOnboarding && html`<${OnboardingModal} onClose=${() => { setShowOnboarding(false); localStorage.setItem("onboarded", "true"); }} />`}
           ${showShare && html`<${ShareModal} data=${data} room=${room} onClose=${() => setShowShare(false)} toast=${toast} />`}
           ${showRules && html`<${RulesModal} data=${data} onClose=${() => setShowRules(false)} />`}
           ${showWin && html`<${WinnerModal} data=${data} onClose=${() => setShowWin(false)} />`}
@@ -1724,31 +2046,31 @@
           <${GameHeader} data=${data} myName=${myName} />
 
           <!-- Action Bar — #16 FIX: No pulsing share button -->
-          <div style=${{ display:"flex", gap:5, padding:"6px 10px", justifyContent:"center", flexWrap:"wrap" }}>
+          <div style=${{ display: "flex", gap: 5, padding: "6px 10px", justifyContent: "center", flexWrap: "wrap" }}>
             <button onClick=${() => setShowAvatarPicker(true)} style=${{
-              display:"flex", alignItems:"center", gap:4, padding:"5px 10px", borderRadius:8,
-              border:"1px solid var(--border2)", background:"var(--card)", color:"var(--text)", fontSize:12, fontWeight:600
-            }}>
-              <span style=${{ fontSize:14 }}>${avatar || "😀"}</span> ${myName}
+          display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8,
+          border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
+        }}>
+              <span style=${{ fontSize: 14 }}>${avatar || "😀"}</span> ${myName}
             </button>
             ${data.colNums && html`
-              <button onClick=${() => setShowNeed(true)} style=${{ padding:"5px 10px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--gold-glow)", color:"var(--gold)", fontSize:12, fontWeight:600 }}>
+              <button onClick=${() => setShowNeed(true)} style=${{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
                 🔢 Need
               </button>
             `}
-            <button onClick=${() => setShowShare(true)} style=${{ padding:"5px 10px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--soft)", fontSize:12, fontWeight:600 }}>
+            <button onClick=${() => setShowShare(true)} style=${{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
               📤 Share
             </button>
             <!-- #11 FIX: Settings gear visible but PIN-gated for non-hosts -->
-            <button onClick=${() => setShowSettings(true)} style=${{ padding:"5px 10px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--soft)", fontSize:12, fontWeight:600 }}>⚙</button>
-            <button onClick=${() => setShowRules(true)} style=${{ padding:"5px 10px", borderRadius:8, border:"1px solid var(--border2)", background:"var(--card)", color:"var(--soft)", fontSize:12, fontWeight:600 }}>📋</button>
+            <button onClick=${() => setShowSettings(true)} style=${{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>⚙</button>
+            <button onClick=${() => setShowRules(true)} style=${{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>📋</button>
           </div>
 
           <!-- Tab Content -->
           <div style=${{
-            paddingBottom:80, flex:1, display:"flex", flexDirection:"column",
-            justifyContent: tab === "board" ? "center" : "flex-start"
-          }}>
+          paddingBottom: 80, flex: 1, display: "flex", flexDirection: "column",
+          justifyContent: tab === "board" ? "center" : "flex-start"
+        }}>
             ${tab === "board" && html`<${BoardTab} data=${data} myName=${myName} dbr=${dbr} toast=${toast} />`}
             ${tab === "scores" && html`<${ScoresTab} data=${data} dbr=${dbr} toast=${toast} />`}
             ${tab === "props" && html`<${PropsTab} data=${data} myName=${myName} dbr=${dbr} toast=${toast} />`}
@@ -1774,4 +2096,5 @@
     ReactDOM.createRoot(document.getElementById("root")).render(html`<${App} />`);
   </script>
 </body>
+
 </html>
