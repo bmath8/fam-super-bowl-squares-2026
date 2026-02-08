@@ -1989,18 +1989,37 @@
           console.log("Firebase data received:", val);
           if (val) {
             // Convert grid from Firebase object format to array format
-            let grid = val.grid;
-            if (grid && !Array.isArray(grid)) {
-              // Firebase stores arrays as objects with numeric keys
-              grid = Object.keys(grid).sort((a, b) => Number(a) - Number(b)).map(rowKey => {
-                const row = grid[rowKey];
-                if (Array.isArray(row)) return row;
-                // Convert row object to array
-                return Object.keys(row).sort((a, b) => Number(a) - Number(b)).map(colKey => row[colKey]);
-              });
-              console.log("Converted grid from object to array:", grid);
+            let grid = DEFAULT.grid; // Start with default
+            try {
+              if (val.grid) {
+                if (Array.isArray(val.grid)) {
+                  grid = val.grid;
+                } else {
+                  // Firebase stores arrays as objects with numeric keys
+                  grid = [];
+                  for (let r = 0; r < 10; r++) {
+                    const row = val.grid[r] || val.grid[String(r)];
+                    if (!row) {
+                      grid.push(Array(10).fill(null));
+                    } else if (Array.isArray(row)) {
+                      grid.push(row);
+                    } else {
+                      // Convert row object to array
+                      const rowArr = [];
+                      for (let c = 0; c < 10; c++) {
+                        rowArr.push(row[c] || row[String(c)] || null);
+                      }
+                      grid.push(rowArr);
+                    }
+                  }
+                  console.log("Converted grid from object to array:", grid);
+                }
+              }
+            } catch (e) {
+              console.error("Grid conversion error:", e);
+              grid = DEFAULT.grid;
             }
-            setData({ ...DEFAULT, ...val, grid: grid || DEFAULT.grid });
+            setData({ ...DEFAULT, ...val, grid });
           } else {
             // First person to create room is host
             ref.set({ ...DEFAULT, hostCreator: playerId });
