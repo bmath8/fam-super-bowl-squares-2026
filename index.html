@@ -11,12 +11,14 @@
   <title>Super Bowl LX Squares — Seahawks vs Patriots</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"
+    crossorigin="anonymous"></script>
   <!-- #17 FIX: Replaced Babel-standalone (800KB) with htm (1KB) -->
-  <script src="https://unpkg.com/htm@3.1.1/dist/htm.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/htm@3.1.1/dist/htm.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" crossorigin="anonymous"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <style>
@@ -549,8 +551,13 @@
   <script>
     window.onerror = function (msg, url, lineNo, columnNo, error) {
       console.error("Global crash:", { msg, url, lineNo, columnNo, error });
-      alert("⚠️ APP CRASH: " + msg + " (Line " + lineNo + ")");
+      const details = error ? "\nDetails: " + error.message : "";
+      alert("⚠️ APP CRASH: " + msg + " (Line " + lineNo + ")" + details);
       return false;
+    };
+    window.onunhandledrejection = function (event) {
+      console.error("Unhandled promise rejection:", event.reason);
+      alert("⚠️ PROMISE CRASH: " + (event.reason?.message || "Unknown error"));
     };
     // #17 FIX: htm bound to React.createElement — no Babel needed
     const html = htm.bind(React.createElement);
@@ -645,6 +652,16 @@
 
     function addFeed(data, name, msg) {
       return [...(data.feed || []), { who: name, msg, ts: Date.now() }].slice(-80);
+    }
+
+    function safeGrid(g) {
+      if (!Array.isArray(g)) return [];
+      // Deeply flatten even if rows are objects
+      return g.reduce((acc, row) => {
+        if (Array.isArray(row)) return acc.concat(row);
+        if (row && typeof row === "object") return acc.concat(Object.values(row));
+        return acc;
+      }, []);
     }
 
     function getWinner(grid, colNums, rowNums, seaScore, neScore) {
@@ -809,7 +826,7 @@
       const { status, cd } = useGameStatus(data);
       const totalSea = (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
       const totalNe = (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
-      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       const pot = claimed * (data.pool?.pricePerSquare || 0);
 
       return html`
@@ -841,7 +858,7 @@
                     <${React.Fragment} key=${i}>
                       <span className="bebas" style=${{ fontSize: 14, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
                       ${i < 2 && html`<span style=${{ color: "var(--faint)", fontSize: 12 }}>:</span>`}
-                    <//>
+                    </${React.Fragment}>
                   `)}
                 </div>
                 ${cd.d > 0 && html`<div style=${{ fontSize: 8, color: "var(--faint)", letterSpacing: 1 }}>${cd.d}D LEFT</div>`}
@@ -867,7 +884,7 @@
           <div style=${{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--faint)", marginTop: 3 }}>
             <span>${claimed}/100</span>
             ${pot > 0 && html`<span style=${{ color: "var(--gold)" }}>💰 $${pot}</span>`}
-            <span>${Object.keys(data.grid?.flat().filter(Boolean).reduce((a, n) => ({ ...a, [n]: 1 }), {}) || {}).length} players</span>
+            <span>${Object.keys(safeGrid(data.grid).filter(Boolean).reduce((a, n) => ({ ...a, [n]: 1 }), {}) || {}).length} players</span>
           </div>
         </div>
       `;
@@ -876,15 +893,15 @@
     // ── Board Tab (#9, #10, #14, #21 fixes) ──────────────────────
     function BoardTab({ data, myName, dbr, toast }) {
       const [showMine, setShowMine] = useState(false);
-      const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
+      const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
       const myCt = useMemo(() => {
         if (!Array.isArray(data.grid)) return 0;
-        return data.grid.flat().filter(n => n === myName).length;
+        return safeGrid(data.grid).filter(n => n === myName).length;
       }, [data.grid, myName]);
 
       const claimed = useMemo(() => {
         if (!Array.isArray(data.grid)) return 0;
-        return data.grid.flat().filter(Boolean).length;
+        return safeGrid(data.grid).filter(Boolean).length;
       }, [data.grid]);
 
       const maxPP = data.settings?.maxPerPlayer || 0;
@@ -931,7 +948,7 @@
       };
 
       const quickPick = (n) => {
-        const availCt = (Array.isArray(data.grid) ? data.grid.flat() : []).filter(x => !x).length;
+        const availCt = (Array.isArray(data.grid) ? safeGrid(data.grid) : []).filter(x => !x).length;
         console.log("quickPick:", { n, myName, dbr: !!dbr, isLocked: data.isLocked, avail: availCt });
 
         // Validate inputs
@@ -1069,7 +1086,7 @@
                     </div>
                   `)}
                   <!-- Rows -->
-                  ${(data.grid || []).map((row, r) => {
+                  ${(Array.isArray(data.grid) ? data.grid : []).map((row, r) => {
               const safeRow = Array.isArray(row) ? row : Array(10).fill(null);
               return html`
                   <${React.Fragment} key=${r}>
@@ -1110,7 +1127,7 @@
                           </div>
                         `;
                 })}
-                  <//>`;
+                  </${React.Fragment}>`;
             })}
                 </div>
               </div>
@@ -1127,7 +1144,7 @@
                 color: getPlayerColor(name, allNames)
               }}>
                     ${getPlayerEmoji(data.playerMeta, name)} ${name}
-                    <span style=${{ opacity: 0.6 }}>(${(Array.isArray(data.grid) ? data.grid.flat() : []).filter(n => n === name).length})</span>
+                    <span style=${{ opacity: 0.6 }}>(${safeGrid(data.grid).filter(n => n === name).length})</span>
                   </div>
                 `)}
               </div>
@@ -1142,8 +1159,8 @@
       const [editing, setEditing] = useState(null);
       const [tempSea, setTempSea] = useState("");
       const [tempNe, setTempNe] = useState("");
-      const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
-      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
+      const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       const pps = data.pool?.pricePerSquare || 0;
       const totalPot = claimed * pps;
       const split = data.pool?.payoutSplit || [25, 25, 25, 25];
@@ -1488,7 +1505,7 @@
 
     // ── Pay Tab ───────────────────────────────────────────────────
     function PayTab({ data, myName, dbr, toast }) {
-      const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
+      const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
       const pps = data.pool?.pricePerSquare || 0;
 
       const togglePaid = (name) => {
@@ -1565,7 +1582,7 @@
           ${allNames.length > 0 && pps > 0 && html`
             <div className="bebas" style=${{ fontSize: 16, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>PAYMENT TRACKER</div>
             ${allNames.map(name => {
-            const ct = data.grid.flat().filter(n => n === name).length;
+            const ct = safeGrid(data.grid).filter(n => n === name).length;
             const owed = ct * pps;
             const paid = data.paidPlayers?.[name] || false;
             return html`
@@ -1619,9 +1636,9 @@
         dbr.update({ ...DEFAULT }); toast("Board reset"); onClose();
       };
       const autoAssign = () => {
-        const names = [...new Set(data.grid.flat().filter(Boolean))];
+        const names = [...new Set(safeGrid(data.grid).filter(Boolean))];
         if (names.length === 0) { toast("Need at least 1 player first"); return; }
-        const newGrid = data.grid.map(row => [...row]);
+        const newGrid = (Array.isArray(data.grid) ? data.grid : []).map(row => [...row]);
         let empties = [];
         newGrid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) empties.push([r, c]); }));
         empties.sort(() => Math.random() - 0.5);
@@ -1767,7 +1784,7 @@
     // ── #24 FIX: Share Modal — shorter, punchier text ─────────────
     function ShareModal({ data, room, onClose, toast }) {
       const url = window.location.origin + window.location.pathname + "?room=" + room;
-      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       // #24 FIX: Short, punchy share text
       const shareText = "🏈 Super Bowl Squares\nJoin code: " + room + "\n" + claimed + "/100 taken—grab yours!\n" + url;
 
@@ -1843,7 +1860,7 @@
     // ── Winner Modal ──────────────────────────────────────────────
     function WinnerModal({ data, onClose }) {
       const allWinners = [];
-      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       const split = data.pool?.payoutSplit || [25, 25, 25, 25];
       const totalPot = claimed * (data.pool?.pricePerSquare || 0);
       QS.forEach((q, i) => {
@@ -2104,7 +2121,7 @@
         if (prevScoresRef.current === scoreKey) return;
         prevScoresRef.current = scoreKey;
 
-        const claimed = data.grid?.flat().filter(Boolean).length || 0;
+        const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
         const totalPot = claimed * (data.pool?.pricePerSquare || 0);
         const split = data.pool?.payoutSplit || [25, 25, 25, 25];
 
