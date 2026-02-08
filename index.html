@@ -12,7 +12,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&family=Oswald:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -231,7 +233,7 @@
       pool: { pricePerSquare: 10, payoutSplit: [10, 20, 20, 50], payoutPreset: "progressive", propBuyIn: 5 },
       settings: { maxPerPlayer: 0, showHeatMap: false, reverseBonus: false, touchingBonus: false, reversePct: 20, allowReshuffle: false },
       feed: [], playerMeta: {}, props: {}, propAnswers: {}, feedReactions: {}, reshuffledAt: null,
-      hostPin: "", zellePhone: "", zelleEmail: "", darkMode: false,
+      hostPin: "4266", zellePhone: "", zelleEmail: "", darkMode: false,
       trades: [], chat: [], payments: {}, propBuyIns: {}, paidPlayers: {}, priorityMode: true, admins: [],
       squareReactions: {}, auditLog: [], tiebreaker: { question: "", answers: {} },
     };
@@ -1127,17 +1129,21 @@
                 <div style={{ overflowX: "auto", paddingBottom: 8 }}>
                   <div style={{ minWidth: 520 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
-                      <div /><div style={{ gridColumn: "2 / -1", textAlign: "center", fontSize: 13, fontWeight: 900, letterSpacing: 4, color: SEA, padding: "6px 0" }}>← SEAHAWKS →</div>
+                      <div /><div style={{ gridColumn: "2 / -1", textAlign: "center", fontSize: 16, fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: 6, color: SEA, padding: "8px 0", textShadow: "0 0 15px " + SEA + "40" }}>🦅 SEAHAWKS 🦅</div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
                       <div />
                       {Array.from({ length: 10 }).map((_, c) => (
-                        <div key={c} style={{ background: isLocked ? SEA + "25" : T.cardBorder, borderRadius: 8, padding: "8px 0", textAlign: "center", fontSize: isLocked ? 18 : 14, fontWeight: 900, color: isLocked ? SEA : T.textFaint }}>{isLocked && colNums ? colNums[c] : "?"}</div>
+                        <div key={c} style={{ background: isLocked ? SEA + "25" : T.cardBorder, borderRadius: 8, padding: "8px 0", textAlign: "center", fontSize: isLocked ? 20 : 16, fontFamily: "'Oswald', sans-serif", fontWeight: 600, color: isLocked ? SEA : T.textFaint }}>{isLocked && colNums ? colNums[c] : "?"}</div>
                       ))}
+                    </div>
+                    {/* PATRIOTS Row Header */}
+                    <div style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 0 }}>
+                      <div style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)", textAlign: "center", fontSize: 14, fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: 4, color: NER, padding: "8px 4px", gridRow: "span 10", textShadow: "0 0 15px " + NER + "40" }}>🏈 PATRIOTS 🏈</div>
                     </div>
                     {Array.from({ length: 10 }).map((_, r) => (
                       <div key={r} style={{ display: "grid", gridTemplateColumns: "48px repeat(10,1fr)", gap: 3, marginBottom: 3 }}>
-                        <div style={{ background: isLocked ? NER + "25" : T.cardBorder, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isLocked ? 18 : 14, fontWeight: 900, color: isLocked ? NER : T.textFaint }}>{isLocked && rowNums ? rowNums[r] : "?"}</div>
+                        <div style={{ background: isLocked ? NER + "25" : T.cardBorder, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isLocked ? 20 : 16, fontFamily: "'Oswald', sans-serif", fontWeight: 600, color: isLocked ? NER : T.textFaint }}>{isLocked && rowNums ? rowNums[r] : "?"}</div>
                         {Array.from({ length: 10 }).map((_, c) => {
                           const owner = grid[r] && grid[r][c];
                           const isWin = colNums && rowNums && QS.some((_, qi) => { const w = getWinner(qi); return w && w.r === r && w.c === c; });
