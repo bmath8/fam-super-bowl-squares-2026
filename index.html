@@ -348,7 +348,7 @@
     }
 
     .sq-cell.empty {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.1);
       border: 1px solid var(--border);
     }
 
@@ -761,7 +761,7 @@
       }, [data]);
 
       return (
-        <div style={{ padding: "12px", animation: "fadeIn .3s ease" }}>
+        <div style={{ padding: "4px", animation: "fadeIn .3s ease" }}>
           {/* Quick actions */}
           {!data.isLocked && (
             <div style={{ marginBottom: 12 }}>
@@ -794,8 +794,8 @@
           {/* The Grid */}
           <div style={{ position: "relative" }}>
             {/* Seahawks label */}
-            <div style={{ textAlign: "center", marginBottom: 4 }}>
-              <span className="bebas" style={{ fontSize: 13, color: SEA, letterSpacing: 3 }}>SEAHAWKS →</span>
+            <div style={{ textAlign: "center", marginBottom: 4, paddingLeft: 24 }}>
+              <span className="bebas" style={{ fontSize: 20, color: SEA, letterSpacing: 3 }}>SEAHAWKS →</span>
             </div>
 
             <div style={{ display: "flex" }}>
@@ -805,7 +805,7 @@
                 display: "flex", alignItems: "center", justifyContent: "center",
                 paddingRight: 4,
               }}>
-                <span className="bebas" style={{ fontSize: 13, color: NER, letterSpacing: 3 }}>PATRIOTS →</span>
+                <span className="bebas" style={{ fontSize: 20, color: NER, letterSpacing: 3 }}>PATRIOTS →</span>
               </div>
 
               {/* Grid */}
@@ -1003,7 +1003,7 @@
                   <button onClick={() => { setEditing({ q: i }); setTempSea(""); setTempNe("") }} style={{
                     padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
                     background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
-                  }}>Enter Score</button>
+                  }}>Edit (Manual)</button>
                 )}
               </div>
               {winner && (
@@ -1322,6 +1322,14 @@
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {!data.zellePhone && !data.zelleEmail && allNames.length === 0 && (
+            <div style={{ textAlign: "center", padding: 40, color: "var(--soft)", border: "1px solid var(--border)", borderRadius: 16 }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>💰</div>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>Payment Info Not Set</div>
+              <div style={{ fontSize: 12 }}>The host hasn't added payment details yet.</div>
             </div>
           )}
 
