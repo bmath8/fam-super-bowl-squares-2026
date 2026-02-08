@@ -1437,6 +1437,7 @@
     function SettingsModal({ data, dbr, onClose, toast, toggleTheme, isDark }) {
       const [pin, setPin] = useState("");
       const [showPin, setShowPin] = useState(!data.hostPin);
+      const [showHost, setShowHost] = useState(false);
 
       // ... same pin logic ...
       const needsPin = data.hostPin && !showPin;
@@ -1513,75 +1514,84 @@
               </button>
             </div>
 
-            {/* Board Actions */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", marginBottom: 8 }}>BOARD ACTIONS</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {!data.isLocked ? (
-                  <button onClick={lockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
-                ) : (
-                  <button onClick={unlockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
-                )}
-                <button onClick={autoAssign} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
-              </div>
+            {/* Host Controls Toggle */}
+            <div onClick={() => setShowHost(!showHost)} style={{ padding: "12px", background: "var(--card)", borderRadius: 10, textAlign: "center", fontWeight: 700, cursor: "pointer", marginBottom: 20, border: "1px solid var(--border2)", color: "var(--text)", fontSize: 13 }}>
+              {showHost ? "Hide Host Controls" : "👑 Show Host Controls"}
             </div>
 
-            {/* Grouped Settings */}
-            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Pool & Prices</summary>
-              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                {/* Pool Settings Content */}
-                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
-                  <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Price per square</label>
-                  <input type="number" value={data.pool?.pricePerSquare || 0}
-                    onChange={e => dbr.child("pool/pricePerSquare").set(Number(e.target.value))}
-                    style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+            {showHost && (
+              <div style={{ animation: "fadeIn .3s ease" }}>
+                {/* Board Actions */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "var(--soft)", marginBottom: 8 }}>BOARD ACTIONS</div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {!data.isLocked ? (
+                      <button onClick={lockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
+                    ) : (
+                      <button onClick={unlockBoard} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
+                    )}
+                    <button onClick={autoAssign} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
-                  <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Max per player</label>
-                  <input type="number" value={data.settings?.maxPerPlayer || 0}
-                    onChange={e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
-                    style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
-                </div>
-              </div>
-            </details>
 
-            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Payout Split</summary>
-              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-                  {Object.entries(PAYOUTS).map(([k, v]) => (
-                    <button key={k} onClick={() => dbr.child("pool").update({ payoutPreset: k, payoutSplit: v.vals })} style={{
-                      flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 10, fontWeight: 600,
-                      border: `1px solid ${data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"}`,
-                      background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
-                      color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
-                    }}>{v.label}</button>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {QS.map((q, i) => (
-                    <input key={q} type="number" value={(data.pool?.payoutSplit || [])[i] || 0}
-                      onChange={e => { const s = [...(data.pool?.payoutSplit || [25, 25, 25, 25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s) }}
-                      style={{ flex: 1, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 13, textAlign: "center" }} />
-                  ))}
-                </div>
-              </div>
-            </details>
+                {/* Grouped Settings */}
+                <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Pool & Prices</summary>
+                  <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    {/* Pool Settings Content */}
+                    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Price per square</label>
+                      <input type="number" value={data.pool?.pricePerSquare || 0}
+                        onChange={e => dbr.child("pool/pricePerSquare").set(Number(e.target.value))}
+                        style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style={{ fontSize: 12, color: "var(--text)", flex: 1 }}>Max per player</label>
+                      <input type="number" value={data.settings?.maxPerPlayer || 0}
+                        onChange={e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
+                        style={{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+                    </div>
+                  </div>
+                </details>
 
-            <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
-              <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Admin / Hazard</summary>
-              <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "var(--soft)", display: "block", marginBottom: 4 }}>HOST PIN</label>
-                  <input value={data.hostPin || ""} onChange={e => dbr.update({ hostPin: e.target.value })} placeholder="Set PIN"
-                    style={{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
-                </div>
-                <button onClick={resetBoard} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", color: "#EF4444", fontWeight: 700, fontSize: 12 }}>
-                  🗑 Reset Board
-                </button>
+                <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Payout Split</summary>
+                  <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                      {Object.entries(PAYOUTS).map(([k, v]) => (
+                        <button key={k} onClick={() => dbr.child("pool").update({ payoutPreset: k, payoutSplit: v.vals })} style={{
+                          flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+                          border: `1px solid ${data.pool?.payoutPreset === k ? "var(--gold)" : "var(--border2)"}`,
+                          background: data.pool?.payoutPreset === k ? "var(--gold-glow)" : "transparent",
+                          color: data.pool?.payoutPreset === k ? "var(--gold)" : "var(--soft)",
+                        }}>{v.label}</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {QS.map((q, i) => (
+                        <input key={q} type="number" value={(data.pool?.payoutSplit || [])[i] || 0}
+                          onChange={e => { const s = [...(data.pool?.payoutSplit || [25, 25, 25, 25])]; s[i] = Number(e.target.value); dbr.child("pool/payoutSplit").set(s) }}
+                          style={{ flex: 1, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 13, textAlign: "center" }} />
+                      ))}
+                    </div>
+                  </div>
+                </details>
+
+                <details style={{ marginBottom: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                  <summary style={{ padding: "12px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: "var(--text)" }}>Admin / Hazard</summary>
+                  <div style={{ padding: "12px", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "var(--soft)", display: "block", marginBottom: 4 }}>HOST PIN</label>
+                      <input value={data.hostPin || ""} onChange={e => dbr.update({ hostPin: e.target.value })} placeholder="Set PIN"
+                        style={{ width: "100%", padding: "8px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14 }} />
+                    </div>
+                    <button onClick={resetBoard} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", color: "#EF4444", fontWeight: 700, fontSize: 12 }}>
+                      🗑 Reset Board
+                    </button>
+                  </div>
+                </details>
               </div>
-            </details>
+            )}
 
             <button onClick={onClose} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
               Close
