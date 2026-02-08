@@ -1467,6 +1467,7 @@
     }
 
     // ═══════ SETUP SCREEN ═══════
+    // ═══════ SETUP SCREEN (Seahawks vs Patriots) ═══════
     function SetupScreen({ onJoin }) {
       const [name, setName] = useState(() => localStorage.getItem("sb_name") || "");
       const [room, setRoom] = useState(() => {
@@ -1477,62 +1478,93 @@
       const [error, setError] = useState("");
 
       const handleJoin = async () => {
-        if (!name.trim()) return setError("Name is required");
+        if (!name.trim()) return setError("Enter your name!");
         const code = room.trim().toUpperCase() || "MAIN";
         setLoading(true);
         setError("");
 
         try {
+          // Initialize Firebase anonymously
           const dbUrl = "https://super-bowl-squares-2026-default-rtdb.firebaseio.com/";
-          const app = firebase.initializeApp({ databaseURL: dbUrl }, "game_" + Date.now());
+          // Use a try-catch for init in case it's already running
+          let app;
+          try { app = firebase.app(); } catch { app = firebase.initializeApp({ databaseURL: dbUrl }); }
+
           const db = app.database();
           const roomRef = db.ref("rooms/" + code);
+          // Ping to ensure connection
           await roomRef.child("_ping").set(Date.now());
 
           localStorage.setItem("sb_name", name.trim());
           localStorage.setItem("sb_last_room", code);
 
-          // Update URL
           const newUrl = new URL(window.location);
           newUrl.searchParams.set("room", code);
           window.history.pushState({}, "", newUrl);
 
           onJoin({ dbRef: roomRef, user: name.trim() });
         } catch (e) {
-          console.error(e);
-          setError("Connection failed. Check network.");
+          console.error("JOIN ERROR:", e);
+          setError("Connection failed: " + e.message);
           setLoading(false);
         }
       };
 
       return (
-        <div style={{ padding: "40px 20px", maxWidth: 400, margin: "0 auto", textAlign: "center", paddingTop: "10vh", minHeight: "100vh", background: "radial-gradient(circle at 50% 0%, #1a1f35 0%, #050505 100%)" }}>
-          <div style={{ fontSize: 60, marginBottom: 20 }}>🏈</div>
-          <h1 style={{ fontSize: 24, marginBottom: 30, color: "#fff" }}>Super Bowl Squares</h1>
+        <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #001533 0%, #002244 45%, #C60C30 55%, #4a0412 100%)" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0.1, background: "radial-gradient(circle, transparent 20%, #000 120%)", pointerEvents: "none" }}></div>
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", textAlign: "left", marginBottom: 8, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>YOUR NAME</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Host" style={{ width: "100%", padding: "14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 16, fontWeight: 600 }} />
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 32, position: "relative", zIndex: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 6, color: "#8b949e", marginBottom: 8 }}>FEB 9 • 2026</div>
+            <div style={{ fontSize: 36, fontWeight: 900, background: "linear-gradient(to bottom, #fff, #999)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.5))" }}>SUPER BOWL LX</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginTop: 16 }}>
+              <div style={{ textAlign: "center" }}><div style={{ width: 60, height: 60, borderRadius: "50%", background: SEA, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: "#fff", boxShadow: "0 0 20px rgba(105,190,40,0.4)", border: "4px solid #fff" }}>SEA</div><div style={{ fontSize: 12, fontWeight: 800, marginTop: 8, letterSpacing: 1 }}>SEAHAWKS</div></div>
+              <div style={{ fontSize: 24, fontWeight: 900, fontStyle: "italic", opacity: 0.5 }}>VS</div>
+              <div style={{ textAlign: "center" }}><div style={{ width: 60, height: 60, borderRadius: "50%", background: NER, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: "#fff", boxShadow: "0 0 20px rgba(198,12,48,0.4)", border: "4px solid #fff" }}>NE</div><div style={{ fontSize: 12, fontWeight: 800, marginTop: 8, letterSpacing: 1 }}>PATRIOTS</div></div>
+            </div>
           </div>
 
-          <div style={{ marginBottom: 30 }}>
-            <label style={{ display: "block", textAlign: "left", marginBottom: 8, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>ROOM CODE</label>
-            <input value={room} onChange={e => setRoom(e.target.value)} placeholder="e.g. MAIN (Optional)" style={{ width: "100%", padding: "14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 16, fontWeight: 600 }} />
+          {/* Login Card */}
+          <div style={{ width: "90%", maxWidth: 360, background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", borderRadius: 24, padding: 32, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", position: "relative", zIndex: 10 }}>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 1, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>YOUR NAME</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Enter Name" onKeyDown={e => e.key === "Enter" && handleJoin()} style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff", fontSize: 16, fontWeight: 600, transition: "border .2s" }} />
+            </div>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: 1, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>ROOM CODE (OPTIONAL)</label>
+              <input value={room} onChange={e => setRoom(e.target.value)} placeholder="MAIN" onKeyDown={e => e.key === "Enter" && handleJoin()} style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.3)", color: "#fff", fontSize: 16, fontWeight: 600, letterSpacing: 1 }} />
+            </div>
+
+            {error && <div style={{ color: "#ff4444", fontSize: 13, marginBottom: 16, textAlign: "center", fontWeight: 600, background: "rgba(255,0,0,0.1)", padding: 8, borderRadius: 8 }}>{error}</div>}
+
+            <button onClick={handleJoin} disabled={loading} style={{ width: "100%", padding: "16px", borderRadius: 14, background: "linear-gradient(90deg, #fff, #e0e0e0)", border: "none", color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", transition: "transform .1s", opacity: loading ? 0.7 : 1, boxShadow: "0 4px 12px rgba(255,255,255,0.2)" }}>
+              {loading ? "CONNECTING..." : "ENTER STADIUM"}
+            </button>
           </div>
 
-          {error && <div style={{ color: "#ff4444", marginBottom: 20, fontSize: 14 }}>{error}</div>}
-
-          <button onClick={handleJoin} disabled={loading} style={{ width: "100%", padding: "16px", borderRadius: 12, background: "#007AFF", color: "#fff", fontSize: 16, fontWeight: 700, border: "none", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
-            {loading ? "Connecting..." : "Join Game"}
-          </button>
+          <div style={{ position: "absolute", bottom: 20, fontSize: 10, opacity: 0.4, letterSpacing: 1 }}>POWERED BY ANTIGRAVITY</div>
         </div>
       );
+    }
+
+    class ErrorBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { hasError: false, err: null }; }
+      static getDerivedStateFromError(error) { return { hasError: true, err: error }; }
+      render() {
+        if (this.state.hasError) return <div style={{ padding: 40, color: "#fff", textAlign: "center", background: "#000", height: "100vh" }}><h1 style={{ color: "#ff4444" }}>CRITICAL ERROR</h1><pre style={{ textAlign: "left", background: "#111", padding: 20, overflow: "auto", borderRadius: 10 }}>{this.state.err.toString()}</pre><button onClick={() => window.location.reload()} style={{ padding: "10px 20px", marginTop: 20 }}>Reload Game</button></div>;
+        return this.props.children;
+      }
     }
 
     // ═══════ ROOT ═══════
     function Root() {
       const [session, setSession] = useState(null);
-      return session ? <App dbRef={session.dbRef} user={session.user} /> : <SetupScreen onJoin={setSession} />;
+      return (
+        <ErrorBoundary>
+          {session ? <App dbRef={session.dbRef} user={session.user} /> : <SetupScreen onJoin={setSession} />}
+        </ErrorBoundary>
+      );
     }
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
