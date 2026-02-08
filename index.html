@@ -142,6 +142,44 @@
         opacity: 1
       }
     }
+
+    @keyframes countdownPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(255, 180, 0, 0.3);
+      }
+
+      50% {
+        transform: scale(1.02);
+        text-shadow: 0 0 25px rgba(255, 180, 0, 0.6);
+      }
+    }
+
+    @keyframes buttonGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px rgba(105, 190, 40, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(105, 190, 40, 0.6), 0 0 30px rgba(105, 190, 40, 0.3);
+      }
+    }
+
+    @keyframes winnerGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(255, 180, 0, 0.4), inset 0 0 8px rgba(255, 180, 0, 0.1);
+      }
+
+      50% {
+        box-shadow: 0 0 25px rgba(255, 180, 0, 0.8), inset 0 0 15px rgba(255, 180, 0, 0.2);
+      }
+    }
   </style>
 </head>
 
@@ -846,10 +884,10 @@
 
           {/* HEADER */}
           <div>
-            <div style={{ display: "flex", height: 6 }}><div style={{ flex: 1, background: SEA }} /><div style={{ flex: 1, background: NER }} /></div>
-            <div style={{ background: T.headerBg, padding: "16px 14px 14px", borderBottom: "1px solid " + T.cardBorder }}>
+            <div style={{ display: "flex", height: 8 }}><div style={{ flex: 1, background: "linear-gradient(90deg, " + SEA + ", " + NAV + ")" }} /><div style={{ flex: 1, background: "linear-gradient(90deg, " + NAV + ", " + NER + ")" }} /></div>
+            <div style={{ background: "linear-gradient(180deg, " + T.headerBg + " 0%, " + T.bg + " 100%)", padding: "20px 14px 16px", borderBottom: "2px solid " + T.cardBorder }}>
               <div style={{ maxWidth: 680, margin: "0 auto" }}>
-                <div style={{ textAlign: "center", fontSize: 10, letterSpacing: 4, color: T.textSoft, fontWeight: 600, marginBottom: 8 }}>SUPER BOWL LX • FEB 8, 2026</div>
+                <div style={{ textAlign: "center", fontSize: 12, letterSpacing: 5, color: "#FFB400", fontWeight: 800, marginBottom: 10, textShadow: "0 0 20px rgba(255,180,0,0.3)" }}>SUPER BOWL LX • FEB 8, 2026</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
                   <div style={{ textAlign: "center", flex: 1 }}>
                     <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: "50%", background: NAV, marginBottom: 4 }}><span style={{ fontWeight: 800, fontSize: 18, color: SEA }}>SEA</span></div>
@@ -876,9 +914,9 @@
             <CountdownTimer T={T} />
 
             {/* Toolbar */}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "0 0 14px" }}>
-              {[{ l: "Share", i: "📤", fn: handleShare }, ...(isAdmin || !hostPin ? [{ l: "Settings", i: "⚙️", fn: () => setShowSettings(!showSettings), a: showSettings }] : [{ l: "Settings", i: "🔒", fn: () => { setShowPinModal(true); setPendingHostAction(() => () => setShowSettings(true)); } }]), { l: "Rules", i: "📖", fn: () => setShowRules(!showRules), a: showRules }].map(b => (
-                <button key={b.l} onClick={b.fn} style={{ padding: "10px 20px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 14, fontWeight: 800, background: b.a ? NAV : T.card, color: b.a ? "#fff" : T.textSoft, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>{b.i} {b.l}</button>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", margin: "0 0 16px" }}>
+              {[{ l: "Share", i: "📤", fn: handleShare, glow: true }, ...(isAdmin || !hostPin ? [{ l: "Settings", i: "⚙️", fn: () => setShowSettings(!showSettings), a: showSettings }] : [{ l: "Settings", i: "🔒", fn: () => { setShowPinModal(true); setPendingHostAction(() => () => setShowSettings(true)); } }]), { l: "Rules", i: "📖", fn: () => setShowRules(!showRules), a: showRules }].map(b => (
+                <button key={b.l} onClick={b.fn} style={{ padding: "12px 24px", borderRadius: 99, border: b.a ? "2px solid " + NAV : "2px solid " + T.cardBorder, cursor: "pointer", fontSize: 15, fontWeight: 800, background: b.glow ? "linear-gradient(135deg, " + SEA + ", " + NAV + ")" : b.a ? NAV : T.card, color: b.glow ? "#fff" : b.a ? "#fff" : T.textSoft, boxShadow: b.glow ? "0 4px 20px rgba(105,190,40,0.4)" : "0 2px 8px rgba(0,0,0,0.2)", animation: b.glow ? "buttonGlow 2s infinite" : "none" }}>{b.i} {b.l}</button>
               ))}
             </div>
 
@@ -1121,10 +1159,10 @@
                                 else if (!owner && activeName && !isLocked) handleClaim(r, c);
                                 else if (!owner && !activeName && !isLocked) showToast("Enter your name!");
                               }} style={{
-                                aspectRatio: "1", borderRadius: 6, position: "relative", overflow: "hidden", cursor: "pointer",
+                                aspectRatio: "1", borderRadius: 8, position: "relative", overflow: "hidden", cursor: "pointer",
                                 background: owner ? bg + "18" : heat > 1.5 ? "rgba(255,180,0," + Math.min(heat * 0.06, 0.15) + ")" : T.card,
-                                border: isWin ? "2px solid #FFB400" : isSel ? "2px solid " + bg : tradeTarget && owner && owner !== activeName ? "2px solid #3DB2FF" : isMe ? "2px solid " + bg + "60" : "2px solid " + T.cardBorder,
-                                animation: isWin ? "winGlow 2s infinite" : "none",
+                                border: isWin ? "3px solid #FFB400" : isSel ? "2px solid " + bg : tradeTarget && owner && owner !== activeName ? "2px solid #3DB2FF" : isMe ? "2px solid " + bg + "60" : "2px solid " + T.cardBorder,
+                                animation: isWin ? "winnerGlow 2s infinite" : "none",
                                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                               }}>
                               {owner ? (<>
