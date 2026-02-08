@@ -4,6 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- VERSION: 2026-02-08-v5 -->
   <title>Super Bowl LX Squares — Seahawks vs Patriots</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
@@ -1031,13 +1035,13 @@
           <div>
             <!-- Team axis labels integrated into grid headers -->
             <div style=${{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 4, marginBottom: 4, paddingLeft: 24 }}>
-              <span className="bebas" style=${{ fontSize: 14, color: SEA, letterSpacing: 2 }}>← SEAHAWKS →</span>
+              <span className="bebas" style=${{ fontSize: 12, color: SEA, letterSpacing: 2 }}>← SEA →</span>
             </div>
 
             <div style=${{ display: "flex", alignItems: "center" }}>
               <!-- #14 FIX: NE label as small rotated text instead of huge vertical -->
               <div style=${{ writingMode: "vertical-lr", transform: "rotate(180deg)", display: "flex", alignItems: "center", justifyContent: "center", width: 14, flexShrink: 0 }}>
-                <span className="bebas" style=${{ fontSize: 11, color: NER, letterSpacing: 2 }}>NE</span>
+                <span className="bebas" style=${{ fontSize: 12, color: NER, letterSpacing: 2 }}>NE</span>
               </div>
 
               <div style=${{ flex: 1 }}>
@@ -1060,7 +1064,7 @@
                       <div className="sq-hdr" style=${{
                 background: data.rowNums ? NER + "22" : "var(--card)",
                 color: data.rowNums ? NER : "var(--faint)", aspectRatio: "1",
-                border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"), fontSize: 12,
+                border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"),
               }}>
                         ${data.rowNums ? data.rowNums[r] : "?"}
                       </div>
