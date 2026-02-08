@@ -586,13 +586,13 @@
 
     // ── Firebase ──────────────────────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyBfKbgjhBJ1DRzaYDsQGB-TxVU5zcmSZO0",
-      authDomain: "fam-super-bowl-squares-2026.firebaseapp.com",
-      databaseURL: "https://fam-super-bowl-squares-2026-default-rtdb.firebaseio.com",
-      projectId: "fam-super-bowl-squares-2026",
-      storageBucket: "fam-super-bowl-squares-2026.firebasestorage.app",
-      messagingSenderId: "710533375498",
-      appId: "1:710533375498:web:a2dd5df93b3c7dd2ff2a1b"
+      apiKey: "AIzaSyAEEWLXshtNMrf317dgD5cDpDmETLDhueo",
+      authDomain: "super-bowl-squares-fam-2026.firebaseapp.com",
+      databaseURL: "https://super-bowl-squares-fam-2026-default-rtdb.firebaseio.com",
+      projectId: "super-bowl-squares-fam-2026",
+      storageBucket: "super-bowl-squares-fam-2026.firebasestorage.app",
+      messagingSenderId: "393390824832",
+      appId: "1:393390824832:web:d06bca315fd0a991bb7565"
     };
     const app = firebase.initializeApp(firebaseConfig);
     const rtdb = firebase.database();
@@ -878,41 +878,30 @@
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
-        // VISUAL FEEDBACK: Show alert to confirm click is working
-        alert("Tapped square [" + r + "," + c + "]! Name: " + myName + " | Connected: " + !!dbr);
-
         console.log("claimSquare:", { r, c, myName, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
 
         // Validate inputs
         if (!myName || myName.trim() === "") {
-          alert("ERROR: No name set! Please refresh the page.");
           toast("❌ No name set! Refresh page.");
-          console.error("myName is empty:", myName);
           return;
         }
         if (!dbr) {
-          alert("ERROR: Not connected to Firebase yet. Wait and try again.");
           toast("⏳ Connecting to Firebase...");
-          console.error("dbr is null");
           return;
         }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
         if (data.grid[r][c]) { toast("Already claimed by " + data.grid[r][c]); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
 
-        // Update ONLY the specific cell - simplified to avoid conflicts
-        alert("Claiming square [" + r + "," + c + "] for " + myName);
-
-        // Direct set on the specific cell path
+        // Update the specific cell
+        toast("⏳ Claiming...");
         dbr.child("grid").child(String(r)).child(String(c)).set(myName)
           .then(() => {
-            alert("SUCCESS! Square [" + r + "," + c + "] claimed!");
             playSound("claim");
-            toast("✅ " + myName + " claimed [" + r + "," + c + "]!");
+            toast("✅ Claimed!");
             if (navigator.vibrate) navigator.vibrate(50);
           })
           .catch(err => {
-            alert("FAILED! Error: " + err.message);
             console.error("Firebase update FAILED:", err);
             toast("❌ Failed: " + err.message);
           });
@@ -947,20 +936,16 @@
         // Pick random cells
         const shuffled = avail.sort(() => Math.random() - 0.5).slice(0, pick);
 
-        // Build update object for individual cell paths
-        const updates = {};
-        shuffled.forEach(([r, c]) => {
-          updates["grid/" + r + "/" + c] = myName;
-        });
-        updates["feed"] = addFeed(data, myName, "quick picked " + pick + " squares");
-
-        // Update Firebase with error handling
+        // Update each cell individually using Promise.all
         toast("⏳ Claiming " + pick + " squares...");
-        dbr.update(updates)
+        const promises = shuffled.map(([r, c]) =>
+          dbr.child("grid").child(String(r)).child(String(c)).set(myName)
+        );
+
+        Promise.all(promises)
           .then(() => {
-            console.log("Firebase quickPick SUCCESS for", pick, "cells");
             playSound("claim");
-            toast("🎲 " + myName + " got " + pick + " random squares!");
+            toast("🎲 Got " + pick + " random squares!");
             if (navigator.vibrate) navigator.vibrate(50);
           })
           .catch(err => {
