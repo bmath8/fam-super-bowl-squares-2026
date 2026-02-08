@@ -900,18 +900,13 @@
         if (data.grid[r][c]) { toast("Already claimed by " + data.grid[r][c]); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
 
-        // Update ONLY the specific cell path (more reliable than full grid update)
-        toast("⏳ Claiming...");
-        const updates = {};
-        updates["grid/" + r + "/" + c] = myName;
-        updates["feed"] = addFeed(data, myName, "claimed square [" + r + "," + c + "]");
+        // Update ONLY the specific cell - simplified to avoid conflicts
+        alert("Claiming square [" + r + "," + c + "] for " + myName);
 
-        alert("About to update Firebase with: " + JSON.stringify(updates).substring(0, 100));
-
-        dbr.update(updates)
+        // Direct set on the specific cell path
+        dbr.child("grid").child(String(r)).child(String(c)).set(myName)
           .then(() => {
-            alert("SUCCESS! Firebase updated for cell [" + r + "," + c + "]");
-            console.log("Firebase update SUCCESS for cell", r, c);
+            alert("SUCCESS! Square [" + r + "," + c + "] claimed!");
             playSound("claim");
             toast("✅ " + myName + " claimed [" + r + "," + c + "]!");
             if (navigator.vibrate) navigator.vibrate(50);
