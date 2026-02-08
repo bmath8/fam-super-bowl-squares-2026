@@ -1476,6 +1476,24 @@
               </div>
             `)}
           `}
+
+          ${!isConfirmed && Object.keys(myPicks).length > 0 && html`
+            <div style=${{ marginTop: 20 }}>
+              <button onClick=${() => window.dispatchEvent(new CustomEvent("showConfirm"))} style=${{
+            width: "100%", padding: "14px", borderRadius: 12, border: "none",
+            background: "linear-gradient(135deg, var(--gold) 0%, #C4983A 100%)",
+            color: "#1a1a1a", fontSize: 15, fontWeight: 800, letterSpacing: 1,
+            boxShadow: "0 10px 25px rgba(212,168,67,0.4)"
+          }}>🔐 LOCK IN MY PICKS</button>
+            </div>
+          `}
+
+          ${isConfirmed && html`
+             <div style=${{ padding: "12px", background: "var(--gold-glow)", border: "1px solid var(--gold)33", borderRadius: 10, marginTop: 16, textAlign: "center" }}>
+               <div style=${{ fontSize: 13, color: "var(--gold)", fontWeight: 700 }}>✅ YOU ARE LOCKED IN (${data.playerMeta[myName].playMode === 'money' ? 'MONEY' : 'FUN'})</div>
+               <button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 11, textDecoration: "underline", marginTop: 4 }}>Unlock to make changes</button>
+             </div>
+          `}
         </div>
       `;
     }
@@ -2371,24 +2389,6 @@
               </button>
             `)}
           </div>
-
-          ${!isConfirmed && (Object.keys(myPicks).length > 0) && html`
-            <div style=${{ marginTop: 20 }}>
-              <button onClick=${() => window.dispatchEvent(new CustomEvent("showConfirm"))} style=${{
-            width: "100%", padding: "14px", borderRadius: 12, border: "none",
-            background: "linear-gradient(135deg, var(--gold) 0%, #C4983A 100%)",
-            color: "#1a1a1a", fontSize: 15, fontWeight: 800, letterSpacing: 1,
-            boxShadow: "0 10px 25px rgba(212,168,67,0.4)"
-          }}>🔐 LOCK IN MY PICKS</button>
-            </div>
-          `}
-
-          ${isConfirmed && html`
-             <div style=${{ padding: "12px", background: "var(--gold-glow)", border: "1px solid var(--gold)33", borderRadius: 10, marginTop: 16, textAlign: "center" }}>
-               <div style=${{ fontSize: 13, color: "var(--gold)", fontWeight: 700 }}>✅ YOU ARE LOCKED IN (${data.playerMeta[myName].playMode === 'money' ? 'MONEY' : 'FUN'})</div>
-               <button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 11, textDecoration: "underline", marginTop: 4 }}>Unlock to make changes</button>
-             </div>
-          `}
         </div>
       `;
     }
