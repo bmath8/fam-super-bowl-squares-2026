@@ -556,11 +556,7 @@
       let h = 0;
       for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
 
-      return `hsl($ {
-          h % 360
-        }
-
-        , 65%, 45%)`;
+      return `hsl(${h % 360}, 65%, 45%)`;
     }
 
       ;
@@ -816,20 +812,8 @@
             background: [SEA, NER, "#FFB400", "#3DB2FF", "#fff"][i % 5],
             borderRadius: Math.random() > 0.5 ? "50%" : "2px",
             left: Math.random() * 100 + "%", top: -20,
-            animation: `confettiDrop $ {
-            2 + Math.random() * 3
-          }
-
-          s linear $ {
-            Math.random() * 2
-          }
-
-          s forwards`,
-            transform: `rotate($ {
-              Math.random() * 360
-            }
-
-            deg)`,
+            animation: `confettiDrop ${2 + Math.random() * 3}s linear ${Math.random() * 2}s forwards`,
+            transform: `rotate(${Math.random() * 360}deg)`,
           }
         })));
     }
