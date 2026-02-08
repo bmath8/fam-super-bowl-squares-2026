@@ -1038,7 +1038,7 @@
             toast("Could not parse teams.");
           }
 
-        } catch (e) { toast("Fetch failed. Manual update required."); }
+        } catch (e) { toast("Fetch failed. Use 'Edit (Manual)' below."); }
       };
 
       // Calculate cumulative scores and winners for each quarter
@@ -1665,7 +1665,7 @@
     function ShareModal({ data, room, onClose, toast }) {
       const url = `${window.location.origin}${window.location.pathname}?room=${room}`;
 
-      const shareText = `🏈 Super Bowl LX Squares!\n\nSEAHAWKS vs PATRIOTS\n$${data.pool?.pricePerSquare || 5}/square\n\nJoin here: ${url}\nRoom: ${room}`;
+      const shareText = `🏈 Super Bowl Squares!\nRoom: ${room}\nJoin: ${url}`;
 
       const share = async () => {
         if (navigator.share) {
@@ -2035,7 +2035,7 @@
             {data.colNums && <button onClick={() => setShowNeed(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
               🔢 Need
             </button>}
-            <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+            <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600, animation: "none", boxShadow: "none" }}>
               📤 Share
             </button>
             <button onClick={() => setShowSettings(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
