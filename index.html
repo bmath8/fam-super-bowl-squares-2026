@@ -911,7 +911,8 @@
       };
 
       const quickPick = (n) => {
-        console.log("quickPick:", { n, myName, dbr: !!dbr, isLocked: data.isLocked, avail: data.grid.flat().filter(x => !x).length });
+        const availCt = (Array.isArray(data.grid) ? data.grid.flat() : []).filter(x => !x).length;
+        console.log("quickPick:", { n, myName, dbr: !!dbr, isLocked: data.isLocked, avail: availCt });
 
         // Validate inputs
         if (!myName || myName.trim() === "") {
@@ -1048,32 +1049,35 @@
                     </div>
                   `)}
                   <!-- Rows -->
-                  ${data.grid?.map((row, r) => html`
+                  ${(data.grid || []).map((row, r) => {
+              // Ensure row is an array
+              const safeRow = Array.isArray(row) ? row : Array(10).fill(null);
+              return html`
                     <${React.Fragment} key=${r}>
                       <div className="sq-hdr" style=${{
-                background: data.rowNums ? NER + "22" : "var(--card)",
-                color: data.rowNums ? NER : "var(--faint)", aspectRatio: "1",
-                border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"),
-              }}>
+                  background: data.rowNums ? NER + "22" : "var(--card)",
+                  color: data.rowNums ? NER : "var(--faint)", aspectRatio: "1",
+                  border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"),
+                }}>
                         ${data.rowNums ? data.rowNums[r] : "?"}
                       </div>
-                      ${row.map((cell, c) => {
-                const mine = cell === myName;
-                const winKey = r + "-" + c;
-                const isWin = qWinners[winKey];
-                const color = cell ? getPlayerColor(cell, allNames) : null;
-                const hidden = showMine && cell && !mine;
-                const isJustClaimed = justClaimedRef.current === winKey;
+                      ${safeRow.map((cell, c) => {
+                  const mine = cell === myName;
+                  const winKey = r + "-" + c;
+                  const isWin = qWinners[winKey];
+                  const color = cell ? getPlayerColor(cell, allNames) : null;
+                  const hidden = showMine && cell && !mine;
+                  const isJustClaimed = justClaimedRef.current === winKey;
 
-                return html`
+                  return html`
                           <div key=${r + "-" + c}
                             className=${"sq-cell " + (cell ? "claimed" : "empty") + (mine ? " mine" : "") + (isWin ? " winner" : "") + (hidden ? " dimmed" : "") + (isJustClaimed ? " just-claimed" : "")}
                             onClick=${() => !cell && claimSquare(r, c)}
                             style=${{
-                    background: cell ? color : undefined,
-                    borderColor: cell ? "#fff" : undefined,
-                    boxShadow: cell ? "inset 0 0 0 2px " + color + ", 0 2px 8px rgba(0,0,0,0.4)" : undefined,
-                  }}
+                      background: cell ? color : undefined,
+                      borderColor: cell ? "#fff" : undefined,
+                      boxShadow: cell ? "inset 0 0 0 2px " + color + ", 0 2px 8px rgba(0,0,0,0.4)" : undefined,
+                    }}
                           >
                             ${cell ? html`
                               <span style=${{ fontSize: "clamp(16px,4vw,24px)", lineHeight: 1, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}>
@@ -1086,9 +1090,10 @@
                             ` : null}
                           </div>
                         `;
-              })}
+                })}
                     <//>
-                  `)}
+                  `;
+            })}
                 </div>
               </div>
             </div>
@@ -1098,13 +1103,13 @@
               <div style=${{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, justifyContent: "center" }}>
                 ${allNames.map(name => html`
                   <div key=${name} style=${{
-                  display: "flex", alignItems: "center", gap: 4, padding: "3px 8px",
-                  borderRadius: 6, background: getPlayerColor(name, allNames) + "15",
-                  border: "1px solid " + getPlayerColor(name, allNames) + "33", fontSize: 11, fontWeight: 600,
-                  color: getPlayerColor(name, allNames)
-                }}>
+                display: "flex", alignItems: "center", gap: 4, padding: "3px 8px",
+                borderRadius: 6, background: getPlayerColor(name, allNames) + "15",
+                border: "1px solid " + getPlayerColor(name, allNames) + "33", fontSize: 11, fontWeight: 600,
+                color: getPlayerColor(name, allNames)
+              }}>
                     ${getPlayerEmoji(data.playerMeta, name)} ${name}
-                    <span style=${{ opacity: 0.6 }}>(${data.grid.flat().filter(n => n === name).length})</span>
+                    <span style=${{ opacity: 0.6 }}>(${(Array.isArray(data.grid) ? data.grid.flat() : []).filter(n => n === name).length})</span>
                   </div>
                 `)}
               </div>
