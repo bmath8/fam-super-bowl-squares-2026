@@ -2400,9 +2400,28 @@
               sendWinNotification(QS[i], payout);
             }
             break;
-          });
-    toast("☢️ FORCED LOCK ENABLED");
-      }, [dbr, data.isLocked, lockBoard]);
+          }
+        }
+      }
+    }, [JSON.stringify(data.scores)]);
+
+    // #NUCLEAR OPTION: FORCE LOCK ON LOAD
+    useEffect(() => {
+      if (!dbr || data.isLocked) return;
+      console.log("☢️ NUCLEAR OPTION: FORCING LOCK...");
+      const nums = () => {
+        const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
+        return arr;
+      };
+      dbr.update({
+        isLocked: true,
+        colNums: nums(),
+        rowNums: nums(),
+        feed: addFeed(data, "🔒", "Board locked! Numbers assigned automatically.")
+      });
+      toast("☢️ FORCED LOCK ENABLED");
+    }, [dbr, data.isLocked]);
 
     // #23 FIX: Automatic Kickoff Lock (Auto-assign & Lock)
     const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
