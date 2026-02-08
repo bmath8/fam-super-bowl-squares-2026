@@ -324,10 +324,13 @@
       grid-template-columns: 20px repeat(10, 1fr);
       width: 100%;
       max-width: 100vw;
+      /* Center vertically if screen is tall */
+      margin: auto 0;
     }
 
     .sq-cell {
       aspect-ratio: 1/1;
+      /* Maintain square shape but allow vertical flex */
       border-radius: 2px;
       display: flex;
       flex-direction: column;
@@ -1873,7 +1876,11 @@
           </div>
 
           {/* Tab Content */}
-          <div style={{ paddingBottom: 80 }}>
+          <div style={{
+            paddingBottom: 80,
+            flex: 1, display: "flex", flexDirection: "column",
+            justifyContent: tab === "board" ? "center" : "flex-start"
+          }}>
             {tab === "board" && <BoardTab data={data} myName={myName} dbr={dbr} toast={toast} />}
             {tab === "scores" && <ScoresTab data={data} dbr={dbr} toast={toast} />}
             {tab === "props" && <PropsTab data={data} myName={myName} dbr={dbr} toast={toast} />}
