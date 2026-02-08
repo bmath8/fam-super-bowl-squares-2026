@@ -1782,109 +1782,109 @@
           }
         });
 
-      });
 
-      setJoined(true);
-    }, []);
 
-    const dbr = dbrRef.current;
+        setJoined(true);
+      }, []);
 
-    const setMyAvatar = (a) => {
-      setAvatar(a);
-      dbr?.child("playerMeta").child(myName).child("avatar").set(a);
-      setShowAvatarPicker(false);
-    };
+      const dbr = dbrRef.current;
 
-    // Theme toggle
-    useEffect(() => {
-      if (isDark) document.body.classList.remove("light-theme");
-      else document.body.classList.add("light-theme");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-    }, [isDark]);
+      const setMyAvatar = (a) => {
+        setAvatar(a);
+        dbr?.child("playerMeta").child(myName).child("avatar").set(a);
+        setShowAvatarPicker(false);
+      };
 
-    // Tab config
-    const TABS = [
-      { id: "board", icon: "🏈", label: "Board" },
-      { id: "scores", icon: "📊", label: "Scores" },
-      { id: "props", icon: "🎯", label: "Props" },
-      { id: "chat", icon: "💬", label: "Chat", badge: (data.chat || []).length > 0 },
-      { id: "pay", icon: "💰", label: "Pay" },
-    ];
+      // Theme toggle
+      useEffect(() => {
+        if (isDark) document.body.classList.remove("light-theme");
+        else document.body.classList.add("light-theme");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      }, [isDark]);
 
-    if (!joined) return <SetupScreen onJoin={join} />;
+      // Tab config
+      const TABS = [
+        { id: "board", icon: "🏈", label: "Board" },
+        { id: "scores", icon: "📊", label: "Scores" },
+        { id: "props", icon: "🎯", label: "Props" },
+        { id: "chat", icon: "💬", label: "Chat", badge: (data.chat || []).length > 0 },
+        { id: "pay", icon: "💰", label: "Pay" },
+      ];
 
-    return (
-      <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-        {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
-        {showSettings && <SettingsModal data={data} dbr={dbr} onClose={() => setShowSettings(false)} toast={toast} toggleTheme={() => setIsDark(!isDark)} isDark={isDark} />}
-        {showShare && <ShareModal data={data} room={room} onClose={() => setShowShare(false)} toast={toast} />}
-        {showRules && <RulesModal data={data} onClose={() => setShowRules(false)} />}
-        {showWin && <WinnerModal data={data} onClose={() => setShowWin(false)} />}
-        {showNeed && <NeedToWinModal data={data} myName={myName} onClose={() => setShowNeed(false)} />}
+      if (!joined) return <SetupScreen onJoin={join} />;
 
-        {/* Avatar Picker */}
-        {showAvatarPicker && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && setShowAvatarPicker(false)}>
-            <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
-              <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
-                {AVATARS.map(a => (
-                  <button key={a} onClick={() => setMyAvatar(a)} style={{
-                    fontSize: 28, padding: 8, borderRadius: 10, border: `2px solid ${avatar === a ? "var(--gold)" : "var(--border)"}`,
-                    background: avatar === a ? "var(--gold-glow)" : "var(--card)", cursor: "pointer"
-                  }}>{a}</button>
-                ))}
+      return (
+        <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+          {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
+          {showSettings && <SettingsModal data={data} dbr={dbr} onClose={() => setShowSettings(false)} toast={toast} toggleTheme={() => setIsDark(!isDark)} isDark={isDark} />}
+          {showShare && <ShareModal data={data} room={room} onClose={() => setShowShare(false)} toast={toast} />}
+          {showRules && <RulesModal data={data} onClose={() => setShowRules(false)} />}
+          {showWin && <WinnerModal data={data} onClose={() => setShowWin(false)} />}
+          {showNeed && <NeedToWinModal data={data} myName={myName} onClose={() => setShowNeed(false)} />}
+
+          {/* Avatar Picker */}
+          {showAvatarPicker && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={e => e.target === e.currentTarget && setShowAvatarPicker(false)}>
+              <div style={{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
+                <div className="bebas" style={{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
+                  {AVATARS.map(a => (
+                    <button key={a} onClick={() => setMyAvatar(a)} style={{
+                      fontSize: 28, padding: 8, borderRadius: 10, border: `2px solid ${avatar === a ? "var(--gold)" : "var(--border)"}`,
+                      background: avatar === a ? "var(--gold-glow)" : "var(--card)", cursor: "pointer"
+                    }}>{a}</button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Header */}
-        <GameHeader data={data} myName={myName} />
+          {/* Header */}
+          <GameHeader data={data} myName={myName} />
 
-        {/* Action Bar */}
-        <div style={{ display: "flex", gap: 6, padding: "8px 12px", justifyContent: "center" }}>
-          <button onClick={() => setShowAvatarPicker(true)} style={{
-            display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 8,
-            border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
-          }}>
-            <span style={{ fontSize: 16 }}>{avatar || "😀"}</span> {myName}
-          </button>
-          {data.colNums && <button onClick={() => setShowNeed(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
-            🔢 Need
-          </button>}
-          <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-            📤 Share
-          </button>
-          <button onClick={() => setShowSettings(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-            ⚙
-          </button>
-          <button onClick={() => setShowRules(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
-            📋
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div style={{ paddingBottom: 80 }}>
-          {tab === "board" && <BoardTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-          {tab === "scores" && <ScoresTab data={data} dbr={dbr} toast={toast} />}
-          {tab === "props" && <PropsTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-          {tab === "chat" && <ChatTab data={data} myName={myName} dbr={dbr} />}
-          {tab === "pay" && <PayTab data={data} myName={myName} dbr={dbr} toast={toast} />}
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="bottom-nav">
-          {TABS.map(t => (
-            <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
-              <span className="nav-icon">{t.icon}</span>
-              <span>{t.label}</span>
-              <span className="nav-dot" />
+          {/* Action Bar */}
+          <div style={{ display: "flex", gap: 6, padding: "8px 12px", justifyContent: "center" }}>
+            <button onClick={() => setShowAvatarPicker(true)} style={{
+              display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 8,
+              border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
+            }}>
+              <span style={{ fontSize: 16 }}>{avatar || "😀"}</span> {myName}
             </button>
-          ))}
+            {data.colNums && <button onClick={() => setShowNeed(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
+              🔢 Need
+            </button>}
+            <button onClick={() => setShowShare(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+              📤 Share
+            </button>
+            <button onClick={() => setShowSettings(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+              ⚙
+            </button>
+            <button onClick={() => setShowRules(true)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--soft)", fontSize: 12, fontWeight: 600 }}>
+              📋
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div style={{ paddingBottom: 80 }}>
+            {tab === "board" && <BoardTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+            {tab === "scores" && <ScoresTab data={data} dbr={dbr} toast={toast} />}
+            {tab === "props" && <PropsTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+            {tab === "chat" && <ChatTab data={data} myName={myName} dbr={dbr} />}
+            {tab === "pay" && <PayTab data={data} myName={myName} dbr={dbr} toast={toast} />}
+          </div>
+
+          {/* Bottom Navigation */}
+          <div className="bottom-nav">
+            {TABS.map(t => (
+              <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
+                <span className="nav-icon">{t.icon}</span>
+                <span>{t.label}</span>
+                <span className="nav-dot" />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-    );
+      );
     }
 
     // ── Render ─────────────────────────────────────────────────────
