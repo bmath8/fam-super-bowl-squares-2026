@@ -2001,8 +2001,21 @@
 
         ref.on("value", snap => {
           const val = snap.val();
+          console.log("Firebase data received:", val);
           if (val) {
-            setData({ ...DEFAULT, ...val });
+            // Convert grid from Firebase object format to array format
+            let grid = val.grid;
+            if (grid && !Array.isArray(grid)) {
+              // Firebase stores arrays as objects with numeric keys
+              grid = Object.keys(grid).sort((a, b) => Number(a) - Number(b)).map(rowKey => {
+                const row = grid[rowKey];
+                if (Array.isArray(row)) return row;
+                // Convert row object to array
+                return Object.keys(row).sort((a, b) => Number(a) - Number(b)).map(colKey => row[colKey]);
+              });
+              console.log("Converted grid from object to array:", grid);
+            }
+            setData({ ...DEFAULT, ...val, grid: grid || DEFAULT.grid });
           } else {
             // First person to create room is host
             ref.set({ ...DEFAULT, hostCreator: playerId });
