@@ -166,13 +166,19 @@
     const PROPS_LIST = [
       { id: "anthem", q: "National Anthem over/under 2:00?", opts: ["Over", "Under"], cat: "Pre-Game" },
       { id: "coin", q: "Coin toss result?", opts: ["Heads", "Tails"], cat: "Pre-Game" },
+      { id: "coinWin", q: "Coin toss winner elects to?", opts: ["Receive", "Defer", "Kick"], cat: "Pre-Game" },
       { id: "firstScore", q: "First score type?", opts: ["TD", "FG", "Safety"], cat: "1st Half" },
       { id: "firstTeamScore", q: "First team to score?", opts: ["SEA", "NE"], cat: "1st Half" },
+      { id: "firstTD", q: "First TD scored by?", opts: ["SEA", "NE"], cat: "1st Half" },
+      { id: "longestTD", q: "Longest TD over/under 40 yards?", opts: ["Over", "Under"], cat: "Game" },
       { id: "totalTD", q: "Total TDs in game?", opts: ["Under 5", "5-6", "7+"], cat: "Game" },
       { id: "totalPts", q: "Total combined points?", opts: ["Under 40", "40-49", "50-59", "60+"], cat: "Game" },
-      { id: "mvp", q: "MVP position?", opts: ["QB", "RB/WR", "Defense", "Other"], cat: "Post-Game" },
+      { id: "margin", q: "Winning margin?", opts: ["1-6", "7-13", "14-20", "21+"], cat: "Game" },
+      { id: "overtime", q: "Will there be overtime?", opts: ["Yes", "No"], cat: "Game" },
+      { id: "scoreless", q: "Scoreless quarter?", opts: ["Yes", "No"], cat: "Game" },
       { id: "halftime", q: "Halftime performer plays guitar?", opts: ["Yes", "No"], cat: "Halftime" },
-      { id: "gatorade", q: "Gatorade shower color?", opts: ["Orange", "Blue", "Clear", "Red", "None"], cat: "Post-Game" },
+      { id: "mvp", q: "MVP position?", opts: ["QB", "RB/WR", "Defense", "Other"], cat: "Post-Game" },
+      { id: "gatorade", q: "Gatorade shower color?", opts: ["Orange", "Blue", "Clear", "Yellow", "None"], cat: "Post-Game" },
     ];
     const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
 
@@ -682,6 +688,7 @@
       };
 
       // Share and export
+      const GAME_URL = "https://bmath8.github.io/fam-super-bowl-squares-2026/";
       const handleShare = async () => {
         const claimed = grid.flat().filter(Boolean).length;
         const open = 100 - claimed;
@@ -690,19 +697,20 @@
         let txt = "🏈 SUPER BOWL LX SQUARES\n⚡ Seahawks vs Patriots\n";
         txt += pool.pricePerSquare > 0 ? "💰 $" + pool.pricePerSquare + "/square" : "🆓 FREE";
         txt += " • " + (open > 0 ? open + " squares open!" : "Board is FULL!") + "\n";
+        txt += "\n🔗 Play here: " + GAME_URL + "\n";
         if (Object.keys(playerCounts).length > 0) txt += "\n👥 Players: " + Object.entries(playerCounts).map(([n, c]) => n + " (" + c + ")").join(", ") + "\n";
         if (colNums && rowNums) {
           const activeQ = QS.findIndex((_, qi) => scores.SEA[qi] === null || scores.NE[qi] === null);
           QS.forEach((q, qi) => { const w = getWinner(qi); if (w) txt += "\n🏆 " + q + ": " + w.name + " (SEA " + scores.SEA[qi] + "-NE " + scores.NE[qi] + ")"; });
           if (activeQ >= 0 && activeQ < 4 && open === 0) txt += "\n⏳ " + QS[activeQ] + " in progress...";
         }
-        if (open > 0) txt += "\n\n📲 Want a square? Reply with your name and how many squares you want!";
+        if (open > 0) txt += "\n\n📲 Want a square? Join at: " + GAME_URL;
         if (pool.pricePerSquare > 0 && fullPot > 0) {
           txt += "\n\n💸 Total pot: " + fmt$(fullPot);
           if (pool.payoutSplit) txt += " (Q1: " + fmt$(Math.round(fullPot * pool.payoutSplit[0] / 100)) + ", Q2: " + fmt$(Math.round(fullPot * pool.payoutSplit[1] / 100)) + ", Q3: " + fmt$(Math.round(fullPot * pool.payoutSplit[2] / 100)) + ", Final: " + fmt$(Math.round(fullPot * pool.payoutSplit[3] / 100)) + ")";
         }
-        try { if (navigator.share) { await navigator.share({ title: "SB LX Squares", text: txt }); return; } } catch (e) { }
-        try { await navigator.clipboard.writeText(txt); showToast("✅ Board update copied — paste into your group chat!"); } catch (e) { showToast("📋 Copy failed"); }
+        try { if (navigator.share) { await navigator.share({ title: "SB LX Squares", text: txt, url: GAME_URL }); return; } } catch (e) { }
+        try { await navigator.clipboard.writeText(txt); showToast("✅ Board update + URL copied!"); } catch (e) { showToast("📋 Copy failed"); }
       };
 
       const exportBoard = () => {
