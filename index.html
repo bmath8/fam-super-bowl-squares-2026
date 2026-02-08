@@ -763,7 +763,7 @@
         if (maxPP > 0 && myCt >= maxPP) { toast(`Max ${maxPP} squares per player`); return; }
         const newGrid = data.grid.map(row => [...row]);
         newGrid[r][c] = myName;
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, `claimed R${r + 1}C${c + 1}`) });
+        dbr.update({ grid: newGrid, feed: addFeed(data, myName, `claimed a square`) });
         playSound("claim");
       };
 
@@ -777,7 +777,7 @@
         const newGrid = data.grid.map(row => [...row]);
         const shuffled = avail.sort(() => Math.random() - 0.5).slice(0, pick);
         shuffled.forEach(([r, c]) => newGrid[r][c] = myName);
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, `quick-picked ${pick}`) });
+        dbr.update({ grid: newGrid, feed: addFeed(data, myName, `claimed ${pick} squares`) });
         playSound("claim");
         toast(`Claimed ${pick} squares!`);
       };
