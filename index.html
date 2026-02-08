@@ -449,8 +449,8 @@
         const onVal = (snap) => {
           const val = snap.val();
           if (val) {
-            // Merge player metadata conservatively if needed, or just trust DB
-            setData(val);
+            // Merge with defaults to ensure grid exists
+            setData(deepMerge(val));
           } else {
             // New Game
             setData(DEFAULT);
