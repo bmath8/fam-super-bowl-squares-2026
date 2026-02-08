@@ -547,6 +547,11 @@
 <body>
   <div id="root"></div>
   <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      console.error("Global crash:", { msg, url, lineNo, columnNo, error });
+      alert("⚠️ APP CRASH: " + msg + " (Line " + lineNo + ")");
+      return false;
+    };
     // #17 FIX: htm bound to React.createElement — no Babel needed
     const html = htm.bind(React.createElement);
     const { useState, useEffect, useCallback, useRef, useMemo } = React;
@@ -872,13 +877,28 @@
     function BoardTab({ data, myName, dbr, toast }) {
       const [showMine, setShowMine] = useState(false);
       const allNames = useMemo(() => [...new Set(data.grid?.flat().filter(Boolean) || [])], [data.grid]);
-      const myCt = useMemo(() => data.grid?.flat().filter(n => n === myName).length || 0, [data.grid, myName]);
-      const claimed = data.grid?.flat().filter(Boolean).length || 0;
+      const myCt = useMemo(() => {
+        if (!Array.isArray(data.grid)) return 0;
+        return data.grid.flat().filter(n => n === myName).length;
+      }, [data.grid, myName]);
+
+      const claimed = useMemo(() => {
+        if (!Array.isArray(data.grid)) return 0;
+        return data.grid.flat().filter(Boolean).length;
+      }, [data.grid]);
+
       const maxPP = data.settings?.maxPerPlayer || 0;
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
-        console.log("claimSquare:", { r, c, myName, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
+        // Robust check for grid existence
+        if (!data.grid || !data.grid[r]) {
+          console.error("Grid or row missing at", r, c);
+          return;
+        }
+
+        const currentCell = data.grid[r][c];
+        console.log("claimSquare:", { r, c, myName, dbr: !!dbr, isLocked: data.isLocked, cell: currentCell });
 
         // Validate inputs
         if (!myName || myName.trim() === "") {
@@ -890,7 +910,7 @@
           return;
         }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
-        if (data.grid[r][c]) { toast("Already claimed by " + data.grid[r][c]); return; }
+        if (currentCell) { toast("Already claimed by " + currentCell); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
 
         // Update the specific cell
@@ -1050,18 +1070,17 @@
                   `)}
                   <!-- Rows -->
                   ${(data.grid || []).map((row, r) => {
-              // Ensure row is an array
               const safeRow = Array.isArray(row) ? row : Array(10).fill(null);
               return html`
-                    <${React.Fragment} key=${r}>
-                      <div className="sq-hdr" style=${{
+                  <${React.Fragment} key=${r}>
+                    <div className="sq-hdr" style=${{
                   background: data.rowNums ? NER + "22" : "var(--card)",
                   color: data.rowNums ? NER : "var(--faint)", aspectRatio: "1",
                   border: "1px solid " + (data.rowNums ? NER + "33" : "var(--border)"),
                 }}>
-                        ${data.rowNums ? data.rowNums[r] : "?"}
-                      </div>
-                      ${safeRow.map((cell, c) => {
+                      ${data.rowNums ? data.rowNums[r] : "?"}
+                    </div>
+                    ${safeRow.map((cell, c) => {
                   const mine = cell === myName;
                   const winKey = r + "-" + c;
                   const isWin = qWinners[winKey];
@@ -1091,8 +1110,7 @@
                           </div>
                         `;
                 })}
-                    <//>
-                  `;
+                  <//>`;
             })}
                 </div>
               </div>
