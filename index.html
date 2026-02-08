@@ -801,9 +801,14 @@
               <span className="bebas" style={{ fontSize: 20, color: SEA, letterSpacing: 3 }}>SEAHAWKS →</span>
             </div>
 
+            {/* Mobile Patriots Label */}
+            <div className="mobile-patriots" style={{ color: NER }}>
+              PATRIOTS (Rows) ↓
+            </div>
+
             <div style={{ display: "flex", justifyContent: "center" }}>
-              {/* Patriots label */}
-              <div style={{
+              {/* Patriots label (Desktop/Tablet) */}
+              <div className="vertical-patriots" style={{
                 writingMode: "vertical-lr", transform: "rotate(180deg)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 paddingRight: 4,
