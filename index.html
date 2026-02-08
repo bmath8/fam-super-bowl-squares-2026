@@ -718,9 +718,9 @@
       return html`
         <div style=${{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
           onClick=${e => e.target === e.currentTarget && onClose && onClose()}>
-          <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 340, width: "100%", border: "1px solid var(--border2)" }}>
-            <div className="bebas" style=${{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12 }}>CHOOSE AVATAR</div>
-            <div style=${{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
+          <div style=${{ background: "var(--card)", borderRadius: 16, padding: "20px 16px", maxWidth: 360, width: "100%", border: "1px solid var(--border2)", maxHeight: "70vh", overflowY: "auto" }}>
+            <div className="bebas" style=${{ fontSize: 18, letterSpacing: 2, color: "var(--gold)", marginBottom: 12, textAlign: "center" }}>CHOOSE AVATAR</div>
+            <div style=${{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(48px, 1fr))", gap: 8 }}>
               ${AVATARS.map(a => html`
                 <button key=${a} onClick=${() => !disabled && onChange(a)} disabled=${disabled}
                   style=${{
@@ -799,12 +799,12 @@
 
             <div style=${{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 32 }}>
               <div style=${{ textAlign: "center" }}>
-                <div style=${{ width: 56, height: 56, borderRadius: "50%", background: SEA, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 0 20px " + SEA + "33" }}>🦅</div>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 64, height: 64, objectFit: "contain", filter: "drop-shadow(0 0 10px " + SEA + "66)" }} alt="SEA" />
                 <div className="bebas" style=${{ fontSize: 14, color: SEA, marginTop: 6, letterSpacing: 2 }}>SEAHAWKS</div>
               </div>
               <div className="bebas" style=${{ fontSize: 20, color: "var(--faint)" }}>VS</div>
               <div style=${{ textAlign: "center" }}>
-                <div style=${{ width: 56, height: 56, borderRadius: "50%", background: NER, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: "0 0 20px " + NER + "33" }}>🏴</div>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 64, height: 64, objectFit: "contain", filter: "drop-shadow(0 0 10px " + NER + "66)" }} alt="NE" />
                 <div className="bebas" style=${{ fontSize: 14, color: NER, marginTop: 6, letterSpacing: 2 }}>PATRIOTS</div>
               </div>
             </div>
@@ -849,7 +849,7 @@
           <!-- Single compact row: Team - Score/Status - Team -->
           <div style=${{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
             <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
-              <div style=${{ width: 28, height: 28, borderRadius: "50%", background: SEA, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🦅</div>
+              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 32, height: 32, flexShrink: 0, objectFit: "contain" }} alt="SEA" />
               <div>
                 <div className="bebas" style=${{ fontSize: 12, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
                 ${(status === "LIVE" || status === "FINAL") && html`
@@ -882,7 +882,7 @@
                   <div className="bebas" style=${{ fontSize: 22, lineHeight: 1, color: "#fff" }}>${totalNe}</div>
                 `}
               </div>
-              <div style=${{ width: 28, height: 28, borderRadius: "50%", background: NER, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🏴</div>
+              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 32, height: 32, flexShrink: 0, objectFit: "contain" }} alt="NE" />
             </div>
           </div>
 
@@ -1265,7 +1265,7 @@
           <div style=${{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
             <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
               <div style=${{ textAlign: "center" }}>
-                <div style=${{ fontSize: 24, marginBottom: 4 }}>🦅</div>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 44, height: 44, marginBottom: 4, objectFit: "contain" }} alt="SEA" />
                 <div className="bebas" style=${{ fontSize: 14, color: SEA, letterSpacing: 2 }}>SEAHAWKS</div>
                 <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
                   ${quarters.reduce((a, q) => a + (q.seaQ || 0), 0)}
@@ -1276,7 +1276,7 @@
                 <button onClick=${() => fetchScores()} style=${{ marginTop: 8, fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)" }}>🔄 Sync</button>
               </div>
               <div style=${{ textAlign: "center" }}>
-                <div style=${{ fontSize: 24, marginBottom: 4 }}>🏴</div>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 44, height: 44, marginBottom: 4, objectFit: "contain" }} alt="NE" />
                 <div className="bebas" style=${{ fontSize: 14, color: NER, letterSpacing: 2 }}>PATRIOTS</div>
                 <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
                   ${quarters.reduce((a, q) => a + (q.neQ || 0), 0)}
