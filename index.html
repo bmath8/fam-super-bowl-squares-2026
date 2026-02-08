@@ -1813,6 +1813,21 @@
         localStorage.setItem("theme", isDark ? "dark" : "light");
       }, [isDark]);
 
+      // Winner Check Trigger
+      useEffect(() => {
+        if (!data.colNums || !data.rowNums || !data.scores?.SEA || !data.scores?.NE) return;
+        let found = false;
+        for (let i = 0; i < 4; i++) {
+          const s = data.scores.SEA[i], n = data.scores.NE[i];
+          if (s != null && n != null) {
+            const cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+            const cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+            if (getWinner(data.grid, data.colNums, data.rowNums, cs, cn)) { found = true; break; }
+          }
+        }
+        if (found) { setShowWin(true); playSound("win"); }
+      }, [JSON.stringify(data.scores)]);
+
       // Tab config
       const TABS = [
         { id: "board", icon: "🏈", label: "Board" },
