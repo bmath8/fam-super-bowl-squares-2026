@@ -764,7 +764,7 @@
       }, [data]);
 
       return (
-        <div style={{ padding: "4px", animation: "fadeIn .3s ease" }}>
+        <div style={{ padding: "4px 16px", animation: "fadeIn .3s ease", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           {/* Quick actions */}
           {!data.isLocked && (
             <div style={{ marginBottom: 12 }}>
@@ -801,7 +801,7 @@
               <span className="bebas" style={{ fontSize: 20, color: SEA, letterSpacing: 3 }}>SEAHAWKS →</span>
             </div>
 
-            <div style={{ display: "flex" }}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
               {/* Patriots label */}
               <div style={{
                 writingMode: "vertical-lr", transform: "rotate(180deg)",
