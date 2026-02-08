@@ -903,6 +903,7 @@
     // ── Board Tab (#9, #10, #14, #21 fixes) ──────────────────────
     function BoardTab({ data, myName, dbr, toast }) {
       const [showMine, setShowMine] = useState(false);
+      const [zoom, setZoom] = useState(false);
       const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
       const myCt = useMemo(() => {
         if (!Array.isArray(data.grid)) return 0;
@@ -955,6 +956,24 @@
 
         justClaimedRef.current = r + "-" + c;
         setTimeout(() => { justClaimedRef.current = null; }, 600);
+      };
+
+      const unclaimSquare = (r, c) => {
+        if (!dbr) return;
+        if (data.isLocked) { toast("🔒 Board is locked!"); return; }
+        const current = (data.grid && data.grid[r]) ? data.grid[r][c] : null;
+        if (current !== myName) { toast("❌ Not your square!"); return; }
+
+        toast("⏳ Removing...");
+        dbr.child("grid").child(String(r)).child(String(c)).remove()
+          .then(() => {
+            playSound("claim"); // Use same sound for feedback
+            toast("🗑 Removed");
+          })
+          .catch(err => {
+            console.error("Unclaim failed:", err);
+            toast("❌ Failed: " + err.message);
+          });
       };
 
       const quickPick = (n) => {
@@ -1028,13 +1047,22 @@
             <div style=${{ marginBottom: 10 }}>
               <div style=${{ display: "flex", gap: 6, marginBottom: 6 }}>
                 <button onClick=${() => setShowMine(!showMine)} style=${{
-            flex: "0 0 auto", padding: "7px 12px", borderRadius: 8,
+            padding: "7px 12px", borderRadius: 8,
             border: "1px solid " + (showMine ? "var(--gold)" : "var(--border2)"),
             background: showMine ? "var(--gold-glow)" : "transparent",
             color: showMine ? "var(--gold)" : "var(--soft)",
-            fontSize: 12, fontWeight: 600, whiteSpace: "nowrap"
+            fontSize: 12, fontWeight: 600
           }}>
                   ${showMine ? "👁 All" : "⭐ Mine"}
+                </button>
+                <button onClick=${() => setZoom(!zoom)} style=${{
+            padding: "7px 12px", borderRadius: 8,
+            border: "1px solid " + (zoom ? "var(--accent)" : "var(--border2)"),
+            background: zoom ? "rgba(59, 130, 246, 0.1)" : "transparent",
+            color: zoom ? "var(--accent)" : "var(--soft)",
+            fontSize: 12, fontWeight: 600
+          }}>
+                  ${zoom ? "🔍 Out" : "🔍 Zoom"}
                 </button>
                 <div style=${{ display: "flex", gap: 6, flex: 1 }}>
                   ${[1, 3, 5, 10].map(n => html`
@@ -1081,8 +1109,8 @@
                 <span className="bebas" style=${{ fontSize: 12, color: NER, letterSpacing: 2 }}>NE</span>
               </div>
 
-              <div style=${{ flex: 1 }}>
-                <div className="sq-grid">
+              <div style=${{ flex: 1, overflowX: zoom ? "auto" : "hidden" }}>
+                <div className="sq-grid" style=${{ minWidth: zoom ? 600 : "100%" }}>
                   <!-- Corner cell -->
                   <div className="sq-hdr" style=${{ background: "transparent" }} />
                   <!-- Column headers -->
@@ -1118,7 +1146,11 @@
                   return html`
                           <div key=${r + "-" + c}
                             className=${"sq-cell " + (cell ? "claimed" : "empty") + (mine ? " mine" : "") + (isWin ? " winner" : "") + (hidden ? " dimmed" : "") + (isJustClaimed ? " just-claimed" : "")}
-                            onClick=${() => !cell && claimSquare(r, c)}
+                            onClick=${() => {
+                      if (!cell) claimSquare(r, c);
+                      else if (cell === myName) unclaimSquare(r, c);
+                      else toast("Taken by " + cell);
+                    }}
                             style=${{
                       background: cell ? color : undefined,
                       borderColor: cell ? "#fff" : undefined,
@@ -2038,36 +2070,21 @@
           const val = snap.val();
           console.log("Firebase data received:", val);
           if (val) {
-            // Convert grid from Firebase object format to array format
-            let grid = DEFAULT.grid; // Start with default
+            // Convert grid from Firebase object format to array format (ENFORCE 10x10)
+            let grid = Array.from({ length: 10 }, () => Array(10).fill(null));
             try {
               if (val.grid) {
-                if (Array.isArray(val.grid)) {
-                  grid = val.grid;
-                } else {
-                  // Firebase stores arrays as objects with numeric keys
-                  grid = [];
-                  for (let r = 0; r < 10; r++) {
-                    const row = val.grid[r] || val.grid[String(r)];
-                    if (!row) {
-                      grid.push(Array(10).fill(null));
-                    } else if (Array.isArray(row)) {
-                      grid.push(row);
-                    } else {
-                      // Convert row object to array
-                      const rowArr = [];
-                      for (let c = 0; c < 10; c++) {
-                        rowArr.push(row[c] || row[String(c)] || null);
-                      }
-                      grid.push(rowArr);
+                for (let r = 0; r < 10; r++) {
+                  const rowData = val.grid[r] || val.grid[String(r)];
+                  if (rowData) {
+                    for (let c = 0; c < 10; c++) {
+                      grid[r][c] = rowData[c] || rowData[String(c)] || null;
                     }
                   }
-                  console.log("Converted grid from object to array:", grid);
                 }
               }
             } catch (e) {
               console.error("Grid conversion error:", e);
-              grid = DEFAULT.grid;
             }
             setData({ ...DEFAULT, ...val, grid });
           } else {
