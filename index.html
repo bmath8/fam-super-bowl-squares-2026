@@ -1004,7 +1004,7 @@
 
             {/* Tabs */}
             <div style={{ display: "flex", gap: 0, marginBottom: 14, background: T.card, borderRadius: 14, overflow: "hidden", border: "2px solid " + T.cardBorder }}>
-              {[{ id: "board", label: "Board", icon: "🏈", color: SEA }, { id: "scores", label: "Scores", icon: "📊", color: NER }, { id: "chat", label: "Chat", icon: "💬", color: "#3DB2FF" }, { id: "pay", label: "Pay", icon: "💰", color: "#FFB400" }].map(t => (
+              {[{ id: "board", label: "Board", icon: "🏈", color: SEA }, { id: "scores", label: "Scores", icon: "📊", color: NER }, { id: "props", label: "Props", icon: "🎲", color: "#FFB400" }, { id: "chat", label: "Chat", icon: "💬", color: "#3DB2FF" }, { id: "pay", label: "Pay", icon: "💰", color: SEA }].map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "10px 0", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", background: tab === t.id ? t.color : T.card, color: tab === t.id ? "#fff" : T.textSoft, transition: "all .2s" }}>{t.icon}<br /><span style={{ fontSize: 10 }}>{t.label}</span></button>
               ))}
             </div>
@@ -1013,17 +1013,17 @@
             {tab === "board" && (
               <div>
                 {!isLocked && (
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12, maxWidth: 360, margin: "0 auto 12px" }}>
                     <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Your name..." maxLength={20}
-                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
+                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: activeName ? "2px solid " + SEA : "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600, textAlign: "center" }} />
                     <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "12px 20px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: activeName ? SEA : NAV, color: "#fff" }}>{activeName ? "✓" : "Join"}</button>
                   </div>
                 )}
 
                 {isLocked && !activeName && (
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12, maxWidth: 360, margin: "0 auto 12px" }}>
                     <input value={playerName} onChange={e => setPlayerName(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && playerName.trim()) setActiveName(playerName.trim()); }} placeholder="Your name..." maxLength={20}
-                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600 }} />
+                      style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "2px solid " + T.cardBorder, background: T.inputBg, color: T.text, fontSize: 15, fontWeight: 600, textAlign: "center" }} />
                     <button onClick={() => { if (playerName.trim()) setActiveName(playerName.trim()); }} style={{ padding: "12px 20px", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 14, cursor: "pointer", background: NAV, color: "#fff" }}>Go</button>
                   </div>
                 )}
