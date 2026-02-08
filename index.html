@@ -542,17 +542,14 @@
     }
 
     @media (max-width:480px) {
-      .nav-btn span:not(.nav-icon) {
-        display: none;
-      }
-
       .nav-btn .nav-icon {
-        font-size: 24px;
-        margin-bottom: 4px;
+        font-size: 20px;
+        margin-bottom: 2px;
       }
 
       .nav-btn {
-        padding: 8px 0;
+        padding: 6px 0;
+        font-size: 9px;
       }
 
       .sq-hdr {
@@ -1350,7 +1347,13 @@
       const cats = [...new Set(PROPS_LIST.map(p => p.cat))];
 
       const pickProp = (id, val) => {
-        const updated = { ...myPicks, [id]: val };
+        const updated = { ...myPicks };
+        // Toggle: if clicking already selected, remove it
+        if (updated[id] === val) {
+          delete updated[id];
+        } else {
+          updated[id] = val;
+        }
         dbr.child("props").child(myName).set(updated);
         playSound("claim");
       };
