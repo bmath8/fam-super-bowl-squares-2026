@@ -366,13 +366,48 @@
     }
 
     .sq-cell.empty {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border);
+    }
+
+    .sq-cell.empty span {
+      opacity: 0.9 !important;
+      font-size: 16px !important;
+      color: var(--text) !important;
+      font-weight: 700;
+    }
+
+    .sq-cell.empty span {
+      opacity: 0.8 !important;
+      font-size: 16px !important;
+      color: var(--text) !important;
+      font-weight: 700;
     }
 
     .sq-cell.empty:hover {
       border-color: var(--border2);
       background: var(--card2);
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      70% {
+        transform: scale(1.2);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .sq-cell.claimed {
+      border-color: transparent;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     body.light-theme .sq-cell.empty {
@@ -391,6 +426,27 @@
     .sq-cell.winner {
       animation: winPulse 2s infinite;
       z-index: 3;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      70% {
+        transform: scale(1.2);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .sq-cell.claimed {
+      border-color: transparent;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .sq-cell.highlight {
