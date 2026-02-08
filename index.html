@@ -371,13 +371,19 @@
     }
 
     .sq-cell.claimed {
-      border: 2px solid;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      border: 2px solid #fff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+      transform: scale(1);
+      transition: transform 0.2s ease;
+    }
+
+    .sq-cell.claimed:hover {
+      transform: scale(1.05);
     }
 
     .sq-cell.mine {
-      border: 2px solid #69BE28 !important;
-      box-shadow: 0 0 10px rgba(105, 190, 40, 0.5), inset 0 0 0 1px rgba(105, 190, 40, 0.3);
+      border: 3px solid #69BE28 !important;
+      box-shadow: 0 0 15px rgba(105, 190, 40, 0.7), inset 0 0 0 2px rgba(105, 190, 40, 0.4);
       z-index: 2;
     }
 
@@ -868,37 +874,85 @@
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
-        console.log("claimSquare called:", { r, c, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
-        if (!dbr) { toast("⏳ Connecting... try again"); return; }
+        console.log("claimSquare:", { r, c, myName, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
+
+        // Validate inputs
+        if (!myName || myName.trim() === "") {
+          toast("❌ No name set! Refresh page.");
+          console.error("myName is empty:", myName);
+          return;
+        }
+        if (!dbr) {
+          toast("⏳ Connecting to Firebase...");
+          console.error("dbr is null");
+          return;
+        }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
-        if (data.grid[r][c]) { toast("Already claimed!"); return; }
+        if (data.grid[r][c]) { toast("Already claimed by " + data.grid[r][c]); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
+
+        // Build new grid
         const newGrid = data.grid.map(row => [...row]);
         newGrid[r][c] = myName;
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed a square") });
-        playSound("claim");
-        toast("✅ Claimed!");
+
+        // Update Firebase with error handling
+        toast("⏳ Claiming...");
+        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed a square") })
+          .then(() => {
+            console.log("Firebase update SUCCESS");
+            playSound("claim");
+            toast("✅ " + myName + " claimed square!");
+            if (navigator.vibrate) navigator.vibrate(50);
+          })
+          .catch(err => {
+            console.error("Firebase update FAILED:", err);
+            toast("❌ Failed to claim: " + err.message);
+          });
+
         justClaimedRef.current = r + "-" + c;
         setTimeout(() => { justClaimedRef.current = null; }, 600);
-        if (navigator.vibrate) navigator.vibrate(50);
       };
 
       const quickPick = (n) => {
-        console.log("quickPick called:", { n, dbr: !!dbr, isLocked: data.isLocked, availSquares: data.grid.flat().filter(x => !x).length });
-        if (!dbr) { toast("⏳ Connecting... try again"); return; }
+        console.log("quickPick:", { n, myName, dbr: !!dbr, isLocked: data.isLocked, avail: data.grid.flat().filter(x => !x).length });
+
+        // Validate inputs
+        if (!myName || myName.trim() === "") {
+          toast("❌ No name set! Refresh page.");
+          console.error("myName is empty:", myName);
+          return;
+        }
+        if (!dbr) {
+          toast("⏳ Connecting to Firebase...");
+          console.error("dbr is null");
+          return;
+        }
         if (data.isLocked) { toast("🔒 Board is locked!"); return; }
+
         const avail = [];
         data.grid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) avail.push([r, c]); }));
         if (avail.length === 0) { toast("Board is full!"); return; }
+
         const pick = Math.min(n, maxPP > 0 ? maxPP - myCt : n, avail.length);
         if (pick <= 0) { toast("Max " + maxPP + " squares reached"); return; }
+
         const newGrid = data.grid.map(row => [...row]);
         const shuffled = avail.sort(() => Math.random() - 0.5).slice(0, pick);
         shuffled.forEach(([r, c]) => newGrid[r][c] = myName);
-        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed " + pick + " squares") });
-        playSound("claim");
-        toast("🎲 Got " + pick + " random squares!");
-        if (navigator.vibrate) navigator.vibrate(50);
+
+        // Update Firebase with error handling
+        toast("⏳ Claiming " + pick + " squares...");
+        dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed " + pick + " squares") })
+          .then(() => {
+            console.log("Firebase quickPick SUCCESS");
+            playSound("claim");
+            toast("🎲 " + myName + " got " + pick + " squares!");
+            if (navigator.vibrate) navigator.vibrate(50);
+          })
+          .catch(err => {
+            console.error("Firebase quickPick FAILED:", err);
+            toast("❌ Failed: " + err.message);
+          });
       };
 
       // Find current quarter winners
@@ -1020,18 +1074,19 @@
                             className=${"sq-cell " + (cell ? "claimed" : "empty") + (mine ? " mine" : "") + (isWin ? " winner" : "") + (hidden ? " dimmed" : "") + (isJustClaimed ? " just-claimed" : "")}
                             onClick=${() => !cell && claimSquare(r, c)}
                             style=${{
-                    background: cell ? color + "55" : undefined,
-                    borderColor: cell ? color : undefined,
+                    background: cell ? color : undefined,
+                    borderColor: cell ? "#fff" : undefined,
+                    boxShadow: cell ? "inset 0 0 0 2px " + color + ", 0 2px 8px rgba(0,0,0,0.4)" : undefined,
                   }}
                           >
                             ${cell ? html`
-                              <span style=${{ fontSize: "clamp(14px,3.5vw,20px)", lineHeight: 1 }}>
+                              <span style=${{ fontSize: "clamp(16px,4vw,24px)", lineHeight: 1, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}>
                                 ${getPlayerEmoji(data.playerMeta, cell)}
                               </span>
-                              <span style=${{ fontSize: "clamp(7px,2vw,10px)", fontWeight: 800, color: "#fff", lineHeight: 1, textShadow: "0 1px 2px rgba(0,0,0,0.5)", textAlign: "center", marginTop: 2 }}>
-                                ${cell.length > 5 ? cell.substring(0, 4) : cell}
+                              <span style=${{ fontSize: "clamp(8px,2.2vw,12px)", fontWeight: 900, color: "#fff", lineHeight: 1, textShadow: "0 1px 3px rgba(0,0,0,0.8)", textAlign: "center", marginTop: 2, letterSpacing: "0.5px" }}>
+                                ${cell.length > 5 ? cell.substring(0, 4).toUpperCase() : cell.toUpperCase()}
                               </span>
-                              ${isWin && html`<span style=${{ fontSize: 7, color: "#fff", background: "var(--gold)", padding: "1px 3px", borderRadius: 3, fontWeight: 800, lineHeight: 1, position: "absolute", top: 2, right: 2 }}>${isWin.quarter}</span>`}
+                              ${isWin && html`<span style=${{ fontSize: 8, color: "#000", background: "var(--gold)", padding: "2px 4px", borderRadius: 4, fontWeight: 900, lineHeight: 1, position: "absolute", top: 2, right: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>${isWin.quarter}</span>`}
                             ` : null}
                           </div>
                         `;
