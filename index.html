@@ -371,12 +371,13 @@
     }
 
     .sq-cell.claimed {
-      border-color: transparent;
-      animation: claimPop .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .sq-cell.mine {
-      border: 2px solid rgba(105, 190, 40, 0.8);
+      border: 2px solid #69BE28 !important;
+      box-shadow: 0 0 10px rgba(105, 190, 40, 0.5), inset 0 0 0 1px rgba(105, 190, 40, 0.3);
       z-index: 2;
     }
 
@@ -1015,18 +1016,18 @@
                             className=${"sq-cell " + (cell ? "claimed" : "empty") + (mine ? " mine" : "") + (isWin ? " winner" : "") + (hidden ? " dimmed" : "") + (isJustClaimed ? " just-claimed" : "")}
                             onClick=${() => !cell && claimSquare(r, c)}
                             style=${{
-                    background: cell ? color + "22" : undefined,
-                    borderColor: mine ? color + "88" : isWin ? "var(--gold)" : undefined,
+                    background: cell ? color + "55" : undefined,
+                    borderColor: cell ? color : undefined,
                   }}
                           >
                             ${cell ? html`
-                              <span style=${{ fontSize: "clamp(12px,3vw,16px)", lineHeight: 1 }}>
+                              <span style=${{ fontSize: "clamp(14px,3.5vw,20px)", lineHeight: 1 }}>
                                 ${getPlayerEmoji(data.playerMeta, cell)}
                               </span>
-                              <span style=${{ fontSize: "clamp(6px,1.8vw,9px)", fontWeight: 700, color, lineHeight: 1, textOverflow: "ellipsis", overflow: "hidden", maxWidth: "100%", textAlign: "center", marginTop: 1 }}>
-                                ${cell.length > 4 ? cell.substring(0, 3) : cell}
+                              <span style=${{ fontSize: "clamp(7px,2vw,10px)", fontWeight: 800, color: "#fff", lineHeight: 1, textShadow: "0 1px 2px rgba(0,0,0,0.5)", textAlign: "center", marginTop: 2 }}>
+                                ${cell.length > 5 ? cell.substring(0, 4) : cell}
                               </span>
-                              ${isWin && html`<span style=${{ fontSize: 6, color: "var(--gold)", fontWeight: 800, lineHeight: 1, position: "absolute", top: 1, right: 2 }}>${isWin.quarter}</span>`}
+                              ${isWin && html`<span style=${{ fontSize: 7, color: "#fff", background: "var(--gold)", padding: "1px 3px", borderRadius: 3, fontWeight: 800, lineHeight: 1, position: "absolute", top: 2, right: 2 }}>${isWin.quarter}</span>`}
                             ` : null}
                           </div>
                         `;
