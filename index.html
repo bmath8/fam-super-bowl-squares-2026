@@ -1039,11 +1039,9 @@
                 )}
 
                 {!isLocked && activeName && pool.pricePerSquare > 0 && (
-                  <div style={{ borderRadius: 12, padding: "10px 14px", marginBottom: 10, border: isPaid(activeName) ? "2px solid " + SEA + "40" : "2px solid " + T.cardBorder, background: isPaid(activeName) ? SEA + "08" : T.card }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                      <div style={{ flex: 1 }}>{isPaid(activeName) ? (<div><div style={{ fontSize: 13, fontWeight: 700, color: SEA }}>💰 Betting ${pool.pricePerSquare}/square</div><div style={{ fontSize: 11, color: T.textSoft }}>In the money pool</div></div>) : (<div><div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>🎉 Playing for fun</div><div style={{ fontSize: 11, color: T.textSoft }}>Tap to join the money pool</div></div>)}</div>
-                      <button onClick={() => update(d => ({ ...d, paidPlayers: { ...(d.paidPlayers || {}), [activeName]: !isPaid(activeName) } }))} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: isPaid(activeName) ? T.cardBorder : "#FFB400", color: isPaid(activeName) ? T.textSoft : "#000", fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}>{isPaid(activeName) ? "Switch to Free" : "💰 I'm Betting"}</button>
-                    </div>
+                  <div style={{ borderRadius: 12, padding: "12px 16px", marginBottom: 10, maxWidth: 360, margin: "0 auto 10px", textAlign: "center", border: isPaid(activeName) ? "2px solid " + SEA + "40" : "2px solid " + T.cardBorder, background: isPaid(activeName) ? SEA + "08" : T.card }}>
+                    <div style={{ marginBottom: 10 }}>{isPaid(activeName) ? (<div><div style={{ fontSize: 15, fontWeight: 800, color: SEA }}>💰 Betting ${pool.pricePerSquare}/square</div><div style={{ fontSize: 12, color: T.textSoft, marginTop: 2 }}>In the money pool</div></div>) : (<div><div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>🎉 Playing for fun</div><div style={{ fontSize: 12, color: T.textSoft, marginTop: 2 }}>Tap to join the money pool</div></div>)}</div>
+                    <button onClick={() => update(d => ({ ...d, paidPlayers: { ...(d.paidPlayers || {}), [activeName]: !isPaid(activeName) } }))} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: isPaid(activeName) ? T.cardBorder : "#FFB400", color: isPaid(activeName) ? T.textSoft : "#000", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>{isPaid(activeName) ? "Switch to Free" : "💰 I'm Betting"}</button>
                   </div>
                 )}
 
