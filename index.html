@@ -1409,6 +1409,13 @@
       ;
     }
 
+    // ── Global Error Handler & Version Log ──────────────────────────
+    console.log("%c 🏈 SUPER BOWL SQUARES - EMERGENCY FIX v4.0 LOADED 🏈 ", "background: #22C55E; color: #fff; font-size: 14px; padding: 4px;");
+    window.onerror = function (msg, url, line, col, error) {
+      console.error("Global error:", msg, url, line, col, error);
+      // document.body.innerHTML = '<div style="color:red; padding:20px;"><h1>App Crash</h1><pre>' + msg + '</pre></div>'; 
+    };
+
     // ── Chat Tab ──────────────────────────────────────────────────
     function ChatTab({ data, myName, dbr }) {
       const [msg, setMsg] = useState("");
