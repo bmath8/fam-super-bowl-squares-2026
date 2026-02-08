@@ -868,25 +868,25 @@
       const justClaimedRef = useRef(null);
 
       const claimSquare = (r, c) => {
-        if (!dbr) { toast("Connecting..."); return; }
-        if (data.isLocked) { toast("Board is locked!"); return; }
-        if (data.grid[r][c]) return;
+        console.log("claimSquare called:", { r, c, dbr: !!dbr, isLocked: data.isLocked, cell: data.grid[r][c] });
+        if (!dbr) { toast("⏳ Connecting... try again"); return; }
+        if (data.isLocked) { toast("🔒 Board is locked!"); return; }
+        if (data.grid[r][c]) { toast("Already claimed!"); return; }
         if (maxPP > 0 && myCt >= maxPP) { toast("Max " + maxPP + " squares per player"); return; }
         const newGrid = data.grid.map(row => [...row]);
         newGrid[r][c] = myName;
         dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed a square") });
         playSound("claim");
-        toast("Claimed!");
-        // #10 FIX: Mark cell for celebration animation
+        toast("✅ Claimed!");
         justClaimedRef.current = r + "-" + c;
         setTimeout(() => { justClaimedRef.current = null; }, 600);
-        // Haptic feedback (mobile)
         if (navigator.vibrate) navigator.vibrate(50);
       };
 
       const quickPick = (n) => {
-        if (!dbr) { toast("Connecting..."); return; }
-        if (data.isLocked) { toast("Board is locked!"); return; }
+        console.log("quickPick called:", { n, dbr: !!dbr, isLocked: data.isLocked, availSquares: data.grid.flat().filter(x => !x).length });
+        if (!dbr) { toast("⏳ Connecting... try again"); return; }
+        if (data.isLocked) { toast("🔒 Board is locked!"); return; }
         const avail = [];
         data.grid.forEach((row, r) => row.forEach((cell, c) => { if (!cell) avail.push([r, c]); }));
         if (avail.length === 0) { toast("Board is full!"); return; }
@@ -897,7 +897,7 @@
         shuffled.forEach(([r, c]) => newGrid[r][c] = myName);
         dbr.update({ grid: newGrid, feed: addFeed(data, myName, "claimed " + pick + " squares") });
         playSound("claim");
-        toast("🎲 Claimed " + pick + " squares!");
+        toast("🎲 Got " + pick + " random squares!");
         if (navigator.vibrate) navigator.vibrate(50);
       };
 
@@ -935,12 +935,16 @@
           }}>
                   ${showMine ? "👁 All" : "⭐ Mine"}
                 </button>
-                <div style=${{ display: "flex", gap: 4, flex: 1 }}>
+                <div style=${{ display: "flex", gap: 6, flex: 1 }}>
                   ${[1, 3, 5, 10].map(n => html`
-                    <button key=${n} onClick=${() => quickPick(n)} style=${{
-              flex: 1, padding: "7px 0", borderRadius: 8, border: "1px solid var(--border2)",
-              background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 700,
-            }}>🎲 ${n}</button>
+                    <button key=${n} onClick=${() => { console.log("Dice button " + n + " clicked"); quickPick(n); }} style=${{
+              flex: 1, padding: "12px 0", borderRadius: 10, border: "2px solid var(--gold)",
+              background: "var(--gold-glow)", color: "var(--gold)", fontSize: 14, fontWeight: 800,
+              cursor: "pointer", transition: "transform 0.1s, background 0.1s"
+            }}
+                      onTouchStart=${e => e.currentTarget.style.transform = "scale(0.95)"}
+                      onTouchEnd=${e => e.currentTarget.style.transform = "scale(1)"}
+                    >🎲 ${n}</button>
                   `)}
                 </div>
               </div>
@@ -1967,9 +1971,11 @@
         requestNotificationPermission();
 
         setJoined(true);
+        console.log("Joined room:", rm, "dbRef set:", !!ref);
       }, []);
 
       const dbr = dbrRef.current;
+      console.log("App render - dbr:", !!dbr, "joined:", joined);
 
       const setMyAvatar = (a) => {
         setAvatar(a);
