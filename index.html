@@ -2308,6 +2308,9 @@
 
       if (!joined) return html`<${SetupScreen} onJoin=${join} />`;
 
+      const isConfirmed = data.playerMeta?.[myName]?.confirmed;
+      const myPicks = data.props?.[myName] || {};
+
       return html`
         <div style=${{ minHeight: "100vh", background: "var(--bg)" }}>
           ${toastMsg && html`<${Toast} msg=${toastMsg} onDone=${() => setToastMsg(null)} />`}
