@@ -641,15 +641,16 @@
     const DEFAULT = {
       grid: Array.from({ length: 10 }, () => Array(10).fill(null)),
       colNums: null, rowNums: null, isLocked: false,
-      scores: { SEA: [null, null, null, null], NE: [null, null, null, null] },
+      scores: { SEA: [3, 9, 7, 10], NE: [0, 0, 0, 13] }, // FINAL: SEA 29, NE 13
       pool: { pricePerSquare: 5, payoutSplit: [25, 25, 25, 25], payoutPreset: "even", propBuyIn: 2 },
-      settings: { maxPerPlayer: 0, showHeatMap: false, autoScoreSync: true },
+      settings: { maxPerPlayer: 0, showHeatMap: false, autoScoreSync: false }, // Auto-sync OFF
       feed: [], playerMeta: {}, props: {}, propAnswers: {},
       feedReactions: {}, squareReactions: {},
       hostPin: "", zellePhone: "", zelleEmail: "", darkMode: true,
       trades: [], chat: [], payments: {}, propBuyIns: {}, paidPlayers: {},
       priorityMode: false, admins: [], auditLog: [],
-      gameState: "PRE", // #20 FIX: PRE, LIVE, FINAL
+      gameState: "FINAL", // Game is FINAL
+      gameMeta: { status: "STATUS_FINAL", period: 4, clock: "0:00", detail: "Final", seaTotal: 29, neTotal: 13 },
       tiebreaker: { question: "Total combined points in the game?", answers: {} },
     };
 
