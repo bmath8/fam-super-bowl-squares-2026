@@ -1283,50 +1283,51 @@
       const isLive = data.gameMeta?.status === "STATUS_IN_PROGRESS" || data.gameMeta?.status === "STATUS_HALFTIME";
 
       return html`
-        <div style=${{ padding: "12px", width: "100%", maxWidth: 600, margin: "0 auto", animation: "fadeIn .4s ease" }}>
-          ${isLive && html`
-             <div style=${{ background: "var(--card)", borderRadius: 12, padding: "10px 16px", marginBottom: 12, border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-               <div style=${{ display: "flex", alignItems: "center", gap: 10 }}>
-                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 24, height: 24 }} alt="SEA" />
-                 <span className="bebas" style=${{ fontSize: 18, color: "#fff" }}>${totalSea}</span>
-                 <span style=${{ color: "var(--faint)", fontSize: 14 }}>—</span>
-                 <span className="bebas" style=${{ fontSize: 18, color: "#fff" }}>${totalNe}</span>
-                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 24, height: 24 }} alt="NE" />
-               </div>
-               <div style=${{ textAlign: "right" }}>
-                 <div style=${{ color: "var(--gold)", fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
-                   ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`LIVE NOW`}
-                 </div>
-                 <div style=${{ fontSize: 9, color: "var(--soft)", textTransform: "uppercase" }}>Current Score</div>
-               </div>
-             </div>
-          `}
-          <!-- Actions Bar -->
-          <div style=${{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
-            <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-              <div style=${{ textAlign: "center" }}>
-                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 44, height: 44, marginBottom: 4, objectFit: "contain" }} alt="SEA" />
-                <div className="bebas" style=${{ fontSize: 14, color: SEA, letterSpacing: 2 }}>SEAHAWKS</div>
-                <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
-                  ${quarters.reduce((a, q) => a + (q.seaQ || 0), 0)}
+        <div style=${{ padding: "12px", width: "100%", maxWidth: 660, margin: "0 auto", animation: "fadeIn .4s ease" }}>
+          <!-- Redundant small banner removed -->
+          <!-- Stunning Main Scoreboard -->
+          <div style=${{ background: "var(--card)", borderRadius: 20, padding: "28px 20px", border: "1px solid var(--border2)", marginBottom: 20, boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}>
+            <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-around", gap: 10 }}>
+              <!-- TEAM SEA -->
+              <div style=${{ textAlign: "center", flex: 1 }}>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 56, height: 56, marginBottom: 8, objectFit: "contain", filter: "drop-shadow(0 0 12px " + SEA + "44)" }} alt="SEA" />
+                <div className="bebas" style=${{ fontSize: 13, color: SEA, letterSpacing: 2, opacity: 0.8 }}>SEAHAWKS</div>
+                <div className="bebas" style=${{ fontSize: 64, lineHeight: 1, color: SEA, marginTop: 6, textShadow: "0 0 30px " + SEA + "88" }}>
+                  ${totalSea}
                 </div>
               </div>
-              <div style=${{ textAlign: "center" }}>
-                <div className="bebas" style=${{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
-                <div style=${{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center", marginTop: 4 }}>
-                  <button onClick=${() => window.dispatchEvent(new CustomEvent("manualSyncTrigger"))} style=${{ fontSize: 10, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 700 }}>🔄 Sync Now</button>
+
+              <!-- CENTER INFO -->
+              <div style=${{ textAlign: "center", minWidth: 120 }}>
+                <div className="bebas" style=${{ fontSize: 12, color: "var(--faint)", letterSpacing: 3, marginBottom: 8 }}>SCOREBOARD</div>
+                
+                ${(data.gameMeta?.status && data.gameMeta.status !== "STATUS_SCHEDULED") ? html`
+                   <div style=${{ margin: "8px 0" }}>
+                     <div className="status-badge live" style=${{ fontSize: 10, padding: "4px 12px", background: "rgba(239,68,68,0.2)" }}>LIVE</div>
+                     <div style=${{ fontSize: 16, color: "var(--gold)", fontWeight: 900, marginTop: 8, letterSpacing: 1 }}>
+                       ${data.gameMeta.clock ? html`Q${data.gameMeta.period} • ${data.gameMeta.clock}` : html`IN PLAY`}
+                     </div>
+                   </div>
+                ` : html`
+                   <div style=${{ color: "var(--faint)", fontSize: 13, fontWeight: 700, margin: "10px 0" }}>GAME STARTING</div>
+                `}
+
+                <div style=${{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", marginTop: 12 }}>
+                  <button onClick=${() => window.dispatchEvent(new CustomEvent("manualSyncTrigger"))} style=${{ fontSize: 11, padding: "8px 18px", borderRadius: 10, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>🔄 Sync Now</button>
                   ${isHost && html`
                     <div style=${{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style=${{ fontSize: 8, color: autoOn ? "#22C55E" : "#EF4444", fontWeight: 700 }}>● ${autoOn ? "AUTO-SYNC ON" : "AUTO-SYNC OFF"}</span>
+                      <span style=${{ fontSize: 9, color: autoOn ? "#22C55E" : "#EF4444", fontWeight: 800 }}>● AUTO-SYNC ${autoOn ? "ON" : "OFF"}</span>
                     </div>
                   `}
                 </div>
               </div>
-              <div style=${{ textAlign: "center" }}>
-                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 44, height: 44, marginBottom: 4, objectFit: "contain" }} alt="NE" />
-                <div className="bebas" style=${{ fontSize: 14, color: NER, letterSpacing: 2 }}>PATRIOTS</div>
-                <div className="bebas" style=${{ fontSize: 48, lineHeight: 1, color: "#fff", marginTop: 4 }}>
-                  ${quarters.reduce((a, q) => a + (q.neQ || 0), 0)}
+
+              <!-- TEAM NE -->
+              <div style=${{ textAlign: "center", flex: 1 }}>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 56, height: 56, marginBottom: 8, objectFit: "contain", filter: "drop-shadow(0 0 12px " + NER + "44)" }} alt="NE" />
+                <div className="bebas" style=${{ fontSize: 13, color: NER, letterSpacing: 2, opacity: 0.8 }}>PATRIOTS</div>
+                <div className="bebas" style=${{ fontSize: 64, lineHeight: 1, color: NER, marginTop: 6, textShadow: "0 0 30px " + NER + "88" }}>
+                  ${totalNe}
                 </div>
               </div>
             </div>
