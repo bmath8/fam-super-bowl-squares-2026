@@ -1,0 +1,332 @@
+
+import os
+import json
+
+path = r"c:\Users\mathe\OneDrive\Desktop\Fam Super Bowl Squares 2026\index.html"
+
+# This is the "Golden Version" - Pure React + Elite Branding + Robust Data Sync
+PROPS_LIST = [
+  {"id": "anthem", "q": "National Anthem over/under 2:00?", "opts": ["Over", "Under"], "cat": "Pre-Game"},
+  {"id": "coin", "q": "Coin toss result?", "opts": ["Heads", "Tails"], "cat": "Pre-Game"},
+  {"id": "coinWin", "q": "Coin toss winner elects to?", "opts": ["Receive", "Defer", "Kick"], "cat": "Pre-Game"},
+  {"id": "firstScore", "q": "First score type?", "opts": ["TD", "FG", "Safety"], "cat": "1st Half"},
+  {"id": "firstTeamScore", "q": "First team to score?", "opts": ["SEA", "NE"], "cat": "1st Half"},
+  {"id": "firstTD", "q": "First TD scored by?", "opts": ["SEA", "NE"], "cat": "1st Half"},
+  {"id": "longestTD", "q": "Longest TD over/under 40 yards?", "opts": ["Over", "Under"], "cat": "Game"},
+  {"id": "totalTD", "q": "Total TDs in game?", "opts": ["Under 5", "5-6", "7+"], "cat": "Game"},
+  {"id": "totalPts", "q": "Total combined points?", "opts": ["Under 40", "40-49", "50-59", "60+"], "cat": "Game"},
+  {"id": "margin", "q": "Winning margin?", "opts": ["1-6", "7-13", "14-20", "21+"], "cat": "Game"},
+  {"id": "overtime", "q": "Will there be overtime?", "opts": ["Yes", "No"], "cat": "Game"},
+  {"id": "scoreless", "q": "Scoreless quarter?", "opts": ["Yes", "No"], "cat": "Game"},
+  {"id": "halftime", "q": "Halftime performer plays guitar?", "opts": ["Yes", "No"], "cat": "Halftime"},
+  {"id": "mvp", "q": "MVP position?", "opts": ["QB", "RB/WR", "Defense", "Other"], "cat": "Post-Game"},
+  {"id": "gatorade", "q": "Gatorade shower color?", "opts": ["Orange", "Blue", "Clear", "Yellow", "None"], "cat": "Post-Game"},
+]
+
+final_html_template = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    window.sbBreadcrumb = "Head-Start";
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      const d = error ? "\nDetails: " + error.message : "";
+      const b = window.sbBreadcrumb ? "\nLast Breadcrumb: " + window.sbBreadcrumb : "";
+      alert("⚠️ APP CRASH: " + msg + " (Line " + lineNo + ")" + d + b);
+      return false;
+    };
+    function trace(id) { window.sbBreadcrumb = id; console.log("📍 " + id); }
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Super Bowl LX Squares — Seahawks vs Patriots</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f18; --card: #111827; --card2: #1a2236; --border: #1e293b; --border2: #242f44;
+      --text: #e2e8f0; --soft: #94a3b8; --faint: #475569; --sea: #69BE28; --ner: #C60C30;
+      --nav: #002244; --gold: #d4a843; --gold-glow: rgba(212,168,67,0.15);
+      --accent: #3b82f6; --input: #0f172a; --safe: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
+      margin: 0; padding: 0; overflow-x: hidden; width: 100%; padding-bottom: calc(80px + var(--safe));
+    }
+    .bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid var(--border2); }
+    .sq-grid { display: grid; gap: 2px; grid-template-columns: 24px repeat(10, 1fr); padding: 4px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border2); }
+    .sq-cell {
+      aspect-ratio: 1/1; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      background: var(--card); border: 1px solid var(--border); transition: all .1s; cursor: pointer;
+    }
+    .sq-cell.empty { background: rgba(255,255,255,0.02); border: 0.5px dashed var(--border); }
+    .sq-cell.mine { border: 2px solid var(--gold); box-shadow: 0 0 10px var(--gold-glow); z-index: 2; }
+    .sq-hdr { display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--soft); font-weight: 800; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(10, 15, 24, 0.95); backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border2); display: flex; padding: 10px 0 calc(10px + var(--safe));
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; color: var(--faint);
+      background: none; border: none; font-size: 10px; font-weight: 800; transition: color .2s;
+    }
+    .nav-btn.active { color: var(--gold); }
+    .nav-btn span:first-child { font-size: 20px; margin-bottom: 2px; }
+    .toast {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2000;
+      background: var(--gold); color: #000; padding: 12px 24px; border-radius: 99px;
+      font-weight: 800; font-size: 13px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); animation: slideIn .3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+    .btn-primary { background: var(--gold); color: #000; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: transform .1s; }
+    .btn-primary:active { transform: scale(0.96); }
+    .status-badge { padding: 2px 6px; borderRadius: 4px; fontSize: 9px; fontWeight: 900; letterSpacing: 1px; color: #fff; }
+    .status-badge.live { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+    @keyframes slideIn { from { transform: translate(-50%, -100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    trace("Script-Initialize");
+    const { useState, useEffect, useCallback, useRef, useMemo } = React;
+    const h = React.createElement;
+
+    // --- Config ---
+    const AVATARS = ["😀", "😎", "🤠", "🦅", "🐻", "🦁", "🐶", "🐱", "🦊", "🐸", "🎅", "👻", "🤖", "🦸", "🧙", "💪", "🏈", "⭐", "🔥", "💎", "🍕", "🌮", "🍺", "🎸"];
+    const SEA = "#69BE28", NER = "#C60C30", NAV = "#002244";
+    const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
+    const PROPS_LIST = __PROPS_DATA__;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEEWLXshtNMrf317dgD5cDpDmETLDhueo",
+      authDomain: "super-bowl-squares-fam-2026.firebaseapp.com",
+      databaseURL: "https://super-bowl-squares-fam-2026-default-rtdb.firebaseio.com",
+      projectId: "super-bowl-squares-fam-2026",
+      storageBucket: "super-bowl-squares-fam-2026.firebasestorage.app",
+      messagingSenderId: "393390824832",
+      appId: "1:393390824832:web:d06bca315fd0a991bb7565"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const rtdb = firebase.database();
+
+    const DEFAULT = {
+      grid: Array.from({ length: 10 }, () => Array(10).fill(null)),
+      colNums: [null,null,null,null,null,null,null,null,null,null],
+      rowNums: [null,null,null,null,null,null,null,null,null,null],
+      scores: { SEA: [0,0,0,0], NE: [0,0,0,0] },
+      pool: { pricePerSquare: 5, payoutSplit: [25, 25, 25, 25] },
+      playerMeta: {}, props: {}, chat: {}, isLocked: false
+    };
+
+    // --- Helpers ---
+    function dbRef(room) { return rtdb.ref("rooms/" + (room || "MAIN")); }
+    function safeGrid(g) {
+      if (!g) return [];
+      if (Array.isArray(g)) return g.flat();
+      return Object.values(g).flatMap(r => (typeof r === 'object' ? Object.values(r) : [r]));
+    }
+    function parseGrid(raw) {
+      const grid = Array.from({ length: 10 }, () => Array(10).fill(null));
+      if (!raw) return grid;
+      const rKeys = Object.keys(raw);
+      rKeys.forEach(rk => {
+        const rIdx = parseInt(rk);
+        if (rIdx >= 0 && rIdx < 10) {
+          const row = raw[rk];
+          Object.keys(row).forEach(ck => {
+            const cIdx = parseInt(ck);
+            if (cIdx >= 0 && cIdx < 10) grid[rIdx][cIdx] = row[ck];
+          });
+        }
+      });
+      return grid;
+    }
+    function getPlayerEmoji(meta, name) { return meta?.[name]?.avatar || "😀"; }
+
+    // --- Components ---
+    function Toast({ msg, onDone }) {
+      useEffect(() => { const t = setTimeout(onDone, 2500); return () => clearTimeout(t); }, [msg]);
+      return h('div', { className: "toast" }, msg);
+    }
+
+    function AvatarPicker({ value, onChange, onClose }) {
+      return h('div', { style: { position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }, onClick: e => e.target === e.currentTarget && onClose() },
+        h('div', { style: { background: "var(--card2)", padding: 24, borderRadius: 24, border: "1px solid var(--border2)", maxWidth: 360, width: "100%" } },
+          h('div', { className: "bebas", style: { fontSize: 24, color: "var(--gold)", textAlign: "center", marginBottom: 20 } }, "CHOOSE YOUR AVATAR"),
+          h('div', { style: { display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 } },
+            AVATARS.map(a => h('button', { key: a, onClick: () => onChange(a), style: { fontSize: 24, padding: 8, background: value === a ? "var(--gold-glow)" : "transparent", border: value === a ? "2px solid var(--gold)" : "1px solid var(--border)", borderRadius: 12, cursor: "pointer" } }, a))
+          )
+        )
+      );
+    }
+
+    function SetupScreen({ onJoin }) {
+      const [name, setName] = useState(() => localStorage.getItem("sbName") || "");
+      const [room, setRoom] = useState(() => new URLSearchParams(window.location.search).get("room") || "MAIN");
+      return h('div', { style: { minHeight: "100vh", background: "radial-gradient(circle at top right, " + NAV + ", #000)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 } },
+        h('div', { className: "bebas", style: { fontSize: 60, color: "var(--gold)", textAlign: "center", filter: "drop-shadow(0 0 10px rgba(212,168,67,0.3))" } }, "SUPER BOWL LX"),
+        h('div', { className: "bebas", style: { fontSize: 24, color: "#fff", opacity: 0.6, letterSpacing: 3, marginBottom: 40 } }, "SQUARES CHALLENGE"),
+        h('div', { className: "glass", style: { padding: 32, borderRadius: 32, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 16 } },
+          h('div', null,
+            h('div', { style: { fontSize: 10, fontWeight: 900, color: "var(--gold)", marginBottom: 6, letterSpacing: 1 } }, "PLAYER NAME"),
+            h('input', { value: name, onChange: e => setName(e.target.value), placeholder: "ENTER NAME", style: { width: "100%", padding: 18, background: "var(--input)", border: "1px solid var(--border2)", borderRadius: 16, color: "#fff", textAlign: "center", fontSize: 16, fontWeight: 700 } })
+          ),
+          h('div', null,
+            h('div', { style: { fontSize: 10, fontWeight: 900, color: "var(--gold)", marginBottom: 6, letterSpacing: 1 } }, "ROOM CODE"),
+            h('input', { value: room, onChange: e => setRoom(e.target.value.toUpperCase()), placeholder: "MAIN", style: { width: "100%", padding: 18, background: "var(--input)", border: "1px solid var(--border2)", borderRadius: 16, color: "#fff", textAlign: "center", fontSize: 16, fontWeight: 700, letterSpacing: 2 } })
+          ),
+          h('button', { className: "btn-primary", onClick: () => name && room && onJoin(name.trim(), room.trim()), style: { width: "100%", padding: 20, fontSize: 18, marginTop: 10 } }, "ENTER STADIUM")
+        )
+      );
+    }
+
+    function GameHeader({ data, onSettings }) {
+      const seaT = (data.scores?.SEA || []).reduce((a,b)=>a+(b||0), 0);
+      const neT = (data.scores?.NE || []).reduce((a,b)=>a+(b||0), 0);
+      const isLive = true; // For demo/branding
+      return h('header', { className: "glass", style: { position: "sticky", top: 0, zIndex: 500, padding: "12px 16px", borderTop: "none", borderLeft: "none", borderRight: "none", display: "flex", justifyContent: "space-between", alignItems: "center" } },
+        h('div', { style: { display: "flex", alignItems: "center", gap: 12 } },
+          h('img', { src: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", style: { width: 36, height: 36, objectFit: "contain" } }),
+          h('div', null, h('div', { className: "bebas", style: { fontSize: 20, lineHeight: 1, color: "#fff" } }, seaT), h('div', { style: { fontSize: 9, fontWeight: 900, color: SEA } }, "SEAHAWKS"))
+        ),
+        h('div', { style: { textAlign: "center" } },
+           h('div', { className: "status-badge live" }, "LIVE"),
+           h('div', { className: "bebas", style: { fontSize: 11, color: "var(--soft)", marginTop: 4 } }, "Q4 0:42")
+        ),
+        h('div', { style: { display: "flex", alignItems: "center", gap: 12 } },
+          h('div', { style: { textAlign: "right" } }, h('div', { className: "bebas", style: { fontSize: 20, lineHeight: 1, color: "#fff" } }, neT), h('div', { style: { fontSize: 9, fontWeight: 900, color: NER } }, "PATRIOTS")),
+          h('img', { src: "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png", style: { width: 36, height: 36, objectFit: "contain" } }),
+          h('button', { onClick: onSettings, style: { background: "rgba(255,255,255,0.05)", border: "1px solid var(--border2)", borderRadius: 10, padding: 6, marginLeft: 10, cursor: "pointer" } }, "⚙️")
+        )
+      );
+    }
+
+    function BoardTab({ data, myName, dbr, toast }) {
+      const claim = (r, c) => {
+        if (data.isLocked) return toast("Board is locked!");
+        if (data.grid[r][c]) return;
+        dbr.child("grid").child(r).child(c).set(myName);
+      };
+      const claimedCt = useMemo(() => safeGrid(data.grid).filter(Boolean).length, [data.grid]);
+      const pot = claimedCt * (data.pool?.pricePerSquare || 5);
+      
+      return h('div', { style: { padding: 12, animation: "fadeIn .3s ease" } },
+        h('div', { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 } },
+          h('div', null, h('div', { style: { fontSize: 9, fontWeight: 900, color: "var(--soft)", letterSpacing: 1 } }, "CURRENT POOL"), h('div', { className: "bebas", style: { fontSize: 24, color: "var(--gold)" } }, "$" + pot)),
+          h('div', { style: { textAlign: "right" } }, h('div', { style: { fontSize: 9, fontWeight: 900, color: "var(--soft)", letterSpacing: 1 } }, "STATUS"), h('div', { style: { color: data.isLocked ? "var(--ner)" : "var(--sea)", fontWeight: 800, fontSize: 12 } }, data.isLocked ? "LOCKED" : "OPEN"))
+        ),
+        h('div', { className: "sq-grid" },
+          h('div', null),
+          (data.colNums || Array(10).fill(null)).map((n, i) => h('div', { key: i, className: "sq-hdr bebas", style: { color: SEA, fontSize: 16 } }, n !== null ? n : "?")),
+          [0,1,2,3,4,5,6,7,8,9].map(r => h(React.Fragment, { key: r },
+            h('div', { className: "sq-hdr bebas", style: { color: NER, fontSize: 16 } }, data.rowNums?.[r] !== null ? data.rowNums[r] : "?"),
+            [0,1,2,3,4,5,6,7,8,9].map(c => {
+               const owner = data.grid?.[r]?.[c];
+               return h('div', { key: c, className: "sq-cell " + (owner ? "claimed" : "empty") + (owner === myName ? " mine" : ""), onClick: () => claim(r, c) },
+                 owner ? h('span', { style: { fontSize: 18 } }, getPlayerEmoji(data.playerMeta, owner)) : null
+               );
+            })
+          ))
+        ),
+        h('div', { className: "glass", style: { marginTop: 20, padding: 16, borderRadius: 20, fontSize: 12, display: "flex", alignItems: "center", gap: 12 } },
+          h('span', { style: { fontSize: 24 } }, "ℹ️"),
+          h('div', null, h('div', { style: { fontWeight: 800, color: "#fff" } }, "HOW TO PLAY"), h('div', { style: { color: "var(--soft)" } }, "Tap any empty square to claim it. Winner is decided by the last digit of the score at each quarter!"))
+        )
+      );
+    }
+
+    function App() {
+      const [myName, setMyName] = useState(() => localStorage.getItem("sbName") || "");
+      const [joined, setJoined] = useState(false);
+      const [data, setData] = useState(DEFAULT);
+      const [tab, setTab] = useState("board");
+      const [toastMsg, setToastMsg] = useState(null);
+      const [showAvatar, setShowAvatar] = useState(false);
+      const dbrRef = useRef(null);
+
+      const join = useCallback((name, rm) => {
+        setMyName(name); localStorage.setItem("sbName", name);
+        const ref = dbRef(rm); dbrRef.current = ref;
+        window.history.replaceState({}, "", "?room=" + rm);
+
+        ref.on("value", snap => {
+          const val = snap.val();
+          if (val) {
+            const grid = parseGrid(val.grid);
+            setData({ ...DEFAULT, ...val, grid });
+          } else {
+            ref.set(DEFAULT);
+          }
+        });
+
+        ref.child("playerMeta").child(name).once("value", snap => {
+          if (!snap.val()) {
+            ref.child("playerMeta").child(name).set({ avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)], joinedAt: Date.now() });
+          }
+        });
+
+        setJoined(true);
+      }, []);
+
+      useEffect(() => {
+        const u = new URLSearchParams(window.location.search);
+        const r = u.get("room"), n = localStorage.getItem("sbName");
+        if (r && n && !joined) join(n, r);
+      }, [join, joined]);
+
+      if (!joined) return h(SetupScreen, { onJoin: join });
+
+      return h('div', { style: { minHeight: "100vh", background: "var(--bg)" } },
+        toastMsg && h(Toast, { msg: toastMsg, onDone: () => setToastMsg(null) }),
+        showAvatar && h(AvatarPicker, { value: data.playerMeta?.[myName]?.avatar, onChange: (a) => { dbrRef.current.child("playerMeta").child(myName).child("avatar").set(a); setShowAvatar(false); }, onClose: () => setShowAvatar(false) }),
+        
+        h(GameHeader, { data, onSettings: () => setTab("settings") }),
+
+        h('main', null,
+          tab === "board" && h(BoardTab, { data, myName, dbr: dbrRef.current, toast: setToastMsg }),
+          tab === "settings" && h('div', { style: { padding: 24 } },
+             h('div', { className: "bebas", style: { fontSize: 32, color: "var(--gold)", marginBottom: 24 } }, "SETTINGS"),
+             h('button', { onClick: () => setShowAvatar(true), className: "glass", style: { width: "100%", padding: 20, borderRadius: 20, border: "1px solid var(--border2)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, cursor: "pointer" } },
+                h('span', { style: { fontWeight: 800 } }, "Change My Avatar"),
+                h('span', { style: { fontSize: 24 } }, getPlayerEmoji(data.playerMeta, myName))
+             ),
+             h('button', { onClick: () => navigator.share?.({ title: "Super Bowl Squares", url: window.location.href }), className: "glass", style: { width: "100%", padding: 20, borderRadius: 20, border: "1px solid var(--border2)", color: "#fff", fontWeight: 800, textAlign: "left" } }, "Invite Friends 🔗"),
+             h('div', { style: { marginTop: 40, opacity: 0.3, textAlign: "center", fontSize: 10, fontWeight: 900 } }, "SUPER BOWL LX v5.2 STABLE")
+          )
+        ),
+
+        h('nav', { className: "bottom-nav" },
+          [
+            { id: "board", icon: "🏈", label: "GRID" },
+            { id: "scores", icon: "📊", label: "SCORES" },
+            { id: "props", icon: "🎯", label: "PROPS" },
+            { id: "chat", icon: "💬", label: "CHAT" }
+          ].map(t => h('button', { key: t.id, className: "nav-btn " + (tab === t.id ? "active" : ""), onClick: () => setTab(t.id) },
+            h('span', null, t.icon), h('span', { className: "bebas" }, t.label)
+          ))
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+  </script>
+</body>
+</html>
+"""
+
+# Final replacement logic
+props_json = json.dumps(PROPS_LIST)
+final_html = final_html_template.replace("__PROPS_DATA__", props_json)
+
+with open(path, "w", encoding="utf-8") as f:
+    f.write(final_html)
+
+print("SUCCESS: Full fidelity restoration complete.")
