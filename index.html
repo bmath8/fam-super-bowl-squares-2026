@@ -1358,12 +1358,6 @@
                   <span className="bebas" style=${{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>${q}</span>
                   ${payout > 0 && html`<span style=${{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>$${payout}</span>`}
                 </div>
-                ${hasSc && !editing && html`
-                  <div style=${{ textAlign: "right" }}>
-                    <div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
-                    <div style=${{ fontSize: 9, color: "var(--soft)", letterSpacing: 1 }}>(Q Score: ${seaQ}-${neQ})</div>
-                  </div>
-                `}
                 ${editing?.q === i ? html`
                   <div style=${{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input value=${tempSea} onChange=${e => setTempSea(e.target.value)} placeholder="SEA" type="number"
@@ -1375,12 +1369,18 @@
                     <button onClick=${() => setEditing(null)} style=${{ padding: "6px 8px", borderRadius: 6, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)", fontSize: 14 }}>✕</button>
                   </div>
                 ` : html`
-                  <div style=${{ display: "flex", gap: 8, alignItems: "center" }}>
-                    ${hasSc && html`<div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>`}
+                  <div style=${{ display: "flex", gap: 12, alignItems: "center", textAlign: "right" }}>
+                    ${hasSc && html`
+                      <div>
+                        <div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
+                        <div style=${{ fontSize: 9, color: "var(--soft)", letterSpacing: 1 }}>(Q: ${seaQ}-${neQ})</div>
+                      </div>
+                    `}
                     ${(isHost || !hasSc) && html`
                       <button onClick=${() => startEditing(i, seaQ, neQ)} style=${{
-              padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
-              background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
+              padding: "6px 14px", borderRadius: 8, border: "1px solid var(--border2)",
+              background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 700,
+              textTransform: "uppercase", letterSpacing: 0.5
             }}>${hasSc ? "Edit" : "Set Score"}</button>
                     `}
                   </div>
