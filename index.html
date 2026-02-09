@@ -2399,6 +2399,12 @@
         localStorage.setItem("theme", isDark ? "dark" : "light");
       }, [isDark]);
 
+      // Use ref to access latest data without triggering re-renders
+      const dataRef = useRef(data);
+      useEffect(() => {
+        dataRef.current = data;
+      }, [data]);
+
       useEffect(() => {
         const h1 = () => setShowConfirmModal(true);
         const h2 = () => unlockPicks();
@@ -2412,6 +2418,7 @@
 
       const fetchScores = async (isAuto) => {
         try {
+          const currentData = dataRef.current;
           if (!isAuto) toast("Syncing scores...");
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
           if (!res.ok) throw new Error("HTTP " + res.status);
@@ -2427,8 +2434,8 @@
           if (sea && ne) {
             const seaLines = sea.linescores || [];
             const neLines = ne.linescores || [];
-            const newSea = [...(data.scores?.SEA || [null, null, null, null])];
-            const newNe = [...(data.scores?.NE || [null, null, null, null])];
+            const newSea = [...(currentData.scores?.SEA || [null, null, null, null])];
+            const newNe = [...(currentData.scores?.NE || [null, null, null, null])];
 
             let changed = false;
             for (let i = 0; i < 4; i++) {
@@ -2449,10 +2456,9 @@
               seaTotal: parseInt(sea.score) || 0,
               neTotal: parseInt(ne.score) || 0
             };
-            const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
+            const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(currentData.gameMeta || {});
 
-
-            const autoOn = data.settings?.autoScoreSync !== false;
+            const autoOn = currentData.settings?.autoScoreSync !== false;
             if ((changed || metaChanged) && isHost && autoOn && dbr) {
               // SMART SYNC: Only update scores if game has actually progressed
               const oldPeriod = data.gameMeta?.period || 0;
@@ -2461,11 +2467,11 @@
               const becameFinal = newMeta.status === "STATUS_FINAL" && oldStatus !== "STATUS_FINAL";
 
               // Only push score updates if period advanced or game became final
-              if (periodAdvanced || becameFinal || !data.gameMeta) {
+              if (periodAdvanced || becameFinal || !currentData.gameMeta) {
                 dbr.update({
                   scores: { SEA: newSea, NE: newNe },
                   gameMeta: newMeta,
-                  feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
+                  feed: addFeed(currentData, "🤖", "Live update: " + gm.type.detail)
                 });
                 if (!isAuto) toast("Scores updated for everyone!");
               } else if (metaChanged) {
@@ -2496,14 +2502,17 @@
 
       useEffect(() => {
         if (!joined) return;
+        // Wait 5 seconds before first auto-sync to let Firebase load
+        const initialTimeout = setTimeout(() => fetchScores(true), 5000);
         const interval = setInterval(() => fetchScores(true), 30000);
         const h1 = () => fetchScores(false);
         window.addEventListener("manualSyncTrigger", h1);
         return () => {
+          clearTimeout(initialTimeout);
           clearInterval(interval);
           window.removeEventListener("manualSyncTrigger", h1);
         };
-      }, [joined, isHost, data.scores, data.gameMeta, data.settings]);
+      }, [joined, isHost]);
 
       // #22 FIX: Winner check + notification
       const prevScoresRef = useRef(null);
