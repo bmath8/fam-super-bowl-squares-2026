@@ -2029,6 +2029,11 @@
       QS.forEach((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i], neQ = (data.scores?.NE || [])[i];
         if (seaQ != null && neQ != null) {
+          const currentPeriod = data.gameMeta?.period || 1;
+          const isFinished = (i < 3 && currentPeriod > (i + 1)) ||
+            (i === 3 && data.gameMeta?.status === "STATUS_FINAL");
+          if (!isFinished) return;
+
           let cumS, cumN;
           if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
             cumS = data.gameMeta.seaTotal || 0;
@@ -2081,6 +2086,11 @@
       QS.forEach((q, i) => {
         const ss = (data.scores?.SEA || [])[i], ns = (data.scores?.NE || [])[i];
         if (ss != null && ns != null) {
+          const currentPeriod = data.gameMeta?.period || 1;
+          const isFinished = (i < 3 && currentPeriod > (i + 1)) ||
+            (i === 3 && data.gameMeta?.status === "STATUS_FINAL");
+          if (!isFinished) return;
+
           let cumS, cumN;
           if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
             cumS = data.gameMeta.seaTotal || 0;
@@ -2462,8 +2472,14 @@
           const os = oldScores.SEA[i], on = oldScores.NE[i];
 
           if (s != null && n != null && (s !== os || n !== on)) {
+            // PERIOD GATE: Only award if quarter is finished
+            const currentPeriod = data.gameMeta?.period || 1;
+            const isFinished = (i < 3 && currentPeriod > (i + 1)) ||
+              (i === 3 && data.gameMeta?.status === "STATUS_FINAL");
+
+            if (!isFinished) continue;
+
             let cs, cn;
-            // For 4th quarter, use TOTAL score from API if game is final (handles OT)
             if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
               cs = data.gameMeta.seaTotal || 0;
               cn = data.gameMeta.neTotal || 0;
