@@ -833,8 +833,17 @@
     // ── #6 FIX: Compact Header (~60px) ────────────────────────────
     function GameHeader({ data, myName }) {
       const { status, cd } = useGameStatus(data);
-      const totalSea = data.gameMeta?.seaTotal ?? (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
-      const totalNe = data.gameMeta?.neTotal ?? (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
+
+      const getScore = (side) => {
+        if (data.gameMeta?.status && data.gameMeta.status !== "STATUS_SCHEDULED") {
+          const metaTot = side === "SEA" ? data.gameMeta.seaTotal : data.gameMeta.neTotal;
+          if (metaTot != null) return metaTot;
+        }
+        return (data.scores?.[side] || []).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      };
+
+      const totalSea = getScore("SEA");
+      const totalNe = getScore("NE");
       const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       const pot = claimed * (data.pool?.pricePerSquare || 0);
 
@@ -920,8 +929,8 @@
 
       const maxPP = data.settings?.maxPerPlayer || 0;
       const justClaimedRef = useRef(null);
-      const totalSea = data.gameMeta?.seaTotal ?? (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
-      const totalNe = data.gameMeta?.neTotal ?? (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
+      const totalSea = data.gameMeta?.seaTotal ?? (data.scores?.SEA || []).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      const totalNe = data.gameMeta?.neTotal ?? (data.scores?.NE || []).reduce((a, b) => a + (parseInt(b) || 0), 0);
       const gs = useGameStatus(data);
       const isLive = gs.status === "LIVE" || (data.gameMeta?.status && data.gameMeta.status !== "STATUS_SCHEDULED");
 
@@ -1287,8 +1296,8 @@
       });
 
       const autoOn = data.settings?.autoScoreSync !== false;
-      const totalSea = quarters.reduce((a, q) => a + (q.seaQ || 0), 0);
-      const totalNe = quarters.reduce((a, q) => a + (q.neQ || 0), 0);
+      const totalSea = data.gameMeta?.seaTotal ?? quarters.reduce((a, q) => a + (parseInt(q.seaQ) || 0), 0);
+      const totalNe = data.gameMeta?.neTotal ?? quarters.reduce((a, q) => a + (parseInt(q.neQ) || 0), 0);
       const isLive = data.gameMeta?.status === "STATUS_IN_PROGRESS" || data.gameMeta?.status === "STATUS_HALFTIME";
 
       return html`
@@ -2411,23 +2420,27 @@
         if (!data.colNums || !data.rowNums || !data.scores?.SEA || !data.scores?.NE) return;
         const scoreKey = JSON.stringify(data.scores);
         if (prevScoresRef.current === scoreKey) return;
-        prevScoresRef.current = scoreKey;
 
-        const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
-        const totalPot = claimed * (data.pool?.pricePerSquare || 0);
-        const split = data.pool?.payoutSplit || [25, 25, 25, 25];
+        // Check if any NEW winner exists that we haven't shown yet
+        const oldScores = prevScoresRef.current ? JSON.parse(prevScoresRef.current) : { SEA: [], NE: [] };
+        prevScoresRef.current = scoreKey;
 
         for (let i = 0; i < 4; i++) {
           const s = data.scores.SEA[i], n = data.scores.NE[i];
-          if (s != null && n != null) {
-            const cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
-            const cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          const os = oldScores.SEA[i], on = oldScores.NE[i];
+
+          // Only trigger if this specific quarter score JUST changed and is non-null
+          if (s != null && n != null && (s !== os || n !== on)) {
+            const cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            const cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cs, cn);
             if (winner) {
               setShowWin(true);
               playSound("win");
-              // #22 FIX: Send notification if I won
               if (winner === myName) {
+                const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
+                const totalPot = claimed * (data.pool?.pricePerSquare || 0);
+                const split = data.pool?.payoutSplit || [25, 25, 25, 25];
                 const payout = Math.round(totalPot * split[i] / 100);
                 sendWinNotification(QS[i], payout);
               }
@@ -2435,7 +2448,7 @@
             }
           }
         }
-      }, [JSON.stringify(data.scores)]);
+      }, [data.scores, data.grid, data.colNums, data.rowNums, myName]);
 
       // Tab config
       const TABS = [
