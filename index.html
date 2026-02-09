@@ -1270,8 +1270,18 @@
         const seaQ = (data.scores?.SEA || [])[i];
         const neQ = (data.scores?.NE || [])[i];
         const hasSc = seaQ != null && neQ != null;
-        const cumS = hasSc ? data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
-        const cumN = hasSc ? data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0) : null;
+        let cumS = null, cumN = null;
+
+        if (hasSc) {
+          // For 4th quarter, use TOTAL score from API if game is final (handles OT)
+          if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
+            cumS = data.gameMeta.seaTotal || 0;
+            cumN = data.gameMeta.neTotal || 0;
+          } else {
+            cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+          }
+        }
         const winner = hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
         const payout = Math.round(totalPot * split[i] / 100);
         return { q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc };
@@ -1992,8 +2002,14 @@
       QS.forEach((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i], neQ = (data.scores?.NE || [])[i];
         if (seaQ != null && neQ != null) {
-          const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
-          const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          let cumS, cumN;
+          if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
+            cumS = data.gameMeta.seaTotal || 0;
+            cumN = data.gameMeta.neTotal || 0;
+          } else {
+            cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+          }
           if (data.colNums && data.rowNums) {
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN);
             if (winner) allWinners.push({ q, winner, amt: Math.round(totalPot * split[i] / 100) });
@@ -2038,8 +2054,14 @@
       QS.forEach((q, i) => {
         const ss = (data.scores?.SEA || [])[i], ns = (data.scores?.NE || [])[i];
         if (ss != null && ns != null) {
-          const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
-          const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+          let cumS, cumN;
+          if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
+            cumS = data.gameMeta.seaTotal || 0;
+            cumN = data.gameMeta.neTotal || 0;
+          } else {
+            cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+          }
           wonSquares.add((cumS % 10) + "-" + (cumN % 10));
         }
       });
@@ -2412,10 +2434,17 @@
           const s = data.scores.SEA[i], n = data.scores.NE[i];
           const os = oldScores.SEA[i], on = oldScores.NE[i];
 
-          // Only trigger if this specific quarter score JUST changed and is non-null
           if (s != null && n != null && (s !== os || n !== on)) {
-            const cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
-            const cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            let cs, cn;
+            // For 4th quarter, use TOTAL score from API if game is final (handles OT)
+            if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
+              cs = data.gameMeta.seaTotal || 0;
+              cn = data.gameMeta.neTotal || 0;
+            } else {
+              cs = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+              cn = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            }
+
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cs, cn);
             if (winner) {
               setShowWin(true);
