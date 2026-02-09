@@ -2333,6 +2333,14 @@
         };
       }, []);
 
+      useEffect(() => {
+        if (!isHost || !joined) return;
+        const interval = setInterval(() => {
+          window.dispatchEvent(new CustomEvent("autoSyncTrigger"));
+        }, 60000); // Every 60 seconds
+        return () => clearInterval(interval);
+      }, [isHost, joined]);
+
       // #22 FIX: Winner check + notification
       const prevScoresRef = useRef(null);
       useEffect(() => {
@@ -2464,19 +2472,6 @@
       `;
     }
 
-    useEffect(() => {
-      if (!isHost || !joined) return;
-      const interval = setInterval(() => {
-        // Trigger automated score sync if on scores tab or every 5 mins regardless
-        const isScoresTab = window.location.hash === "#scores"; // Rough check if tab is active
-        // Note: Better to just check if we can reach fetchScores. 
-        // Since fetchScores is in ScoresTab, we need a way to trigger it.
-        // Let's refactor fetchScores to be accessible or just move the logic here.
-        // Actually, let's just use a custom event.
-        window.dispatchEvent(new CustomEvent("autoSyncTrigger"));
-      }, 60000); // Every 60 seconds
-      return () => clearInterval(interval);
-    }, [isHost, joined]);
 
     // ── Render ─────────────────────────────────────────────────────
     trace("React-Mounting");
