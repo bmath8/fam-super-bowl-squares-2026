@@ -746,9 +746,11 @@
 
     function useGameStatus(data) {
       const cd = useCountdown();
+      const gs = data.gameMeta?.status;
+      if (gs === "STATUS_FINAL" || gs === "STATUS_COMPLETED") return { status: "FINAL", cd: null };
+      if (gs === "STATUS_IN_PROGRESS" || gs === "STATUS_HALFTIME") return { status: "LIVE", cd: null };
+
       const hasAnyScore = (data.scores?.SEA || []).some(s => s != null);
-      const allScored = (data.scores?.SEA || []).every(s => s != null);
-      if (allScored && hasAnyScore) return { status: "FINAL", cd: null };
       if (hasAnyScore) return { status: "LIVE", cd: null };
       if (!cd) return { status: "LIVE", cd: null }; // Past kickoff
       if (cd.d === 0 && cd.h === 0 && cd.m <= 30) return { status: "SOON", cd };
@@ -857,7 +859,14 @@
 
             <div style=${{ textAlign: "center", padding: "0 10px", minWidth: 70 }}>
               ${status === "FINAL" && html`<span className="status-badge final">FINAL</span>`}
-              ${status === "LIVE" && html`<span className="status-badge live">LIVE</span>`}
+              ${status === "LIVE" && html`
+                <div>
+                  <div className="status-badge live">LIVE</div>
+                  <div style=${{ fontSize: 10, color: "var(--soft)", marginTop: 4, fontWeight: 700 }}>
+                    ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`IN PROGRESS`}
+                  </div>
+                </div>
+              `}
               ${status === "SOON" && html`<span className="status-badge soon">SOON</span>`}
               ${status === "PRE" && cd && html`
                 <div style=${{ display: "flex", gap: 3, justifyContent: "center" }}>
@@ -914,6 +923,10 @@
 
       const maxPP = data.settings?.maxPerPlayer || 0;
       const justClaimedRef = useRef(null);
+      const totalSea = (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
+      const totalNe = (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
+      const gs = useGameStatus(data);
+      const isLive = gs.status === "LIVE";
 
       const claimSquare = (r, c) => {
         // Robust check for grid existence
@@ -1042,6 +1055,23 @@
 
       return html`
         <div style=${{ padding: "4px 4px", animation: "fadeIn .3s ease", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          ${isLive && html`
+             <div style=${{ background: "var(--card)", borderRadius: 12, padding: "8px 14px", margin: "0 auto 10px", border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 600, width: "100%" }}>
+               <div style=${{ display: "flex", alignItems: "center", gap: 10 }}>
+                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 20, height: 20 }} alt="SEA" />
+                 <span className="bebas" style=${{ fontSize: 16, color: "#fff" }}>${totalSea}</span>
+                 <span style=${{ color: "var(--faint)", fontSize: 12 }}>—</span>
+                 <span className="bebas" style=${{ fontSize: 16, color: "#fff" }}>${totalNe}</span>
+                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 20, height: 20 }} alt="NE" />
+               </div>
+               <div style=${{ textAlign: "right", display: "flex", alignItems: "center", gap: 8 }}>
+                 <div style=${{ color: "var(--gold)", fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
+                   ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`LIVE`}
+                 </div>
+                 <div className="status-badge live" style=${{ fontSize: 7, padding: "2px 5px" }}>LIVE</div>
+               </div>
+             </div>
+          `}
           <!-- Quick actions -->
           ${!data.isLocked && html`
             <div style=${{ marginBottom: 10 }}>
@@ -1285,14 +1315,24 @@
               }
             }
 
-            if (changed && isHost && autoOn) {
+            const gm = game.status;
+            const newMeta = {
+              status: gm.type.name,
+              period: gm.period,
+              clock: gm.displayClock,
+              detail: gm.type.detail
+            };
+            const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
+
+            if ((changed || metaChanged) && isHost && autoOn) {
               dbr.update({
                 scores: { SEA: newSea, NE: newNe },
-                feed: addFeed(data, "🤖", "Auto-sync updated scores: SEA " + sea.score + " - NE " + ne.score)
+                gameMeta: newMeta,
+                feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
               });
-              if (!isAuto) toast("Scores updated!");
+              if (!isAuto) toast("Game data updated!");
             } else if (!isAuto) {
-              toast("Scores are up to date.");
+              toast("Game data is current.");
             }
           }
         } catch (e) {
@@ -1313,10 +1353,30 @@
       });
 
       const autoOn = data.settings?.autoScoreSync !== false;
+      const totalSea = quarters.reduce((a, q) => a + (q.seaQ || 0), 0);
+      const totalNe = quarters.reduce((a, q) => a + (q.neQ || 0), 0);
+      const isLive = data.gameMeta?.status === "STATUS_IN_PROGRESS" || data.gameMeta?.status === "STATUS_HALFTIME";
 
       return html`
-        <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
-          <!-- Live scoreboard -->
+        <div style=${{ padding: "12px", width: "100%", maxWidth: 600, margin: "0 auto", animation: "fadeIn .4s ease" }}>
+          ${isLive && html`
+             <div style=${{ background: "var(--card)", borderRadius: 12, padding: "10px 16px", marginBottom: 12, border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+               <div style=${{ display: "flex", alignItems: "center", gap: 10 }}>
+                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 24, height: 24 }} alt="SEA" />
+                 <span className="bebas" style=${{ fontSize: 18, color: "#fff" }}>${totalSea}</span>
+                 <span style=${{ color: "var(--faint)", fontSize: 14 }}>—</span>
+                 <span className="bebas" style=${{ fontSize: 18, color: "#fff" }}>${totalNe}</span>
+                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 24, height: 24 }} alt="NE" />
+               </div>
+               <div style=${{ textAlign: "right" }}>
+                 <div style=${{ color: "var(--gold)", fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
+                   ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`LIVE NOW`}
+                 </div>
+                 <div style=${{ fontSize: 9, color: "var(--soft)", textTransform: "uppercase" }}>Current Score</div>
+               </div>
+             </div>
+          `}
+          <!-- Actions Bar -->
           <div style=${{ background: "var(--card)", borderRadius: 16, padding: "20px", border: "1px solid var(--border)", marginBottom: 16 }}>
             <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
               <div style=${{ textAlign: "center" }}>
