@@ -1702,6 +1702,16 @@
         dbr.update({ isLocked: true, colNums: nums(), rowNums: nums(), feed: addFeed(data, "🔒", "Board locked! Numbers assigned.") });
         playSound("lock"); toast("Board locked! Numbers assigned.");
       };
+      const reRandomize = () => {
+        if (!confirm("Re-randomize all numbers? Current numbers will be lost!")) return;
+        const nums = () => {
+          const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+          for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
+          return arr;
+        };
+        dbr.update({ colNums: nums(), rowNums: nums(), feed: addFeed(data, "🔄", "Numbers re-randomized!") });
+        toast("Numbers re-randomized! 🎲");
+      };
       const unlockBoard = () => { dbr.update({ isLocked: false, colNums: null, rowNums: null }); toast("Board unlocked"); };
       const resetBoard = () => {
         if (!confirm("Reset entire board? This cannot be undone!")) return;
@@ -1765,9 +1775,12 @@
                     ${!data.isLocked ? html`
                       <button onClick=${lockBoard} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#22C55E", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔒 Lock & Assign</button>
                     ` : html`
-                      <button onClick=${unlockBoard} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
+                      <div style=${{ display: "flex", gap: 8, width: "100%", marginBottom: 8 }}>
+                        <button onClick=${unlockBoard} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 12 }}>🔓 Unlock</button>
+                        <button onClick=${reRandomize} style=${{ flex: 1.5, padding: "10px", borderRadius: 8, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 700, fontSize: 12 }}>🔄 Re-Randomize</button>
+                      </div>
                     `}
-                    <button onClick=${autoAssign} style=${{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign</button>
+                    <button onClick=${autoAssign} style=${{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--border2)", background: "transparent", color: "var(--text)", fontWeight: 700, fontSize: 12 }}>🤖 Auto-Assign Squares</button>
                   </div>
                 </div>
 
