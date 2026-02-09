@@ -1072,8 +1072,20 @@
         QS.forEach((q, i) => {
           const ss = (data.scores?.SEA || [])[i], ns = (data.scores?.NE || [])[i];
           if (ss != null && ns != null) {
-            const cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
-            const cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+            const currentPeriod = data.gameMeta?.period || 1;
+            const isFinished = (i < 3 && currentPeriod > (i + 1)) ||
+              (i === 3 && data.gameMeta?.status === "STATUS_FINAL");
+            if (!isFinished) return;
+
+            let cumS, cumN;
+            if (i === 3 && data.gameMeta?.status === "STATUS_FINAL") {
+              cumS = data.gameMeta.seaTotal || 0;
+              cumN = data.gameMeta.neTotal || 0;
+            } else {
+              cumS = data.scores.SEA.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+              cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
+            }
+
             const winner = getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN);
             if (winner) {
               const ci = data.colNums.indexOf(cumS % 10), ri = data.rowNums.indexOf(cumN % 10);
