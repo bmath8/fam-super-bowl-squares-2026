@@ -2461,8 +2461,8 @@
             const autoOn = currentData.settings?.autoScoreSync !== false;
             if ((changed || metaChanged) && isHost && autoOn && dbr) {
               // SMART SYNC: Only update scores if game has actually progressed
-              const oldPeriod = data.gameMeta?.period || 0;
-              const oldStatus = data.gameMeta?.status || "";
+              const oldPeriod = currentData.gameMeta?.period || 0;
+              const oldStatus = currentData.gameMeta?.status || "";
               const periodAdvanced = newMeta.period > oldPeriod;
               const becameFinal = newMeta.status === "STATUS_FINAL" && oldStatus !== "STATUS_FINAL";
 
