@@ -1219,7 +1219,7 @@
     }
 
     // ── Scores Tab (#18 FIX: ESPN API with retry + fallback) ──────
-    function ScoresTab({ data, dbr, toast }) {
+    function ScoresTab({ data, dbr, toast, isHost }) {
       const [editing, setEditing] = useState(null);
       const [tempSea, setTempSea] = useState("");
       const [tempNe, setTempNe] = useState("");
@@ -1239,6 +1239,12 @@
         setEditing(null);
         playSound("lock");
         toast(QS[qi] + " score saved!");
+      };
+
+      const startEditing = (i, s, n) => {
+        setEditing({ q: i });
+        setTempSea(s != null ? String(s) : "");
+        setTempNe(n != null ? String(n) : "");
       };
 
       // #18 FIX: ESPN API with retry logic + manual fallback
@@ -1318,9 +1324,7 @@
                   <span className="bebas" style=${{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>${q}</span>
                   ${payout > 0 && html`<span style=${{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>$${payout}</span>`}
                 </div>
-                ${hasSc ? html`
-                  <div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
-                ` : editing?.q === i ? html`
+                ${editing?.q === i ? html`
                   <div style=${{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input value=${tempSea} onChange=${e => setTempSea(e.target.value)} placeholder="SEA" type="number"
                       style=${{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: SEA, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
@@ -1328,12 +1332,18 @@
                     <input value=${tempNe} onChange=${e => setTempNe(e.target.value)} placeholder="NE" type="number"
                       style=${{ width: 50, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: NER, fontSize: 14, fontWeight: 700, textAlign: "center" }} />
                     <button onClick=${() => saveScore(i)} style=${{ padding: "6px 12px", borderRadius: 6, border: "none", background: "var(--gold)", color: "#1a1a1a", fontSize: 12, fontWeight: 700 }}>✓</button>
+                    <button onClick=${() => setEditing(null)} style=${{ padding: "6px 8px", borderRadius: 6, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)", fontSize: 14 }}>✕</button>
                   </div>
                 ` : html`
-                  <button onClick=${() => { setEditing({ q: i }); setTempSea(""); setTempNe(""); }} style=${{
-            padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
-            background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
-          }}>Edit (Manual)</button>
+                  <div style=${{ display: "flex", gap: 8, alignItems: "center" }}>
+                    ${hasSc && html`<div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>`}
+                    ${(isHost || !hasSc) && html`
+                      <button onClick=${() => startEditing(i, seaQ, neQ)} style=${{
+              padding: "6px 12px", borderRadius: 6, border: "1px solid var(--border2)",
+              background: "transparent", color: "var(--soft)", fontSize: 11, fontWeight: 600
+            }}>${hasSc ? "Edit" : "Set Score"}</button>
+                    `}
+                  </div>
                 `}
               </div>
               ${winner && html`
@@ -2371,7 +2381,7 @@
           justifyContent: tab === "board" ? "center" : "flex-start"
         }}>
             ${tab === "board" && html`<${BoardTab} data=${data} myName=${myName} dbr=${dbr} toast=${toast} />`}
-            ${tab === "scores" && html`<${ScoresTab} data=${data} dbr=${dbr} toast=${toast} />`}
+            ${tab === "scores" && html`<${ScoresTab} data=${data} dbr=${dbr} toast=${toast} isHost=${isHost} />`}
             ${tab === "props" && html`<${PropsTab} data=${data} myName=${myName} dbr=${dbr} toast=${toast} />`}
             ${tab === "chat" && html`<${ChatTab} data=${data} myName=${myName} dbr=${dbr} />`}
             ${tab === "pay" && html`<${PayTab} data=${data} myName=${myName} dbr=${dbr} toast=${toast} />`}
