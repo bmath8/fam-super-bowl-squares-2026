@@ -1230,12 +1230,7 @@
               </div>
             `}
 
-            ${data.playerMeta?.[myName]?.confirmed && html`
-               <div style=${{ padding: "12px", background: "var(--gold-glow)", border: "1px solid var(--gold)33", borderRadius: 10, margin: "16px", textAlign: "center" }}>
-                 <div style=${{ fontSize: 13, color: "var(--gold)", fontWeight: 700 }}>✅ YOU ARE LOCKED IN (${data.playerMeta[myName].playMode === 'money' ? 'MONEY' : 'FUN'})</div>
-                 <button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 11, textDecoration: "underline", marginTop: 4 }}>Unlock to make changes</button>
-               </div>
-            `}
+            <!-- No more bulky locked-in banner here -->
           </div>
         </div>
       `;
@@ -2472,13 +2467,19 @@
           <${GameHeader} data=${data} myName=${myName} />
 
           <!-- Action Bar — #16 FIX: No pulsing share button -->
-          <div style=${{ display: "flex", gap: 5, padding: "6px 10px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick=${() => setShowAvatarPicker(true)} style=${{
+          <div style=${{ display: "flex", gap: 5, padding: "6px 10px", justifyContent: "center", flexWrap: "wrap", alignItems: "flex-start" }}>
+            <div style=${{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <button onClick=${() => setShowAvatarPicker(true)} style=${{
           display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8,
           border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontSize: 12, fontWeight: 600
         }}>
-              <span style=${{ fontSize: 14 }}>${avatar || "😀"}</span> ${myName}
-            </button>
+                <span style=${{ fontSize: 14 }}>${avatar || "😀"}</span> ${myName}
+                ${isConfirmed && html`<span style=${{ marginLeft: 4, display: "flex", alignItems: "center", gap: 2, paddingLeft: 6, borderLeft: "1px solid var(--border2)" }}>
+                   ${data.playerMeta?.[myName]?.playMode === 'money' ? '💵' : '🆓'} 🔐
+                </span>`}
+              </button>
+              ${isConfirmed && html`<button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 9, textDecoration: "underline", opacity: 0.7 }}>Unlock Picks</button>`}
+            </div>
             ${data.colNums && html`
               <button onClick=${() => setShowNeed(true)} style=${{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border2)", background: "var(--gold-glow)", color: "var(--gold)", fontSize: 12, fontWeight: 600 }}>
                 🔢 Need
@@ -2526,12 +2527,7 @@
             </div>
           `}
 
-          ${isConfirmed && html`
-             <div style=${{ padding: "12px", background: "var(--gold-glow)", border: "1px solid var(--gold)33", borderRadius: 10, marginTop: 16, textAlign: "center" }}>
-               <div style=${{ fontSize: 13, color: "var(--gold)", fontWeight: 700 }}>✅ YOU ARE LOCKED IN (${data.playerMeta[myName].playMode === 'money' ? 'MONEY' : 'FUN'})</div>
-               <button onClick=${() => window.dispatchEvent(new CustomEvent("unlockPicks"))} style=${{ background: "none", border: "none", color: "var(--gold)", fontSize: 11, textDecoration: "underline", marginTop: 4 }}>Unlock to make changes</button>
-             </div>
-          `}
+          <!-- No more bulky locked-in banner here -->
         </div>
       `;
     }
