@@ -621,7 +621,7 @@
       colNums: null, rowNums: null, isLocked: false,
       scores: { SEA: [null, null, null, null], NE: [null, null, null, null] },
       pool: { pricePerSquare: 5, payoutSplit: [25, 25, 25, 25], payoutPreset: "even", propBuyIn: 2 },
-      settings: { maxPerPlayer: 0, showHeatMap: false },
+      settings: { maxPerPlayer: 0, showHeatMap: false, autoScoreSync: true },
       feed: [], playerMeta: {}, props: {}, propAnswers: {},
       feedReactions: {}, squareReactions: {},
       hostPin: "", zellePhone: "", zelleEmail: "", darkMode: true,
@@ -1285,7 +1285,7 @@
               }
             }
 
-            if (changed && isHost) {
+            if (changed && isHost && autoOn) {
               dbr.update({
                 scores: { SEA: newSea, NE: newNe },
                 feed: addFeed(data, "🤖", "Auto-sync updated scores: SEA " + sea.score + " - NE " + ne.score)
@@ -1312,6 +1312,8 @@
         return { q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc };
       });
 
+      const autoOn = data.settings?.autoScoreSync !== false;
+
       return html`
         <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
           <!-- Live scoreboard -->
@@ -1327,8 +1329,12 @@
               <div style=${{ textAlign: "center" }}>
                 <div className="bebas" style=${{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
                 <div style=${{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center", marginTop: 4 }}>
-                  <button onClick=${() => fetchScores(false)} style=${{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid var(--border2)", background: "transparent", color: "var(--soft)" }}>🔄 Sync Now</button>
-                  ${isHost && html`<span style=${{ fontSize: 8, color: "#22C55E", fontWeight: 700 }}>● AUTO-SYNC ON</span>`}
+                  <button onClick=${() => fetchScores(false)} style=${{ fontSize: 10, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 700 }}>🔄 Sync Now</button>
+                  ${isHost && html`
+                    <div style=${{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style=${{ fontSize: 8, color: autoOn ? "#22C55E" : "#EF4444", fontWeight: 700 }}>● ${autoOn ? "AUTO-SYNC ON" : "AUTO-SYNC OFF"}</span>
+                    </div>
+                  `}
                 </div>
               </div>
               <div style=${{ textAlign: "center" }}>
@@ -1352,6 +1358,12 @@
                   <span className="bebas" style=${{ fontSize: 16, color: hasSc ? "var(--gold)" : "var(--soft)" }}>${q}</span>
                   ${payout > 0 && html`<span style=${{ fontSize: 11, color: "var(--gold)", background: "var(--gold-glow)", padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>$${payout}</span>`}
                 </div>
+                ${hasSc && !editing && html`
+                  <div style=${{ textAlign: "right" }}>
+                    <div className="bebas" style=${{ fontSize: 15, color: "var(--text)" }}>SEA ${cumS} — NE ${cumN}</div>
+                    <div style=${{ fontSize: 9, color: "var(--soft)", letterSpacing: 1 }}>(Q Score: ${seaQ}-${neQ})</div>
+                  </div>
+                `}
                 ${editing?.q === i ? html`
                   <div style=${{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input value=${tempSea} onChange=${e => setTempSea(e.target.value)} placeholder="SEA" type="number"
@@ -1836,6 +1848,11 @@
                       <input type="number" value=${data.settings?.maxPerPlayer || 0}
                         onChange=${e => dbr.child("settings/maxPerPlayer").set(Number(e.target.value))}
                         style=${{ width: 60, padding: "6px", borderRadius: 6, border: "1px solid var(--border2)", background: "var(--input)", color: "var(--text)", fontSize: 14, textAlign: "center" }} />
+                    </div>
+                    <div style=${{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                      <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Auto Score Sync</label>
+                      <button className=${"toggle-switch" + (data.settings?.autoScoreSync !== false ? " on" : "")} 
+                        onClick=${() => dbr.child("settings/autoScoreSync").set(!(data.settings?.autoScoreSync !== false))} />
                     </div>
                     <div style=${{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
                       <label style=${{ fontSize: 12, color: "var(--text)", flex: 1 }}>Zelle Phone</label>
