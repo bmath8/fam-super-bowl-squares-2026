@@ -621,6 +621,7 @@
       { id: "gatorade", q: "Gatorade shower color?", opts: ["Orange", "Blue", "Clear", "Yellow", "None"], cat: "Post-Game" },
     ];
     const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
+    const GAME_OVER = true; // Disable auto-sync, game is over
 
     // ── Firebase ──────────────────────────────────────────────────
     trace("Firebase-Initializing");
@@ -2501,7 +2502,7 @@
       };
 
       useEffect(() => {
-        if (!joined) return;
+        if (!joined || GAME_OVER) return; // Skip auto-sync if game over
         // Wait 5 seconds before first auto-sync to let Firebase load
         const initialTimeout = setTimeout(() => fetchScores(true), 5000);
         const interval = setInterval(() => fetchScores(true), 30000);
