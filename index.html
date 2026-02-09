@@ -845,25 +845,24 @@
           padding: "8px 16px 6px", position: "sticky", top: 0, zIndex: 100,
           backdropFilter: "blur(16px)"
         }}>
-          <!-- Single compact row: Team - Score/Status - Team -->
-          <div style=${{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
-            <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
-              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 32, height: 32, flexShrink: 0, objectFit: "contain" }} alt="SEA" />
-              <div>
-                <div className="bebas" style=${{ fontSize: 12, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
-                ${(status === "LIVE" || status === "FINAL") && html`
-                  <div className="bebas" style=${{ fontSize: 22, lineHeight: 1, color: "#fff" }}>${totalSea}</div>
-                `}
+          <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <!-- SEA -->
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 34, height: 34, flexShrink: 0, objectFit: "contain" }} alt="SEA" />
+              <div style=${{ display: "flex", flexDirection: "column" }}>
+                <div className="bebas" style=${{ fontSize: 11, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
+                <div className="bebas" style=${{ fontSize: 28, lineHeight: 1, color: "#fff", textShadow: "0 0 10px " + SEA + "66" }}>${totalSea}</div>
               </div>
             </div>
 
-            <div style=${{ textAlign: "center", padding: "0 10px", minWidth: 70 }}>
+            <!-- Status Center -->
+            <div style=${{ textAlign: "center", padding: "0 4px", minWidth: 90 }}>
               ${status === "FINAL" && html`<span className="status-badge final">FINAL</span>`}
               ${status === "LIVE" && html`
-                <div>
-                  <div className="status-badge live">LIVE</div>
-                  <div style=${{ fontSize: 10, color: "var(--soft)", marginTop: 4, fontWeight: 700 }}>
-                    ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`IN PROGRESS`}
+                <div style=${{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div className="status-badge live" style=${{ fontSize: 8, padding: "2px 8px" }}>LIVE</div>
+                  <div style=${{ fontSize: 11, color: "var(--gold)", fontWeight: 800, marginTop: 4, letterSpacing: 0.5 }}>
+                    ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`IN PLAY`}
                   </div>
                 </div>
               `}
@@ -872,23 +871,21 @@
                 <div style=${{ display: "flex", gap: 3, justifyContent: "center" }}>
                   ${[cd.h, cd.m, cd.s].map((v, i) => html`
                     <${React.Fragment} key=${i}>
-                      <span className="bebas" style=${{ fontSize: 14, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
+                      <span className="bebas" style=${{ fontSize: 16, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
                       ${i < 2 && html`<span style=${{ color: "var(--faint)", fontSize: 12 }}>:</span>`}
                     </${React.Fragment}>
                   `)}
                 </div>
-                ${cd.d > 0 && html`<div style=${{ fontSize: 8, color: "var(--faint)", letterSpacing: 1 }}>${cd.d}D LEFT</div>`}
               `}
             </div>
 
-            <div style=${{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
-              <div style=${{ textAlign: "right" }}>
-                <div className="bebas" style=${{ fontSize: 12, color: NER, letterSpacing: 2, lineHeight: 1 }}>NE</div>
-                ${(status === "LIVE" || status === "FINAL") && html`
-                  <div className="bebas" style=${{ fontSize: 22, lineHeight: 1, color: "#fff" }}>${totalNe}</div>
-                `}
+            <!-- NE -->
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10 }}>
+              <div style=${{ display: "flex", flexDirection: "column", textAlign: "right" }}>
+                <div className="bebas" style=${{ fontSize: 11, color: NER, letterSpacing: 2, lineHeight: 1 }}>NE</div>
+                <div className="bebas" style=${{ fontSize: 28, lineHeight: 1, color: "#fff", textShadow: "0 0 10px " + NER + "66" }}>${totalNe}</div>
               </div>
-              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 32, height: 32, flexShrink: 0, objectFit: "contain" }} alt="NE" />
+              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 34, height: 34, flexShrink: 0, objectFit: "contain" }} alt="NE" />
             </div>
           </div>
 
@@ -1252,11 +1249,6 @@
     function ScoresTab({ data, dbr, toast, isHost }) {
       const [editing, setEditing] = useState(null);
 
-      useEffect(() => {
-        const handler = () => fetchScores(true);
-        window.addEventListener("autoSyncTrigger", handler);
-        return () => window.removeEventListener("autoSyncTrigger", handler);
-      }, [data.scores, isHost]);
       const [tempSea, setTempSea] = useState("");
       const [tempNe, setTempNe] = useState("");
       const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
@@ -1281,66 +1273,6 @@
         setEditing({ q: i });
         setTempSea(s != null ? String(s) : "");
         setTempNe(n != null ? String(n) : "");
-      };
-
-      // #18 FIX: ESPN API with retry logic + manual fallback
-      const fetchScores = async (isAuto) => {
-        try {
-          if (!isAuto) toast("Syncing scores...");
-          const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const json = await res.json();
-          const game = json.events?.find(function (e) {
-            return (e.shortName && (e.shortName.includes("SEA") || e.shortName.includes("NE"))) || (e.name && e.name.includes("Super Bowl"));
-          });
-          if (!game) { if (!isAuto) toast("No game data found."); return; }
-          const competitors = game.competitions[0].competitors;
-          const sea = competitors.find(function (c) { return c.team.abbreviation === "SEA"; });
-          const ne = competitors.find(function (c) { return c.team.abbreviation === "NE"; });
-
-          if (sea && ne) {
-            // Parse Quarter Scores
-            const seaLines = sea.linescores || [];
-            const neLines = ne.linescores || [];
-            const newSea = [...(data.scores?.SEA || [null, null, null, null])];
-            const newNe = [...(data.scores?.NE || [null, null, null, null])];
-
-            let changed = false;
-            for (let i = 0; i < 4; i++) {
-              const sval = seaLines[i] ? seaLines[i].value : null;
-              const nval = neLines[i] ? neLines[i].value : null;
-              if (sval !== newSea[i] || nval !== newNe[i]) {
-                newSea[i] = sval; newNe[i] = nval;
-                changed = true;
-              }
-            }
-
-            const gm = game.status;
-            const newMeta = {
-              status: gm.type.name,
-              period: gm.period,
-              clock: gm.displayClock,
-              detail: gm.type.detail,
-              seaTotal: parseInt(sea.score) || 0,
-              neTotal: parseInt(ne.score) || 0
-            };
-            const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
-
-            if ((changed || metaChanged) && isHost && autoOn) {
-              dbr.update({
-                scores: { SEA: newSea, NE: newNe },
-                gameMeta: newMeta,
-                feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
-              });
-              if (!isAuto) toast("Game data updated!");
-            } else if (!isAuto) {
-              toast("Game data is current.");
-            }
-          }
-        } catch (e) {
-          if (!isAuto) toast("Score sync failed. Try again later.");
-          console.error("Score fetch error:", e);
-        }
       };
 
       const quarters = QS.map((q, i) => {
@@ -1391,7 +1323,7 @@
               <div style=${{ textAlign: "center" }}>
                 <div className="bebas" style=${{ fontSize: 12, color: "var(--faint)", letterSpacing: 2 }}>SCORE</div>
                 <div style=${{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center", marginTop: 4 }}>
-                  <button onClick=${() => fetchScores(false)} style=${{ fontSize: 10, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 700 }}>🔄 Sync Now</button>
+                  <button onClick=${() => window.dispatchEvent(new CustomEvent("manualSyncTrigger"))} style=${{ fontSize: 10, padding: "6px 14px", borderRadius: 8, border: "1px solid var(--gold)", background: "var(--gold-glow)", color: "var(--gold)", fontWeight: 700 }}>🔄 Sync Now</button>
                   ${isHost && html`
                     <div style=${{ display: "flex", alignItems: "center", gap: 4 }}>
                       <span style=${{ fontSize: 8, color: autoOn ? "#22C55E" : "#EF4444", fontWeight: 700 }}>● ${autoOn ? "AUTO-SYNC ON" : "AUTO-SYNC OFF"}</span>
@@ -2395,13 +2327,83 @@
         };
       }, []);
 
+      const fetchScores = async (isAuto) => {
+        try {
+          if (!isAuto) toast("Syncing scores...");
+          const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard");
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const json = await res.json();
+          const game = json.events?.find(function (e) {
+            return (e.shortName && (e.shortName.includes("SEA") || e.shortName.includes("NE"))) || (e.name && e.name.includes("Super Bowl"));
+          });
+          if (!game) { if (!isAuto) toast("No game data found."); return; }
+          const competitors = game.competitions[0].competitors;
+          const sea = competitors.find(function (c) { return c.team.abbreviation === "SEA"; });
+          const ne = competitors.find(function (c) { return c.team.abbreviation === "NE"; });
+
+          if (sea && ne) {
+            const seaLines = sea.linescores || [];
+            const neLines = ne.linescores || [];
+            const newSea = [...(data.scores?.SEA || [null, null, null, null])];
+            const newNe = [...(data.scores?.NE || [null, null, null, null])];
+
+            let changed = false;
+            for (let i = 0; i < 4; i++) {
+              const sval = seaLines[i] ? seaLines[i].value : null;
+              const nval = neLines[i] ? neLines[i].value : null;
+              if (sval !== newSea[i] || nval !== newNe[i]) {
+                newSea[i] = sval; newNe[i] = nval;
+                changed = true;
+              }
+            }
+
+            const gm = game.status;
+            const newMeta = {
+              status: gm.type.name,
+              period: gm.period,
+              clock: gm.displayClock,
+              detail: gm.type.detail,
+              seaTotal: parseInt(sea.score) || 0,
+              neTotal: parseInt(ne.score) || 0
+            };
+            const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
+
+            const autoOn = data.settings?.autoScoreSync !== false;
+            if ((changed || metaChanged) && isHost && autoOn && dbr) {
+              dbr.update({
+                scores: { SEA: newSea, NE: newNe },
+                gameMeta: newMeta,
+                feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
+              });
+              if (!isAuto) toast("Scores updated for everyone!");
+            } else {
+              // Non-hosts or manual syncs will see the local update via React state if we implement it,
+              // but for now they rely on host pushing or looking at local console.
+              // Actually, let's update local state so viewer feels it's real-time.
+              if (changed || metaChanged) {
+                setData(prev => ({ ...prev, scores: { SEA: newSea, NE: newNe }, gameMeta: newMeta }));
+                if (!isAuto) toast("Local view updated!");
+              } else if (!isAuto) {
+                toast("Already up to date.");
+              }
+            }
+          }
+        } catch (e) {
+          if (!isAuto) toast("Score sync failed.");
+          console.error("Score fetch error:", e);
+        }
+      };
+
       useEffect(() => {
-        if (!isHost || !joined) return;
-        const interval = setInterval(() => {
-          window.dispatchEvent(new CustomEvent("autoSyncTrigger"));
-        }, 30000); // Every 30 seconds for real-time feel
-        return () => clearInterval(interval);
-      }, [isHost, joined]);
+        if (!joined) return;
+        const interval = setInterval(() => fetchScores(true), 30000);
+        const h1 = () => fetchScores(false);
+        window.addEventListener("manualSyncTrigger", h1);
+        return () => {
+          clearInterval(interval);
+          window.removeEventListener("manualSyncTrigger", h1);
+        };
+      }, [joined, isHost, data.scores, data.gameMeta, data.settings]);
 
       // #22 FIX: Winner check + notification
       const prevScoresRef = useRef(null);
