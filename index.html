@@ -769,8 +769,7 @@
         onJoin(n, room.trim().toUpperCase() || "MAIN");
       };
 
-      return html`
-        <div style = ${
+      return html `<div style=${
           {
             minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               background: "radial-gradient(ellipse at 30% 20%, " + NAV + " 0%, #0a0f18 60%, #10060a 100%)",
@@ -827,7 +826,7 @@
         }}>ENTER GAME →</button>
             </div>
           </div>
-        </div>
+        </div >
         `;
     }
 
@@ -840,7 +839,7 @@
       const pot = claimed * (data.pool?.pricePerSquare || 0);
 
       return html`
-        <div className = "header-bar" style = ${
+        < div className = "header-bar" style = ${
         {
           background: "linear-gradient(180deg, rgba(17,24,39,0.98) 0%, rgba(10,15,24,0.95) 100%)",
             borderBottom: "1px solid var(--border)",
@@ -888,17 +887,17 @@
             </div>
           </div>
 
-          <!--Thin progress bar(4px)-->
+          <!--Thin progress bar(4px)-- >
           <div style=${{ height: 3, background: "var(--border)", borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
             <div style=${{ height: "100%", width: claimed + "%", background: "linear-gradient(90deg, " + SEA + ", var(--gold), " + NER + ")", borderRadius: 2, transition: "width .5s ease" }} />
           </div>
-          <!--Micro info line-->
+          <!--Micro info line-- >
         <div style=${{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--faint)", marginTop: 3 }}>
           <span>${claimed}/100</span>
           ${pot > 0 && html`<span style=${{ color: "var(--gold)" }}>💰 $${pot}</span>`}
           <span>${Object.keys(safeGrid(data.grid).filter(Boolean).reduce((a, n) => ({ ...a, [n]: 1 }), {}) || {}).length} players</span>
         </div>
-        </div>
+        </div >
 
       ;
     }
@@ -1291,7 +1290,7 @@
                 }, [data.props, data.propAnswers]);
 
                 return html`
-        <div style = ${{ padding: "16px", animation: "fadeIn .3s ease" }}>
+        <div style=${{ padding: "16px", animation: "fadeIn .3s ease" }}>
           <div style=${{ display: "flex", gap: 4, marginBottom: 16, background: "var(--card)", borderRadius: 10, padding: 3 }}>
             ${[["picks", "My Picks"], ["host", "Host"], ["results", "Results"]].map(([k, l]) => html`
               <button key=${k} onClick=${() => setSub(k)} style=${{
@@ -1399,7 +1398,7 @@
     })}
                     </div>
                   `}
-                </div>
+                </div >
 
       ;
           })}
@@ -1434,7 +1433,7 @@
       const feed = useMemo(() => [...(data.feed || [])].reverse(), [data.feed]);
 
       return html`
-        <div style = ${ { padding: "16px", animation: "fadeIn .3s ease", display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" } }>
+        <div style=${ { padding: "16px", animation: "fadeIn .3s ease", display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" } }>
           <div style=${{ display: "flex", gap: 4, marginBottom: 12, background: "var(--card)", borderRadius: 10, padding: 3 }}>
             ${[["chat", "💬 Chat"], ["activity", "📋 Activity"]].map(([k, l]) => html`
             <button key=${k} onClick=${() => setSub(k)} style=${{
@@ -1508,7 +1507,7 @@
             `)}
           </div>
         `}
-      </div>
+      </div >
 
       ;
     }
@@ -1545,7 +1544,7 @@
                   <div key=${p.id} style=${{ background: "var(--card)", padding: "12px", borderRadius: 12, marginBottom: 8, border: "1px solid var(--border)" }}>
                     <div style=${{ fontSize: 13, marginBottom: 8 }}>${p.q}</div>
                     <div style=${{ display: "flex", gap: 4 }}>
-                      ${p.o.map(o => html`
+                      ${p.opts.map(o => html`
                         <button key=${o} onClick=${() => { if (data.playerMeta?.[myName]?.confirmed) return toast("Locked!"); dbr.child("props").child(myName).child(p.id).set(o); }}
                           style=${{ flex: 1, padding: "8px", borderRadius: 6, border: "none", background: pick === o ? "var(--gold)" : "var(--card2)", color: pick === o ? "#000" : "#fff", fontSize: 11, fontWeight: 700 }}
                         >${o}</button>
@@ -1575,26 +1574,7 @@
     }
 
     // ── Chat Tab ──────────────────────────────────────────────────
-    function ChatTab({ data, myName, dbr }) {
-      const [msg, setMsg] = useState("");
-      const send = () => { if (!msg.trim()) return; dbr.child("chat").push({ who: myName, msg: msg.trim(), ts: Date.now() }); setMsg(""); };
-      return html`
-        <div style = ${{ padding: "16px", display: "flex", flexDirection: "column", height: "100%" }}>
-          <div style=${{ flex: 1, overflowY: "auto", marginBottom: 12 }}>
-            ${(data.chat ? Object.entries(data.chat) : []).map(([k, m]) => html`
-              <div key=${k} style=${{ marginBottom: 8, background: m.who === myName ? "var(--gold-glow)" : "var(--card)", padding: "8px", borderRadius: 10 }}>
-                <div style=${{ fontSize: 10, color: "var(--soft)", marginBottom: 2 }}>${m.who}</div>
-                <div style=${{ fontSize: 13 }}>${m.msg}</div>
-              </div>
-            `)}
-          </div>
-          <div style=${{ display: "flex", gap: 8 }}>
-            <input value=${msg} onChange=${e => setMsg(e.target.value)} onKeyDown=${e => e.key === "Enter" && send()} placeholder="Type message..." style=${{ flex: 1, background: "var(--card)", border: "1px solid var(--border)", padding: "10px", borderRadius: 8, color: "#fff" }} />
-            <button onClick=${send} style=${{ background: "var(--gold)", color: "#000", border: "none", padding: "0 16px", borderRadius: 8, fontWeight: 700 }}>Send</button>
-          </div>
-        </div>
-        `;
-    }
+
 
     // ── Pay Tab (Zelle + Tracking) ────────────────────────────────
     function PayTab({ data, myName, dbr, toast }) {
@@ -1783,7 +1763,7 @@
     }
 
                 return html`
-          <div style = ${ { position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" } }
+          <div style=${ { position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" } }
         onClick = ${ e => e.target === e.currentTarget && onClose() }>
           <div style=${{
             background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "20px", maxWidth: 480, width: "100%",
@@ -1792,7 +1772,7 @@
             <div style=${{ width: 40, height: 4, borderRadius: 2, background: "var(--border2)", margin: "0 auto 16px" }} />
             <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div className="bebas" style=${{ fontSize: 22, letterSpacing: 2, color: "var(--gold)" }}>⚙ SETTINGS</div>
-              <!-- #7 FIX: Proper toggle switch for dark mode -->
+
               <div style=${{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style=${{ fontSize: 12, color: "var(--soft)" }}>${isDark ? "🌙" : "☀️"}</span>
                 <button className=${"toggle-switch" + (isDark ? " on" : "")} onClick=${toggleTheme} />
@@ -1803,7 +1783,7 @@
               🙂 Change Avatar
             </button>
 
-            <!-- #11 FIX: Host controls only shown for hosts or after PIN -->
+
             ${isHost ? html`
               <div style=${{ animation: "fadeIn .3s ease" }}>
                 <div style=${{ marginBottom: 20 }}>
@@ -1898,7 +1878,7 @@
               Close
             </button>
           </div>
-        </div>
+        </div >
 
       ;
       }
@@ -1949,7 +1929,7 @@
                 const pps = data.pool?.pricePerSquare || 5;
                 const split = data.pool?.payoutSplit || [25, 25, 25, 25];
                 return html`
-          <div style = ${ { position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" } }
+          <div style=${ { position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "flex-end", justifyContent: "center" } }
         onClick = ${ e => e.target === e.currentTarget && onClose() }>
           <div style=${{
             background: "var(--bg)", borderRadius: "20px 20px 0 0", padding: "24px", maxWidth: 480, width: "100%",
@@ -1976,7 +1956,7 @@
             </div>
             <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>Got it!</button>
           </div>
-        </div>
+        </div >
 
       ;
       }
@@ -2044,7 +2024,7 @@
                 });
 
                 return html`
-          <div style = ${ { position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 } } onClick = ${ onClose }>
+          <div style=${ { position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 } } onClick = ${ onClose }>
             <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--border)", animation: "slideUp .3s ease", maxHeight: "80vh", overflowY: "auto" }}
               onClick=${e => e.stopPropagation()}>
               <div className="bebas" style=${{ fontSize: 24, color: "var(--text)", marginBottom: 8, textAlign: "center" }}>MY WINNING NUMBERS</div>
@@ -2078,7 +2058,7 @@
             `}
             <button onClick=${onClose} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid var(--border2)", background: "var(--card)", color: "var(--text)", fontWeight: 700, fontSize: 14, marginTop: 20 }}>Close</button>
           </div>
-        </div>
+        </div >
 
       ;
       }
@@ -2130,7 +2110,7 @@
                 const pickCount = Object.keys(myPicks).length;
 
                 return html`
-          <div style = ${ { position: "fixed", inset: 0, zIndex: 3000, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 } }>
+          <div style=${ { position: "fixed", inset: 0, zIndex: 3000, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 } }>
             <div style=${{ background: "var(--card)", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%", border: "1px solid var(--border2)", animation: "slideUp .3s ease" }}>
               <div className="bebas" style=${{ fontSize: 24, letterSpacing: 2, color: "var(--gold)", marginBottom: 16, textAlign: "center" }}>🔐 LOCK IN PICKS</div>
 
@@ -2185,7 +2165,7 @@
                 background: "transparent", color: "var(--soft)", fontSize: 14, fontWeight: 700
               }}>CANCEL</button>
             </div>
-        </div>
+        </div >
           `;
 
       ;
