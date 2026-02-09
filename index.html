@@ -833,8 +833,8 @@
     // ── #6 FIX: Compact Header (~60px) ────────────────────────────
     function GameHeader({ data, myName }) {
       const { status, cd } = useGameStatus(data);
-      const totalSea = (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
-      const totalNe = (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
+      const totalSea = data.gameMeta?.seaTotal ?? (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
+      const totalNe = data.gameMeta?.neTotal ?? (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
       const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
       const pot = claimed * (data.pool?.pricePerSquare || 0);
 
@@ -923,10 +923,10 @@
 
       const maxPP = data.settings?.maxPerPlayer || 0;
       const justClaimedRef = useRef(null);
-      const totalSea = (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
-      const totalNe = (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
+      const totalSea = data.gameMeta?.seaTotal ?? (data.scores?.SEA || []).reduce((a, b) => a + (b || 0), 0);
+      const totalNe = data.gameMeta?.neTotal ?? (data.scores?.NE || []).reduce((a, b) => a + (b || 0), 0);
       const gs = useGameStatus(data);
-      const isLive = gs.status === "LIVE";
+      const isLive = gs.status === "LIVE" || (data.gameMeta?.status && data.gameMeta.status !== "STATUS_SCHEDULED");
 
       const claimSquare = (r, c) => {
         // Robust check for grid existence
@@ -1320,7 +1320,9 @@
               status: gm.type.name,
               period: gm.period,
               clock: gm.displayClock,
-              detail: gm.type.detail
+              detail: gm.type.detail,
+              seaTotal: parseInt(sea.score) || 0,
+              neTotal: parseInt(ne.score) || 0
             };
             const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
 
@@ -2397,7 +2399,7 @@
         if (!isHost || !joined) return;
         const interval = setInterval(() => {
           window.dispatchEvent(new CustomEvent("autoSyncTrigger"));
-        }, 60000); // Every 60 seconds
+        }, 30000); // Every 30 seconds for real-time feel
         return () => clearInterval(interval);
       }, [isHost, joined]);
 
