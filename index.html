@@ -1309,7 +1309,11 @@
             cumN = data.scores.NE.slice(0, i + 1).reduce((a, b) => a + (parseInt(b) || 0), 0);
           }
         }
-        const winner = hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
+        const currentPeriod = data.gameMeta?.period || 1;
+        const isFinished = (i < 3 && currentPeriod > (i + 1)) ||
+          (i === 3 && data.gameMeta?.status === "STATUS_FINAL");
+
+        const winner = isFinished && hasSc && data.colNums && data.rowNums ? getWinner(data.grid, data.colNums, data.rowNums, cumS, cumN) : null;
         const payout = Math.round(totalPot * split[i] / 100);
         return { q, i, seaQ, neQ, cumS, cumN, winner, payout, hasSc };
       });
