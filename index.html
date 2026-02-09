@@ -654,7 +654,35 @@
       tiebreaker: { question: "Total combined points in the game?", answers: {} },
     };
 
-    function dbRef(room) { return rtdb.ref("rooms/" + (room || "MAIN")); }
+    const WRITE_LOCK = true; // 🔒 SECURITY: Prevents ALL database writes
+
+    function dbRef(room) {
+      const ref = rtdb.ref("rooms/" + (room || "MAIN"));
+      if (WRITE_LOCK) {
+        // Override write methods to prevent modifications
+        const originalSet = ref.set.bind(ref);
+        const originalUpdate = ref.update.bind(ref);
+        const originalRemove = ref.remove.bind(ref);
+        const originalPush = ref.push.bind(ref);
+
+        ref.set = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+        ref.update = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+        ref.remove = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+        ref.push = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return { key: null }; };
+
+        // Also block child writes
+        const originalChild = ref.child.bind(ref);
+        ref.child = (path) => {
+          const childRef = originalChild(path);
+          childRef.set = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+          childRef.update = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+          childRef.remove = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return Promise.resolve(); };
+          childRef.push = () => { console.warn("🔒 WRITE BLOCKED: Database is locked"); return { key: null }; };
+          return childRef;
+        };
+      }
+      return ref;
+    }
 
     // ── #19 FIX: Unique player ID ─────────────────────────────────
     function getPlayerId(name) {
