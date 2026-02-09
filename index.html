@@ -856,22 +856,24 @@
         }}>
           <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <!-- SEA -->
-            <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
-              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 34, height: 34, flexShrink: 0, objectFit: "contain" }} alt="SEA" />
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", gap: 12 }}>
+              <div style=${{ position: "relative" }}>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 40, height: 40, flexShrink: 0, objectFit: "contain", filter: "drop-shadow(0 0 8px " + SEA + "44)" }} alt="SEA" />
+              </div>
               <div style=${{ display: "flex", flexDirection: "column" }}>
-                <div className="bebas" style=${{ fontSize: 11, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
-                <div className="bebas" style=${{ fontSize: 28, lineHeight: 1, color: "#fff", textShadow: "0 0 10px " + SEA + "66" }}>${totalSea}</div>
+                <div className="bebas" style=${{ fontSize: 13, color: SEA, letterSpacing: 2, lineHeight: 1 }}>SEA</div>
+                <div className="bebas" style=${{ fontSize: 36, lineHeight: 1, color: SEA, textShadow: "0 0 20px " + SEA + "aa" }}>${totalSea}</div>
               </div>
             </div>
 
             <!-- Status Center -->
-            <div style=${{ textAlign: "center", padding: "0 4px", minWidth: 90 }}>
-              ${status === "FINAL" && html`<span className="status-badge final">FINAL</span>`}
+            <div style=${{ textAlign: "center", padding: "0 8px", minWidth: 100 }}>
+              ${status === "FINAL" && html`<span className="status-badge final" style=${{ fontSize: 10, padding: "4px 12px" }}>FINAL</span>`}
               ${status === "LIVE" && html`
                 <div style=${{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div className="status-badge live" style=${{ fontSize: 8, padding: "2px 8px" }}>LIVE</div>
-                  <div style=${{ fontSize: 11, color: "var(--gold)", fontWeight: 800, marginTop: 4, letterSpacing: 0.5 }}>
-                    ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`IN PLAY`}
+                  <div className="status-badge live" style=${{ fontSize: 10, padding: "3px 10px", background: "rgba(239, 68, 68, 0.2)" }}>LIVE</div>
+                  <div style=${{ fontSize: 14, color: "var(--gold)", fontWeight: 900, marginTop: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+                    ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} — ${data.gameMeta.clock}` : html`IN PLAY`}
                   </div>
                 </div>
               `}
@@ -880,8 +882,8 @@
                 <div style=${{ display: "flex", gap: 3, justifyContent: "center" }}>
                   ${[cd.h, cd.m, cd.s].map((v, i) => html`
                     <${React.Fragment} key=${i}>
-                      <span className="bebas" style=${{ fontSize: 16, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
-                      ${i < 2 && html`<span style=${{ color: "var(--faint)", fontSize: 12 }}>:</span>`}
+                      <span className="bebas" style=${{ fontSize: 18, color: "var(--text)" }}>${String(v).padStart(2, "0")}</span>
+                      ${i < 2 && html`<span style=${{ color: "var(--faint)", fontSize: 14 }}>:</span>`}
                     </${React.Fragment}>
                   `)}
                 </div>
@@ -889,12 +891,14 @@
             </div>
 
             <!-- NE -->
-            <div style=${{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10 }}>
+            <div style=${{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12 }}>
               <div style=${{ display: "flex", flexDirection: "column", textAlign: "right" }}>
-                <div className="bebas" style=${{ fontSize: 11, color: NER, letterSpacing: 2, lineHeight: 1 }}>NE</div>
-                <div className="bebas" style=${{ fontSize: 28, lineHeight: 1, color: "#fff", textShadow: "0 0 10px " + NER + "66" }}>${totalNe}</div>
+                <div className="bebas" style=${{ fontSize: 13, color: NER, letterSpacing: 2, lineHeight: 1 }}>NE</div>
+                <div className="bebas" style=${{ fontSize: 36, lineHeight: 1, color: NER, textShadow: "0 0 20px " + NER + "aa" }}>${totalNe}</div>
               </div>
-              <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 34, height: 34, flexShrink: 0, objectFit: "contain" }} alt="NE" />
+              <div style=${{ position: "relative" }}>
+                <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 40, height: 40, flexShrink: 0, objectFit: "contain", filter: "drop-shadow(0 0 8px " + NER + "44)" }} alt="NE" />
+              </div>
             </div>
           </div>
 
@@ -1061,23 +1065,6 @@
 
       return html`
         <div style=${{ padding: "4px 4px", animation: "fadeIn .3s ease", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          ${isLive && html`
-             <div style=${{ background: "var(--card)", borderRadius: 12, padding: "8px 14px", margin: "0 auto 10px", border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 600, width: "100%" }}>
-               <div style=${{ display: "flex", alignItems: "center", gap: 10 }}>
-                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/sea.png" style=${{ width: 20, height: 20 }} alt="SEA" />
-                 <span className="bebas" style=${{ fontSize: 16, color: "#fff" }}>${totalSea}</span>
-                 <span style=${{ color: "var(--faint)", fontSize: 12 }}>—</span>
-                 <span className="bebas" style=${{ fontSize: 16, color: "#fff" }}>${totalNe}</span>
-                 <img src="https://a.espncdn.com/i/teamlogos/nfl/500/ne.png" style=${{ width: 20, height: 20 }} alt="NE" />
-               </div>
-               <div style=${{ textAlign: "right", display: "flex", alignItems: "center", gap: 8 }}>
-                 <div style=${{ color: "var(--gold)", fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
-                   ${data.gameMeta?.clock ? html`Q${data.gameMeta.period} ${data.gameMeta.clock}` : html`LIVE`}
-                 </div>
-                 <div className="status-badge live" style=${{ fontSize: 7, padding: "2px 5px" }}>LIVE</div>
-               </div>
-             </div>
-          `}
           <!-- Quick actions -->
           ${!data.isLocked && html`
             <div style=${{ marginBottom: 10 }}>
