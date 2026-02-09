@@ -1226,7 +1226,7 @@
                       <span style=${{ fontSize: "clamp(8px,2.2vw,12px)", fontWeight: 900, color: "#fff", lineHeight: 1, textShadow: "0 1px 3px rgba(0,0,0,0.8)", textAlign: "center", marginTop: 2, letterSpacing: "0.5px" }}>
                         ${cell.length > 5 ? cell.substring(0, 4).toUpperCase() : cell.toUpperCase()}
                       </span>
-                      ${isWin && html`<span style=${{ fontSize: 8, color: "#000", background: "var(--gold)", padding: "2px 4px", borderRadius: 4, fontWeight: 900, lineHeight: 1, position: "absolute", top: 2, right: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>${isWin.quarter}</span>`}
+                      ${isWin && isWin.isFinished && html`<span style=${{ fontSize: 8, color: "#000", background: "var(--gold)", padding: "2px 4px", borderRadius: 4, fontWeight: 900, lineHeight: 1, position: "absolute", top: 2, right: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>${isWin.quarter}</span>`}
                     ` : null}
                   </div>
                         `;
@@ -2435,14 +2435,31 @@
             };
             const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(data.gameMeta || {});
 
+
             const autoOn = data.settings?.autoScoreSync !== false;
             if ((changed || metaChanged) && isHost && autoOn && dbr) {
-              dbr.update({
-                scores: { SEA: newSea, NE: newNe },
-                gameMeta: newMeta,
-                feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
-              });
-              if (!isAuto) toast("Scores updated for everyone!");
+              // SMART SYNC: Only update scores if game has actually progressed
+              const oldPeriod = data.gameMeta?.period || 0;
+              const oldStatus = data.gameMeta?.status || "";
+              const periodAdvanced = newMeta.period > oldPeriod;
+              const becameFinal = newMeta.status === "STATUS_FINAL" && oldStatus !== "STATUS_FINAL";
+
+              // Only push score updates if period advanced or game became final
+              if (periodAdvanced || becameFinal || !data.gameMeta) {
+                dbr.update({
+                  scores: { SEA: newSea, NE: newNe },
+                  gameMeta: newMeta,
+                  feed: addFeed(data, "🤖", "Live update: " + gm.type.detail)
+                });
+                if (!isAuto) toast("Scores updated for everyone!");
+              } else if (metaChanged) {
+                // Only update metadata (clock, detail) without touching scores
+                dbr.child("gameMeta").update(newMeta);
+                if (!isAuto) toast("Game status updated!");
+              } else {
+                console.log("Auto-sync: Skipping score update (period hasn't advanced)");
+                if (!isAuto) toast("Scores unchanged (waiting for period advance)");
+              }
             } else {
               // Non-hosts or manual syncs will see the local update via React state if we implement it,
               // but for now they rely on host pushing or looking at local console.
