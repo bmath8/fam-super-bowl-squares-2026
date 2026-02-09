@@ -692,6 +692,20 @@
       }, []);
     }
 
+    function getPaidSquareCount(grid, playerMeta) {
+      let count = 0;
+      if (!grid || !playerMeta) return 0;
+      grid.forEach(row => {
+        if (!Array.isArray(row)) return;
+        row.forEach(cell => {
+          if (cell && playerMeta[cell]?.playMode === 'money') {
+            count++;
+          }
+        });
+      });
+      return count;
+    }
+
     function getWinner(grid, colNums, rowNums, seaScore, neScore) {
       if (!colNums || !rowNums || seaScore == null || neScore == null) return null;
       const sc = seaScore % 10, nc = neScore % 10;
@@ -1283,8 +1297,9 @@
       const [tempNe, setTempNe] = useState("");
       const allNames = useMemo(() => [...new Set(safeGrid(data.grid).filter(Boolean) || [])], [data.grid]);
       const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
+      const paidSquares = getPaidSquareCount(data.grid, data.playerMeta);
       const pps = data.pool?.pricePerSquare || 0;
-      const totalPot = claimed * pps;
+      const totalPot = paidSquares * pps;
       const split = data.pool?.payoutSplit || [25, 25, 25, 25];
 
       const saveScore = (qi) => {
@@ -2040,8 +2055,9 @@
     function WinnerModal({ data, onClose }) {
       const allWinners = [];
       const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
+      const paidSquares = getPaidSquareCount(data.grid, data.playerMeta);
       const split = data.pool?.payoutSplit || [25, 25, 25, 25];
-      const totalPot = claimed * (data.pool?.pricePerSquare || 0);
+      const totalPot = paidSquares * (data.pool?.pricePerSquare || 0);
       QS.forEach((q, i) => {
         const seaQ = (data.scores?.SEA || [])[i], neQ = (data.scores?.NE || [])[i];
         if (seaQ != null && neQ != null) {
@@ -2534,8 +2550,8 @@
                 });
               }
               if (winner === myName) {
-                const claimed = safeGrid(data.grid).filter(Boolean).length || 0;
-                const totalPot = claimed * (data.pool?.pricePerSquare || 0);
+                const paidSquares = getPaidSquareCount(data.grid, data.playerMeta);
+                const totalPot = paidSquares * (data.pool?.pricePerSquare || 0);
                 const split = data.pool?.payoutSplit || [25, 25, 25, 25];
                 const payout = Math.round(totalPot * split[i] / 100);
                 sendWinNotification(QS[i], payout);
