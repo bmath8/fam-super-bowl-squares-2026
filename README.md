@@ -9,7 +9,7 @@ Built for Super Bowl LX (Seahawks vs Patriots) and used by a real group on game 
 ![Firebase](https://img.shields.io/badge/Firebase-Realtime_DB-FFCA28)
 ![Zero build](https://img.shields.io/badge/deploy-single_file_static-informational)
 
-> **Live demo:** _deploying — link coming here_
+> **Live demo:** https://fam-super-bowl-squares-2026-4gjaeglh2-bmath8s-projects.vercel.app
 
 ## Features
 
