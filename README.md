@@ -1,35 +1,48 @@
-# 🏈 Super Bowl Squares — Family Edition
+# 🏈 Super Bowl Squares — Real-Time Multiplayer Pool
 
-A single-file, real-time Super Bowl squares + prop-bet web app. Built to run a live family
-pool during the game: a 10×10 grid, randomized number assignment, automatic quarter-by-quarter
-winner highlighting, live score sync, a prop-bet sheet, a chat feed, payouts, and a host/admin
-console — all in one `index.html` (no build step).
+A live, multiplayer **Super Bowl Squares** web app for running a family/friends pool. Players claim squares on a 10×10 grid and everyone's board updates **in real time**; winners are tracked automatically each quarter based on the score's last digits — with celebration animations when a square is claimed or wins.
 
-## Stack
-- **Frontend:** React (UMD) + `htm` tagged templates — zero build, runs from a single file
-- **Realtime backend:** Firebase Realtime Database (live grid + scores + chat across devices)
-- **State:** optimistic UI, live listeners, host-only write controls, security write-lock
+Built for Super Bowl LX (Seahawks vs Patriots) and used by a real group on game day.
 
-## 🎮 Live demo (public build)
-This repo ships in **DEMO_MODE** (`index.html`, top of the app script → `const DEMO_MODE = true`).
-The demo is **fully self-contained**: it loads a pre-filled example board (grid, final score,
-chat feed, props) entirely in the browser — **no backend, no keys, no data leaves the page.**
-Just open `index.html` or host it as a static file.
+![Live Demo](https://img.shields.io/badge/demo-live-success)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![Firebase](https://img.shields.io/badge/Firebase-Realtime_DB-FFCA28)
+![Zero build](https://img.shields.io/badge/deploy-single_file_static-informational)
 
-## 🔌 Running it live (real pool)
-1. Create your own Firebase project → Realtime Database.
-2. Set `const DEMO_MODE = false`.
-3. Provide config via a `window.SBSQ_ENV` object (e.g. a small `env.js` you don't commit):
-   ```html
-   <script>window.SBSQ_ENV = { FIREBASE_API_KEY: "…", FIREBASE_AUTH_DOMAIN: "…",
-     FIREBASE_DB_URL: "…", FIREBASE_PROJECT_ID: "…", FIREBASE_STORAGE_BUCKET: "…",
-     FIREBASE_SENDER_ID: "…", FIREBASE_APP_ID: "…" };</script>
-   ```
-No secrets are committed to this repo — the public build carries only placeholders.
+> **Live demo:** _deploying — link coming here_
 
-## Highlights
-- 10×10 grid with randomized, lockable number assignment
-- Automatic per-quarter winner detection + payout math
-- Live prop-bet sheet and reactions
-- Host/admin console with a hard write-lock for post-game read-only mode
-- Deployed via Netlify (`netlify.toml` included)
+## Features
+
+- **10×10 squares grid** with row/column digits assigned for the two teams.
+- **Real-time sync** — claims and score updates propagate instantly to every connected device via Firebase Realtime Database (no refresh).
+- **Claim flow** with name entry and animated feedback (pop / ripple / flash) when a square is taken.
+- **Automatic quarter winners** — computed from the last digit of each team's score at the end of each quarter.
+- **Live scoreboard** and payout tracking per quarter.
+- **Admin controls** for setting/finalizing scores and managing the room.
+- **Mobile-first** — designed to be used on phones during the game.
+
+## Tech
+
+- **React 18** (UMD, no build step) for the UI.
+- **Firebase Realtime Database** for shared state + live multiplayer sync.
+- Ships as a **single self-contained `index.html`** — all dependencies load from CDN, so it deploys as a static file anywhere (Vercel / Netlify / any static host).
+
+## Run locally
+
+Because it's a single static file, just open it:
+
+```bash
+# any static server, e.g.
+npx serve .
+# then open the printed localhost URL
+```
+
+Firebase config is embedded for the shared demo room; access to writes is restricted by Firebase security rules.
+
+## Deploy
+
+Static single-file deploy — no build required. On Vercel, the included `vercel.json` serves the repo root as static content. On Netlify, `netlify.toml` does the same.
+
+## Notes
+
+This was a real, ship-it-for-game-day project. The board reflects the completed Super Bowl LX pool, so the live demo shows a finished game end-to-end.
