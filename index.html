@@ -623,19 +623,27 @@
     const KICKOFF = new Date("2026-02-08T18:30:00-05:00").getTime();
     const GAME_OVER = true; // Disable auto-sync, game is over
 
+    // ── DEMO MODE ─────────────────────────────────────────────────
+    // Public/portfolio build: fully self-contained, no backend, no keys.
+    // Set DEMO_MODE = false and fill firebaseConfig from env to run live.
+    const DEMO_MODE = true;
+
     // ── Firebase ──────────────────────────────────────────────────
     trace("Firebase-Initializing");
     const firebaseConfig = {
-      apiKey: "AIzaSyAEEWLXshtNMrf317dgD5cDpDmETLDhueo",
-      authDomain: "super-bowl-squares-fam-2026.firebaseapp.com",
-      databaseURL: "https://super-bowl-squares-fam-2026-default-rtdb.firebaseio.com",
-      projectId: "super-bowl-squares-fam-2026",
-      storageBucket: "super-bowl-squares-fam-2026.firebasestorage.app",
-      messagingSenderId: "393390824832",
-      appId: "1:393390824832:web:d06bca315fd0a991bb7565"
+      apiKey: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_API_KEY) || "",
+      authDomain: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_AUTH_DOMAIN) || "",
+      databaseURL: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_DB_URL) || "",
+      projectId: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_PROJECT_ID) || "",
+      storageBucket: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_STORAGE_BUCKET) || "",
+      messagingSenderId: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_SENDER_ID) || "",
+      appId: (window.SBSQ_ENV && window.SBSQ_ENV.FIREBASE_APP_ID) || ""
     };
-    const app = firebase.initializeApp(firebaseConfig);
-    const rtdb = firebase.database();
+    let rtdb = null;
+    if (!DEMO_MODE) {
+      const app = firebase.initializeApp(firebaseConfig);
+      rtdb = firebase.database();
+    }
     trace("Firebase-Initialized");
 
     const DEFAULT = {
@@ -656,7 +664,43 @@
 
     const WRITE_LOCK = true; // 🔒 SECURITY: Prevents ALL database writes
 
+    // Build a rich, self-contained demo board (no backend needed)
+    function buildDemoData() {
+      const names = ["Mom","Dad","Uncle Rob","Aunt Sue","Cousin Ray","Priya","Jordan","Sam","Nina","Leo","Maya","Dev","Tess","Omar","Kim","Alex"];
+      const grid = Array.from({ length: 10 }, () => Array(10).fill(null));
+      for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
+        if (Math.random() < 0.82) grid[r][c] = names[Math.floor(Math.random() * names.length)];
+      }
+      const shuffled = () => [0,1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+      return {
+        ...DEFAULT,
+        grid,
+        colNums: shuffled(), rowNums: shuffled(), isLocked: true,
+        scores: { SEA: [3, 9, 7, 10], NE: [0, 0, 0, 13] },
+        gameState: "FINAL",
+        gameMeta: { status: "STATUS_FINAL", period: 4, clock: "0:00", detail: "Final", seaTotal: 29, neTotal: 13 },
+        feed: [
+          { name: "Uncle Rob", text: "SEA covers the 3rd quarter! 🦅", ts: Date.now() - 5400000 },
+          { name: "Priya", text: "Called it — margin 14-20 🎯", ts: Date.now() - 3600000 },
+          { name: "Dad", text: "GG everyone, payouts sent 💸", ts: Date.now() - 900000 },
+        ],
+        playerMeta: { "Mom": { avatar: "🦊" }, "Dad": { avatar: "🐻" }, "Priya": { avatar: "🦉" } },
+      };
+    }
+
     function dbRef(room) {
+      if (DEMO_MODE) {
+        // Fake ref: serves demo data, swallows all writes. Fully offline.
+        const demo = buildDemoData();
+        const noop = () => Promise.resolve();
+        const makeChild = (obj) => ({
+          on: (evt, cb) => { cb && cb({ val: () => obj }); },
+          once: (evt, cb) => { const r = { val: () => obj }; cb && cb(r); return Promise.resolve(r); },
+          set: noop, update: noop, remove: noop, push: () => ({ key: null }),
+          child: (p) => makeChild(obj && typeof obj === "object" ? obj[p] ?? null : null),
+        });
+        return makeChild(demo);
+      }
       const ref = rtdb.ref("rooms/" + (room || "MAIN"));
       if (WRITE_LOCK) {
         // Override write methods to prevent modifications
