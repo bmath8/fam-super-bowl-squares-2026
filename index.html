@@ -879,6 +879,14 @@
         onJoin(n, room.trim().toUpperCase() || "MAIN");
       };
 
+      // Demo: ?demo=1 auto-joins the finished public game as a guest — no name gate.
+      useEffect(() => {
+        const p = new URLSearchParams(window.location.search);
+        if (p.get("demo") === "1") {
+          onJoin("Guest (demo)", (p.get("room") || "MAIN").toUpperCase());
+        }
+      }, []);
+
       return html`
         <div style=${{
           minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
